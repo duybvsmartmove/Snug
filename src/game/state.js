@@ -1,0 +1,57 @@
+// Trạng thái dùng chung giữa các module. Mọi thứ thay đổi trong lúc chơi nằm ở đây.
+import { bbox } from '../util/geom.js';
+
+// Kích thước logic của màn chơi (canvas được scale để vừa màn hình)
+export const W = 420;
+export const H = 760;
+export const TABLE_Y = 452;        // mép sàn (đồ nằm rải bên dưới)
+export const FLOOR_Y = H - 108;    // sàn vật lý, ngay trên hàng booster
+export const PAD = 14;             // độ dày thành túi
+
+// Túi. Lòng túi là POLYGON (BAG.poly, toạ độ tuyệt đối). left/right/top/bottom là bbox của polygon.
+// Toạ độ cục bộ của level: gốc tại (cx, bottom) = giữa đáy lòng túi, y âm hướng lên.
+export const BAG = {
+  cx: 210, bottom: 404, kind: 'pouch', wall: PAD,
+  poly: [], blocks: [],
+  left: 0, right: 0, top: 0, innerW: 0, innerH: 0,
+  BL: 0, BR: 0, BT: 0, BB: 0,
+};
+
+/** Đặt túi từ level.container */
+export function setContainer(c) {
+  BAG.cx = c.cx ?? 210; BAG.bottom = c.bottom ?? 404; BAG.kind = c.skin || 'pouch';
+  const shape = c.shape && c.shape.length >= 3 ? c.shape : [[-130, -210], [130, -210], [130, 0], [-130, 0]];
+  BAG.poly = shape.map(([x, y]) => [BAG.cx + x, BAG.bottom + y]);
+  BAG.blocks = (c.blocks || []).map(b => ({ x: BAG.cx + b.x, y: BAG.bottom + b.y, w: b.w, h: b.h }));
+  const bb = bbox(BAG.poly);
+  BAG.left = bb.minX; BAG.right = bb.maxX; BAG.top = bb.minY; BAG.bottom = bb.maxY;
+  BAG.innerW = bb.w; BAG.innerH = bb.h;
+  BAG.BL = BAG.left - PAD; BAG.BR = BAG.right + PAD; BAG.BT = BAG.top - 12; BAG.BB = BAG.bottom + PAD + 6;
+}
+setContainer({});
+
+/** Đổi toạ độ cục bộ level ↔ tuyệt đối */
+export const toAbs = (x, y) => ({ x: BAG.cx + x, y: BAG.bottom + y });
+export const toLocal = (x, y) => ({ x: x - BAG.cx, y: y - BAG.bottom });
+
+export const S = {
+  // level / map
+  mapId: 'pack-and-go', map: null, levelIdx: 0, LEVEL: null, ITEMS: [], preview: false,
+  // physics
+  engine: null, world: null, bodies: [], staticBodies: [],
+  // cầm đồ
+  drag: null, selected: null,
+  // cơ chế
+  tethers: [], gone: new Set(), unlockFrames: 0, unlockHinted: false,
+  // booster
+  boosts: { resize: 1, freeze: 1, throw: 1 },
+  // tiến độ
+  checked: new Set(), winFrames: 0, won: false, lost: false, paused: false,
+  // thời gian
+  timeLeft: 0, timerOn: true,
+  // hiệu ứng
+  puffs: [], startTime: 0, shownSec: -1, jiggle: null,
+};
+
+export const partsOf = b => (b.parts.length > 1 ? b.parts.slice(1) : [b]);
+export const isHeld = b => !!(S.drag && (S.drag.group ? S.drag.group.includes(b) : S.drag.body === b));

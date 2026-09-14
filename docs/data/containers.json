@@ -1,0 +1,12 @@
+[
+  {"id":"CTR_01","name":"Backpack","shape":"Rounded top","journeys":["School Day","Weekend Trip","Camping Trip"]},
+  {"id":"CTR_02","name":"Suitcase","shape":"Rounded rectangle","journeys":["Weekend Trip","Beach Vacation"]},
+  {"id":"CTR_03","name":"Cardboard Box","shape":"Rectangle","journeys":["Moving Day","Grocery Shopping"]},
+  {"id":"CTR_04","name":"Tote Bag","shape":"Trapezoid","journeys":["School Day","Beach Vacation","Grocery Shopping"]},
+  {"id":"CTR_05","name":"Lunch Box","shape":"Rounded rectangle","journeys":["School Day","Picnic Day"]},
+  {"id":"CTR_06","name":"Duffel Bag","shape":"Wide rounded rectangle","journeys":["Weekend Trip","Gym Session","Camping Trip"]},
+  {"id":"CTR_07","name":"Picnic Basket","shape":"Oval","journeys":["Picnic Day"]},
+  {"id":"CTR_08","name":"Storage Box","shape":"Wide rectangle","journeys":["Moving Day"]},
+  {"id":"CTR_09","name":"Travel Pouch","shape":"Small rounded rectangle","journeys":["Weekend Trip","Beach Vacation","Camping Trip","Gym Session"]},
+  {"id":"CTR_10","name":"Shopping Bag","shape":"Tall rectangle","journeys":["Grocery Shopping"]}
+]

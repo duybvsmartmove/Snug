@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#EADFD6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Everything Fits</title>
+  <link rel="icon" href="./public/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="./src/styles/main.css">
+</head>
+<body>
+  <div id="phone">
+    <canvas id="game"></canvas>
+
+    <!-- Thanh trên: tên level bên trái, nút tạm dừng bên phải -->
+    <div class="hud top">
+      <div class="titleblock">
+        <div class="eyebrow" id="eyebrow">LEVEL 1</div>
+        <div class="title" id="title">Sunny escape</div>
+      </div>
+      <button class="pause" id="pauseBtn" aria-label="Tạm dừng">
+        <svg viewBox="0 0 24 24"><rect x="7" y="5.4" width="3.6" height="13.2" rx="1.7"/><rect x="13.4" y="5.4" width="3.6" height="13.2" rx="1.7"/></svg>
+      </button>
+    </div>
+
+    <!-- Đồng hồ + số món còn lại: đặt cạnh nhau ở vùng luôn trống, không bao giờ đè lên túi -->
+    <div class="hud timerwrap">
+      <div class="timer" id="clock">1:30</div>
+      <div class="counter"><b id="count">0</b><span>món<br>còn lại</span></div>
+    </div>
+
+    <!-- Toast -->
+    <div class="hint" id="hint"></div>
+
+    <!-- Booster: mỗi nút một màu và một icon đặc, nhìn là hiểu -->
+    <div class="hud dock">
+      <button class="boost b-jiggle" id="bJiggle">
+        <span class="ic">
+          <svg viewBox="0 0 40 40">
+            <!-- túi đang bị giằng, hai bên có vạch rung -->
+            <g transform="rotate(-7 20 22)">
+              <path d="M11 14h18l2.4 17.2a2 2 0 0 1-2 2.3H10.6a2 2 0 0 1-2-2.3z" fill="currentColor"/>
+              <path d="M15.4 14v-2.6a4.6 4.6 0 0 1 9.2 0V14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+              <circle cx="20" cy="23" r="2.6" fill="#fff" opacity=".85"/>
+            </g>
+            <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity=".85">
+              <path d="M5.4 16.5 3 15M5 22l-2.6 1.4M35 16.5 37.4 15M35.4 22l2.6 1.4"/>
+            </g>
+          </svg>
+        </span>
+        <span class="nm">Lắc túi</span><b class="badge">2</b>
+      </button>
+
+      <button class="boost b-resize" id="bResize">
+        <span class="ic">
+          <svg viewBox="0 0 40 40">
+            <!-- món to thu lại thành món nhỏ -->
+            <rect x="6.5" y="6.5" width="27" height="27" rx="4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="4 3.4" opacity=".75"/>
+            <rect x="14" y="14" width="12" height="12" rx="2.6" fill="currentColor"/>
+            <g stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <path d="M10 10.5 13.4 14M13.4 10.5H10v3.4"/>
+              <path d="M30 29.5 26.6 26M26.6 29.5H30v-3.4"/>
+            </g>
+          </svg>
+        </span>
+        <span class="nm">Thu nhỏ</span><b class="badge">2</b>
+      </button>
+
+      <button class="boost b-throw" id="bThrow">
+        <span class="ic">
+          <svg viewBox="0 0 40 40">
+            <!-- món đồ đang rơi vào thùng rác -->
+            <rect x="14.5" y="3" width="11" height="8" rx="2" fill="currentColor" opacity=".55" transform="rotate(18 20 7)"/>
+            <path d="M9 14h22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M16 14v-2h8v2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M11.6 17h16.8l-1.5 16a2 2 0 0 1-2 1.8H15.1a2 2 0 0 1-2-1.8z" fill="currentColor"/>
+            <g stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8">
+              <path d="M17 21.5v8M23 21.5v8"/>
+            </g>
+          </svg>
+        </span>
+        <span class="nm">Bỏ đi</span><b class="badge">1</b>
+      </button>
+    </div>
+
+    <!-- Pause menu -->
+    <div class="overlay" id="pause">
+      <div class="card">
+        <h2>Tạm dừng</h2>
+        <div class="actions col">
+          <button class="cta" id="resumeBtn">Chơi tiếp</button>
+          <button class="cta ghost" id="restartBtn">Chơi lại</button>
+          <div class="lvnav"><button id="prevLv">‹ Level trước</button><button id="nextLv">Level sau ›</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win -->
+    <div class="overlay" id="win">
+      <div class="card">
+        <div class="stars">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></svg>
+        </div>
+        <h2>Vừa khít!</h2>
+        <p id="winText"></p>
+        <div class="actions"><button class="cta ghost" id="again">Chơi lại</button><button class="cta" id="next">Level tiếp →</button></div>
+      </div>
+    </div>
+
+    <!-- Lose -->
+    <div class="overlay" id="lose">
+      <div class="card">
+        <div class="clockicon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></div>
+        <h2>Suýt nữa rồi!</h2>
+        <p id="loseText">Hết giờ.</p>
+        <div class="actions"><button class="cta ghost" id="retry">Thử lại</button><button class="cta" id="extraTime">+60 giây · 100 coin</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

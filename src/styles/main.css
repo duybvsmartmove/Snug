@@ -1,0 +1,138 @@
+/* Bảng màu: hybrid casual, stylized cozy — bão hòa cao, outline đậm (Art Style GDD) */
+:root{
+  --ink:#3B2A4A;
+  --ink-soft:#8C7A99;
+  --rose:#E2637F;
+  --gold:#E2B04A;
+  --mint:#5FBF9B;
+  --card:#FFFFFF;
+  --panel:#F6EFE4;
+  --shadow:0 12px 28px rgba(59,42,74,.18);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:#EADFD6;color:var(--ink);
+  font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;
+  background-image:radial-gradient(circle at 50% 40%, #F6EEE7, #E3D3C7 70%);
+  touch-action:none;-webkit-user-select:none;user-select:none;
+}
+#phone{
+  position:relative;width:min(100vw, calc(100vh * 420 / 760));aspect-ratio:420/760;
+  border-radius:clamp(0px, 4vmin, 36px);overflow:hidden;box-shadow:var(--shadow);background:#EADFD6;
+  font-size:clamp(11px, calc(min(100vw, 100vh * 420 / 760) * .038), 17px);
+}
+canvas#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;left:0;right:0;pointer-events:none}
+.hud > *{pointer-events:auto}
+
+/* ---- thanh trên: tên level bên trái, tạm dừng bên phải ---- */
+.top{top:0;padding:4.2% 4.2% 0;display:flex;align-items:center;gap:.5em}
+.titleblock{
+  flex:0 1 auto;min-width:0;margin-right:auto;
+  background:rgba(255,255,255,.68);backdrop-filter:blur(6px);
+  border-radius:.85em;padding:.36em .85em .46em;
+  box-shadow:0 3px 0 rgba(59,42,74,.08);
+}
+/* một dòng, quá dài thì cắt bớt — không cho xuống dòng làm lệch cả thanh */
+.eyebrow{font:800 .58em "Nunito";letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);
+  line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title{font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:1.42em;line-height:1.1;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* nút tạm dừng cùng chất liệu với thẻ tên level, không còn hình tròn lạc lõng */
+.pause{
+  width:2.6em;height:2.6em;border-radius:.85em;border:0;flex:none;cursor:pointer;
+  background:var(--card);color:var(--ink);
+  box-shadow:0 3px 0 rgba(59,42,74,.14), 0 7px 16px rgba(59,42,74,.1);
+  display:grid;place-items:center;-webkit-tap-highlight-color:transparent;
+}
+.pause svg{width:54%;height:54%;fill:currentColor}
+.pause:active{transform:translateY(3px);box-shadow:0 0 0 rgba(59,42,74,.14)}
+
+/* ---- đồng hồ + số món còn lại ---- */
+.timerwrap{top:13.2%;display:flex;justify-content:center;align-items:center;gap:.5em}
+.timer{
+  font:700 1.5em "Fredoka";color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  background:var(--card);border-radius:.7em;padding:.18em 1.05em;
+  box-shadow:0 4px 0 rgba(59,42,74,.16), 0 8px 18px rgba(59,42,74,.12);
+}
+.timer.urgent{color:#fff;background:var(--rose);box-shadow:0 4px 0 #B94B64;animation:tick .6s infinite alternate}
+@keyframes tick{from{transform:scale(1)}to{transform:scale(1.07)}}
+.counter{
+  display:flex;align-items:center;gap:.35em;
+  background:var(--card);border-radius:.7em;padding:.3em .7em;
+  box-shadow:0 4px 0 rgba(59,42,74,.16), 0 8px 18px rgba(59,42,74,.12);
+}
+.counter b{font:700 1.35em "Fredoka";color:var(--rose);font-variant-numeric:tabular-nums;line-height:1}
+.counter span{font:800 .52em "Nunito";color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;line-height:1.15}
+
+/* ---- toast ---- */
+.hint{position:absolute;left:50%;top:36%;transform:translateX(-50%);
+  background:rgba(59,42,74,.82);color:#fff;font:700 .78em "Nunito";padding:.55em 1em;border-radius:999px;
+  white-space:nowrap;pointer-events:none;transition:opacity .35s, transform .35s;backdrop-filter:blur(4px);z-index:3}
+.hint.hide{opacity:0;transform:translate(-50%,6px)}
+
+/* ---- booster: mỗi nút một màu riêng, icon đặc để nhìn là hiểu ---- */
+.dock{bottom:0;padding:0 3.5% 3.2%;display:flex;justify-content:space-between;gap:2.5%}
+.boost{
+  flex:1;position:relative;border:0;cursor:pointer;border-radius:1.15em;padding:.5em .3em .45em;
+  display:flex;flex-direction:column;align-items:center;gap:.18em;color:#fff;
+  -webkit-tap-highlight-color:transparent;transition:transform .08s;
+}
+.boost .ic{width:2.3em;height:2.3em;display:grid;place-items:center;color:#fff}
+.boost .ic svg{width:100%;height:100%}
+.boost .nm{font:800 .72em "Nunito";letter-spacing:.02em;color:#fff}
+.boost .badge{
+  position:absolute;top:-.45em;right:-.3em;min-width:1.7em;height:1.7em;border-radius:999px;
+  background:#fff;font:800 .78em "Nunito";display:grid;place-items:center;
+  box-shadow:0 2px 5px rgba(59,42,74,.3);
+}
+.b-jiggle{background:#7B4FD8;box-shadow:0 5px 0 #5A34AC, 0 10px 20px rgba(59,42,74,.2)}
+.b-jiggle .badge{color:#5A34AC}
+.b-resize{background:#3D8BFF;box-shadow:0 5px 0 #2A66C8, 0 10px 20px rgba(59,42,74,.2)}
+.b-resize .badge{color:#2A66C8}
+.b-throw{background:#E8434F;box-shadow:0 5px 0 #B92A38, 0 10px 20px rgba(59,42,74,.2)}
+.b-throw .badge{color:#B92A38}
+.boost:active{transform:translateY(4px)}
+.b-jiggle:active{box-shadow:0 1px 0 #5A34AC}
+.b-resize:active{box-shadow:0 1px 0 #2A66C8}
+.b-throw:active{box-shadow:0 1px 0 #B92A38}
+.boost:disabled{filter:grayscale(.75);opacity:.5}
+.boost:disabled:active{transform:none}
+
+/* ---- overlay chung ---- */
+.overlay{position:absolute;inset:0;background:rgba(59,42,74,.5);display:flex;align-items:center;justify-content:center;
+     opacity:0;visibility:hidden;transition:.25s;backdrop-filter:blur(3px);z-index:4}
+.overlay.show{opacity:1;visibility:visible}
+.card{background:var(--card);border-radius:2em;padding:2em 1.6em 1.6em;width:78%;text-align:center;box-shadow:var(--shadow);
+      transform:translateY(24px) scale(.96);transition:.35s cubic-bezier(.2,.9,.3,1.3)}
+.overlay.show .card{transform:none}
+.stars{display:flex;justify-content:center;gap:.2em;margin-bottom:.4em}
+.stars svg{width:2.4em;height:2.4em;fill:var(--gold);filter:drop-shadow(0 3px 0 #C9932D)}
+.stars svg:nth-child(2){width:3em;height:3em;margin-top:-.4em}
+.card h2{font-family:"Fredoka";font-weight:700;margin:0 0 .15em;font-size:2em;color:var(--ink);text-wrap:balance}
+.card p{margin:0 0 1.4em;color:var(--ink-soft);font-weight:700;font-size:.95em}
+.cta{border:0;background:var(--rose);color:#fff;font:700 1.05em "Fredoka";padding:.7em 2em;border-radius:999px;
+     box-shadow:0 4px 0 #B94B64;cursor:pointer}
+.cta:active{transform:translateY(3px);box-shadow:0 1px 0 #B94B64}
+.actions{display:flex;gap:.6em;justify-content:center;flex-wrap:wrap}
+.actions.col{flex-direction:column;align-items:stretch}
+.cta.ghost{background:#F1E9EE;color:var(--ink);box-shadow:0 4px 0 #D9CBD3}
+.cta.ghost:active{box-shadow:0 1px 0 #D9CBD3}
+.lvnav{display:flex;gap:.5em;justify-content:center;margin-top:.2em}
+.lvnav button{flex:1;border:0;background:transparent;color:var(--ink-soft);font:800 .8em "Nunito";padding:.5em;cursor:pointer;border-radius:.7em}
+.lvnav button:hover{background:#F6EFE4}
+.clockicon{width:3.2em;height:3.2em;margin:0 auto .3em;border-radius:50%;background:#FBE6EB;display:grid;place-items:center}
+.clockicon svg{width:60%;height:60%;fill:none;stroke:var(--rose);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+@media (prefers-reduced-motion: reduce){
+  #game.shake{animation:none}
+  .overlay,.card,.hint,.timer{transition:none;animation:none}
+}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* ---- bảng màu theo bối cảnh ---- */
+#phone.beach{--ink:#24425C;--ink-soft:#6F8BA3;--rose:#F2705B;--gold:#FFD166;--mint:#2FB59A;--panel:#EAF4F7}
+#phone.beach .cta{box-shadow:0 4px 0 #C4533F}

@@ -1,0 +1,21 @@
+{
+  "id": "school-day",
+  "no": 1,
+  "name": "School Day",
+  "background": 1,
+  "levels": [
+    "sd-01",
+    "sd-02",
+    "sd-03",
+    "sd-04",
+    "sd-05",
+    "sd-06",
+    "sd-07",
+    "sd-08",
+    "sd-09",
+    "sd-10"
+  ],
+  "reward": {
+    "coin": 40
+  }
+}

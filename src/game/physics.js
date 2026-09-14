@@ -1,0 +1,110 @@
+// Tạo body Matter.js từ định nghĩa món, và dựng thế giới vật lý (tường, thành túi theo polygon, block).
+import Matter from 'matter-js';
+import { S, BAG, W, H, FLOOR_Y, PAD } from './state.js';
+import { polygonArea } from '../util/geom.js';
+
+const { Engine, World, Bodies, Body, Vertices } = Matter;
+
+const MAT = { friction: .6, frictionStatic: .8, restitution: .26, density: .0018 };
+
+function makePart(p, x, y) {
+  const o = { ...MAT };
+  if (p.kind === 'circle') return Bodies.circle(x + (p.dx || 0), y + (p.dy || 0), p.r, o);
+  if (p.kind === 'rect') {
+    return Bodies.rectangle(x + (p.dx || 0), y + (p.dy || 0), p.w, p.h,
+      Object.assign({ chamfer: p.chamfer ? { radius: p.chamfer } : undefined }, o));
+  }
+  if (p.kind === 'poly') { // đặt sao cho đỉnh vật lý trùng đúng toạ độ vẽ cục bộ
+    const verts = p.pts.map(([px, py]) => ({ x: px, y: py }));
+    const cen = Vertices.centre(verts);
+    return Bodies.fromVertices(x + cen.x, y + cen.y, [verts], o, true);
+  }
+  throw new Error('Unknown part kind: ' + p.kind);
+}
+
+/** Tạo body cho một món tại (x, y). body.origin = độ lệch từ tâm body về gốc toạ độ vẽ. */
+export function makeItem(def, x, y) {
+  const bo = { friction: .6, frictionStatic: .8, restitution: def.restitution ?? (def.meta?.physics === 'bouncy' ? .85 : .26) };
+  let body;
+  if (def.kind === 'compound') body = Body.create({ parts: def.parts.map(p => makePart(p, x, y)), ...bo });
+  else if (def.extra) body = Body.create({ parts: [makePart(def, x, y), makePart(def.extra, x, y)], ...bo });
+  else body = makePart(def, x, y);
+  body.restitution = bo.restitution;
+  if (def.meta?.physics === 'rolling') { body.friction = .15; body.frictionStatic = .2; }
+  body.itemId = def.id;        // khoá chính (số), dùng để so khớp với level JSON
+  body.label = def.slug;       // tên ngắn, tiện khi xem log
+  body.def = def;
+  body.realDef = def;
+  body.artScale = 1;
+  body.origin = { x: x - body.position.x, y: y - body.position.y };
+  return body;
+}
+
+/** Diện tích một món (đơn vị logic²) tính từ hình vật lý */
+export function itemArea(def) {
+  const b = makeItem(def, 0, 0);
+  return b.area;
+}
+
+/** Thành túi: một hình chữ nhật mỏng dọc theo mỗi cạnh polygon, đẩy ra ngoài PAD/2 */
+function polygonWalls(poly, opt) {
+  const walls = [];
+  const cx = poly.reduce((s, p) => s + p[0], 0) / poly.length, cy = poly.reduce((s, p) => s + p[1], 0) / poly.length;
+  // bỏ cạnh miệng túi: cạnh nằm trên đỉnh (y nhỏ nhất) và gần ngang
+  const minY = Math.min(...poly.map(p => p[1]));
+  for (let i = 0; i < poly.length; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length];
+    if (Math.abs(y1 - minY) < 1 && Math.abs(y2 - minY) < 1) continue; // miệng túi mở
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+    if (len < 1) continue;
+    let nx = dy / len, ny = -dx / len;            // pháp tuyến
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    if ((mx + nx - cx) ** 2 + (my + ny - cy) ** 2 < (mx - cx) ** 2 + (my - cy) ** 2) { nx = -nx; ny = -ny; } // hướng ra ngoài
+    walls.push(Bodies.rectangle(mx + nx * PAD / 2, my + ny * PAD / 2, len + PAD, PAD, { ...opt, angle: Math.atan2(dy, dx) }));
+  }
+  return walls;
+}
+
+/** Engine mới + tường quanh màn + thành túi theo polygon + block chặn */
+export function createWorld() {
+  const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
+  engine.gravity.y = 1.1;
+  const wallOpt = { isStatic: true, friction: .8, restitution: .1, label: 'wall' };
+  const t = 60;
+  const walls = [
+    Bodies.rectangle(W / 2, FLOOR_Y + t / 2, W + 200, t, wallOpt),
+    Bodies.rectangle(-t / 2, H / 2, t, H * 2, wallOpt),
+    Bodies.rectangle(W + t / 2, H / 2, t, H * 2, wallOpt),
+    Bodies.rectangle(W / 2, -t, W * 2, t, wallOpt),
+    ...polygonWalls(BAG.poly, wallOpt),
+    ...BAG.blocks.map(b => Bodies.rectangle(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h, { ...wallOpt, label: 'block' })),
+  ];
+  World.add(engine.world, walls);
+  S.engine = engine; S.world = engine.world; S.staticBodies = walls;
+  return engine;
+}
+
+/** Diện tích lòng túi thật (polygon trừ block) */
+export function usableArea() {
+  return polygonArea(BAG.poly) - BAG.blocks.reduce((s, b) => s + b.w * b.h, 0);
+}
+
+/** Thay body cũ bằng body mới cùng vị trí/góc, giữ label, dây buộc, trạng thái đóng băng */
+export function replaceBody(old, def) {
+  const nb = makeItem(def, old.position.x, old.position.y);
+  Body.setAngle(nb, old.angle);
+  nb.itemId = old.itemId; nb.label = old.label; nb.realDef = old.realDef;
+  if (old.tether) {
+    const t = old.tether; nb.tether = t;
+    if (t.a === old) { t.a = nb; t.c.bodyA = nb; } else { t.b = nb; t.c.bodyB = nb; }
+  }
+  World.remove(S.world, old);
+  S.bodies.splice(S.bodies.indexOf(old), 1, nb);
+  World.add(S.world, nb);
+  return nb;
+}
+
+export function removeBody(b) {
+  World.remove(S.world, b);
+  S.bodies.splice(S.bodies.indexOf(b), 1);
+}
