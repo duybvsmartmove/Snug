@@ -1,0 +1,207 @@
+{
+  "version": 2,
+  "publishedAt": "2026-09-14T10:47:08.934Z",
+  "note": "toàn bộ art chuyển sang sprite, túi ba lớp",
+  "files": {
+    "assets/backgrounds/1.json": {
+      "hash": "f4bd1a6e",
+      "size": 130
+    },
+    "assets/backgrounds/2.json": {
+      "hash": "50f76b91",
+      "size": 130
+    },
+    "assets/backgrounds/3.json": {
+      "hash": "e7c10016",
+      "size": 132
+    },
+    "assets/backgrounds/index.json": {
+      "hash": "13e8d2e7",
+      "size": 23
+    },
+    "assets/bags/index.json": {
+      "hash": "b0827ab9",
+      "size": 718
+    },
+    "assets/items/-1.json": {
+      "hash": "d77426d2",
+      "size": 231
+    },
+    "assets/items/0.json": {
+      "hash": "7db23404",
+      "size": 221
+    },
+    "assets/items/1.json": {
+      "hash": "699f8d91",
+      "size": 233
+    },
+    "assets/items/10.json": {
+      "hash": "4686fd5a",
+      "size": 232
+    },
+    "assets/items/11.json": {
+      "hash": "47f4dbeb",
+      "size": 236
+    },
+    "assets/items/12.json": {
+      "hash": "a55edcee",
+      "size": 242
+    },
+    "assets/items/13.json": {
+      "hash": "60170b11",
+      "size": 229
+    },
+    "assets/items/14.json": {
+      "hash": "b7e7ecf9",
+      "size": 229
+    },
+    "assets/items/15.json": {
+      "hash": "a28d7ae7",
+      "size": 233
+    },
+    "assets/items/16.json": {
+      "hash": "1dc2ebc3",
+      "size": 241
+    },
+    "assets/items/17.json": {
+      "hash": "be94bdd3",
+      "size": 226
+    },
+    "assets/items/18.json": {
+      "hash": "91a71d3d",
+      "size": 230
+    },
+    "assets/items/19.json": {
+      "hash": "cdede4c4",
+      "size": 227
+    },
+    "assets/items/2.json": {
+      "hash": "b0356d9c",
+      "size": 235
+    },
+    "assets/items/20.json": {
+      "hash": "615bcb6e",
+      "size": 235
+    },
+    "assets/items/21.json": {
+      "hash": "0379a87d",
+      "size": 233
+    },
+    "assets/items/22.json": {
+      "hash": "6289077a",
+      "size": 225
+    },
+    "assets/items/23.json": {
+      "hash": "81272925",
+      "size": 236
+    },
+    "assets/items/24.json": {
+      "hash": "37e20291",
+      "size": 239
+    },
+    "assets/items/25.json": {
+      "hash": "3078610d",
+      "size": 229
+    },
+    "assets/items/26.json": {
+      "hash": "72e8a8b1",
+      "size": 237
+    },
+    "assets/items/27.json": {
+      "hash": "62fec4f2",
+      "size": 225
+    },
+    "assets/items/28.json": {
+      "hash": "3445f3cc",
+      "size": 223
+    },
+    "assets/items/29.json": {
+      "hash": "f2a6c194",
+      "size": 225
+    },
+    "assets/items/3.json": {
+      "hash": "4c6c2aa6",
+      "size": 223
+    },
+    "assets/items/30.json": {
+      "hash": "7170d0ec",
+      "size": 239
+    },
+    "assets/items/4.json": {
+      "hash": "3ca01eb4",
+      "size": 233
+    },
+    "assets/items/5.json": {
+      "hash": "4d3a1150",
+      "size": 233
+    },
+    "assets/items/6.json": {
+      "hash": "70201444",
+      "size": 231
+    },
+    "assets/items/7.json": {
+      "hash": "3da3a444",
+      "size": 239
+    },
+    "assets/items/8.json": {
+      "hash": "32dd6840",
+      "size": 228
+    },
+    "assets/items/9.json": {
+      "hash": "6f142f86",
+      "size": 230
+    },
+    "assets/items/index.json": {
+      "hash": "2bbeae37",
+      "size": 97
+    },
+    "maps/school-day/levels/sd-01.json": {
+      "hash": "32c9608f",
+      "size": 468
+    },
+    "maps/school-day/levels/sd-02.json": {
+      "hash": "9fcf6f22",
+      "size": 465
+    },
+    "maps/school-day/levels/sd-03.json": {
+      "hash": "4aa243a0",
+      "size": 531
+    },
+    "maps/school-day/levels/sd-04.json": {
+      "hash": "ac9b1985",
+      "size": 541
+    },
+    "maps/school-day/levels/sd-05.json": {
+      "hash": "8c0b0666",
+      "size": 592
+    },
+    "maps/school-day/levels/sd-06.json": {
+      "hash": "5f4ed932",
+      "size": 647
+    },
+    "maps/school-day/levels/sd-07.json": {
+      "hash": "0fb87c70",
+      "size": 723
+    },
+    "maps/school-day/levels/sd-08.json": {
+      "hash": "29cb0a32",
+      "size": 738
+    },
+    "maps/school-day/levels/sd-09.json": {
+      "hash": "6107da07",
+      "size": 736
+    },
+    "maps/school-day/levels/sd-10.json": {
+      "hash": "7bfe9f02",
+      "size": 791
+    },
+    "maps/school-day/map.json": {
+      "hash": "9bcb91d9",
+      "size": 173
+    },
+    "pack.json": {
+      "hash": "cfc25b4d",
+      "size": 95
+    }
+  }
+}
