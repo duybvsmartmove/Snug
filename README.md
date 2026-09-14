@@ -64,8 +64,43 @@ Lúc khởi động, game tải `live.json`, so với bản đang giữ ở máy
 khác. JSON lưu ở IndexedDB, ảnh ở Cache Storage, nên mất mạng vẫn chơi được bản đã tải.
 Chi tiết và kế hoạch đưa lên dịch vụ thật: `docs/14-content-service.md`.
 
-Món chưa có ảnh thì game vẽ bằng hàm vector trong `src/art/items.js`. Hiện **chưa có file ảnh nào**
-trong repo, toàn bộ art đang là code vẽ.
+## Art
+
+**Toàn bộ phần nhìn là sprite.** Không còn hàm vẽ hình nào trong đường chạy của game:
+món, bối cảnh và túi đều là ảnh nạp từ content pack. Nhờ vậy art dùng lại được cho Unity.
+
+Mỗi ảnh có hai bản:
+
+| Đuôi | Dùng cho | Nằm ở |
+|---|---|---|
+| `.png` | bản gốc, mang sang Unity | `draft/assets/` trong repo |
+| `.webp` | game tải về | bản phát hành trên CDN |
+
+Bản phát hành chỉ mang `.webp` nên nhẹ hơn khoảng mười lần: 0,37 MB thay vì 4,5 MB.
+
+### Sinh lại sprite
+
+Art gốc vẽ bằng canvas được giữ ở `tools/legacy-art/` để còn sinh lại ảnh ở độ phân giải khác.
+Nó **không nằm trong bản build**, chỉ trang sinh sprite bên editor mới dùng tới.
+
+Mở `http://localhost:5174/tools/gen-sprites.html` rồi bấm **Sinh toàn bộ PNG**. Trang này vẽ
+32 món ở tỉ lệ 4×, 3 bối cảnh ở 2×, 3 chiếc túi ở 3× rồi ghi thẳng vào bản nháp kèm manifest.
+Muốn ảnh to hơn cho Unity thì sửa `ITEM_SCALE`, `BG_SCALE`, `BAG_SCALE` trong `gen-sprites.js`.
+
+Ảnh món được căn sao cho tâm ảnh trùng trọng tâm hình vật lý, nếu không món sẽ lệch khỏi
+vùng va chạm.
+
+### Túi có ba lớp
+
+Túi không thể là một ảnh phẳng vì lòng túi đổi hình theo từng level. Mỗi kiểu túi có ba ảnh:
+
+| Lớp | Vai trò |
+|---|---|
+| `body` | thân túi, nằm sau đồ, kéo giãn theo khung túi |
+| `lining` | lót trong, **cắt theo polygon của level** nên hình khuyết góc vẫn đúng |
+| `frame` | khung và trang trí, đè lên đồ để che phần thò ra |
+
+Ngăn khoá, mép lòng túi và chữ gợi ý vẫn vẽ lúc chơi vì chúng là dữ liệu của từng level.
 
 ### Thêm ảnh cho món
 

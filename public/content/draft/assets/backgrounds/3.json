@@ -1,0 +1,13 @@
+{
+  "id": 3,
+  "name": "Góc học tập · chiều",
+  "fill": "#F2EAD2",
+  "layers": [
+    {
+      "src": "assets/backgrounds/bg-3.webp",
+      "x": 0,
+      "y": 0,
+      "w": 420
+    }
+  ]
+}

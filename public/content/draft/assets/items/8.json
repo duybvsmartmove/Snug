@@ -1,0 +1,18 @@
+{
+  "id": 8,
+  "slug": "handtowel",
+  "code": "ITM_008",
+  "name": "Khăn tay",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/8.webp",
+    "pixelsPerUnit": 4
+  }
+}

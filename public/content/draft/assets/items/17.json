@@ -1,0 +1,18 @@
+{
+  "id": 17,
+  "slug": "apple",
+  "code": "ITM_017",
+  "name": "Quả táo",
+  "meta": {
+    "size": "Small",
+    "shape": "Circle",
+    "physics": "rolling",
+    "cost": 2,
+    "canLink": true,
+    "canLock": false
+  },
+  "sprite": {
+    "src": "assets/sprites/17.webp",
+    "pixelsPerUnit": 4
+  }
+}

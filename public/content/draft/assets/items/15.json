@@ -1,0 +1,18 @@
+{
+  "id": 15,
+  "slug": "waterbottle",
+  "code": "ITM_015",
+  "name": "Bình nước",
+  "meta": {
+    "size": "Medium",
+    "shape": "Long",
+    "physics": "rolling",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/15.webp",
+    "pixelsPerUnit": 4
+  }
+}

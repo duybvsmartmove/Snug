@@ -1,0 +1,13 @@
+{
+  "id": 1,
+  "name": "Góc học tập · sáng",
+  "fill": "#F2EAD2",
+  "layers": [
+    {
+      "src": "assets/backgrounds/bg-1.webp",
+      "x": 0,
+      "y": 0,
+      "w": 420
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": 0,
+  "slug": "key",
+  "code": null,
+  "name": "Chìa khóa",
+  "meta": {
+    "size": "Small",
+    "shape": "Irregular",
+    "physics": "normal",
+    "cost": 0,
+    "canLink": false,
+    "canLock": false
+  },
+  "sprite": {
+    "src": "assets/sprites/0.webp",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,6 +1,6 @@
 // Đọc content pack (public/content): pack → map → level, và manifest asset (sprite + collider).
 import { ITEM_DEFS, defById } from '../data/items.js';
-import { registerImageScene } from '../art/scene-registry.js';
+import { registerImageScene, registerBagSkin } from '../art/scene-registry.js';
 
 // Nguồn content. Hai chế độ:
 //   · Game    — đọc bản đã phát hành, qua kho ở máy (offline được). Gọi initContent().
@@ -85,6 +85,26 @@ export async function loadBackgrounds() {
     } catch (e) { console.warn('nền lỗi', id, e); }
   }));
   return ids;
+}
+
+/** Nạp ảnh ba lớp của từng kiểu túi */
+export async function loadBags() {
+  let index;
+  cache.delete('assets/bags/index.json');
+  try { index = await getJSON('assets/bags/index.json', { fresh: true }); } catch { return []; }
+  const list = index.bags || [];
+  await Promise.all(list.map(async def => {
+    const img = {};
+    await Promise.all(Object.entries(def.layers || {}).map(([k, src]) => new Promise(res => {
+      const el = new Image();
+      el.onload = el.onerror = () => res();
+      el.src = assetPath(src);
+      img[k] = el;
+      if (el.complete && el.naturalWidth) res();
+    })));
+    registerBagSkin(def.id, { ...def, img });
+  }));
+  return list.map(b => b.id);
 }
 
 /** Gộp manifest vào ITEM_DEFS: tạo def mới nếu id chưa có (món chỉ có ảnh) */

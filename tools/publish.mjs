@@ -73,9 +73,13 @@ export function publish(root, { note = '' } = {}) {
   // 1. Ảnh: đặt tên theo hash nội dung, để dùng chung giữa các bản và cache vĩnh viễn
   const assetMap = new Map();
   let assetCount = 0;
-  for (const rel of walk(draft)) {
+  const all = walk(draft);
+  const webpTwin = new Set(all.filter(r => r.endsWith('.webp')).map(r => r.slice(0, -5)));
+  for (const rel of all) {
     const ext = extname(rel).toLowerCase();
     if (!BIN.has(ext)) continue;
+    // .png là bản gốc để mang sang Unity, đã nằm trong repo; bản phát hành chỉ cần .webp
+    if (ext === '.png' && webpTwin.has(rel.slice(0, -4))) continue;
     const buf = readFileSync(join(draft, rel));
     const name = `${basename(rel, ext)}.${hash8(buf)}${ext}`;
     const dest = join(root, 'assets', name);
@@ -88,7 +92,7 @@ export function publish(root, { note = '' } = {}) {
   const files = {};
   const changed = [];
   const prevIndex = prev ? readIndex(root, prev) : null;
-  for (const rel of walk(draft)) {
+  for (const rel of all) {
     if (!rel.endsWith('.json')) continue;
     const text = JSON.stringify(remap(JSON.parse(readFileSync(join(draft, rel), 'utf8')), assetMap));
     const h = hash8(Buffer.from(text));

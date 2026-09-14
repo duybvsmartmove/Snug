@@ -1,0 +1,18 @@
+{
+  "id": 10,
+  "slug": "wetwipes",
+  "code": "ITM_010",
+  "name": "Khăn ướt",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/10.webp",
+    "pixelsPerUnit": 4
+  }
+}

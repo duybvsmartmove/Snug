@@ -1,0 +1,18 @@
+{
+  "id": 16,
+  "slug": "sandwich",
+  "code": "ITM_016",
+  "name": "Hộp bánh mì kẹp",
+  "meta": {
+    "size": "Medium",
+    "shape": "Triangle",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/16.webp",
+    "pixelsPerUnit": 4
+  }
+}

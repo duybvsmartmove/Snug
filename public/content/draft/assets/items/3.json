@@ -1,0 +1,18 @@
+{
+  "id": 3,
+  "slug": "socks",
+  "code": "ITM_003",
+  "name": "Tất cuộn",
+  "meta": {
+    "size": "Small",
+    "shape": "Oval",
+    "physics": "rolling",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/3.webp",
+    "pixelsPerUnit": 4
+  }
+}

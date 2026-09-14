@@ -1,0 +1,18 @@
+{
+  "id": 24,
+  "slug": "studentcard",
+  "code": "ITM_024",
+  "name": "Thẻ học sinh",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/24.webp",
+    "pixelsPerUnit": 4
+  }
+}

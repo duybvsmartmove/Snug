@@ -27,6 +27,10 @@ export function nextSceneId() {
   return n;
 }
 
+/** Ảnh ba lớp của từng kiểu túi, nạp từ content pack: id → { margin, edge, layers, img } */
+export const BAG_SKINS = {};
+export function registerBagSkin(id, def) { BAG_SKINS[id] = def; }
+
 /** Danh mục kiểu túi, dùng chung cho game và editor */
 export const BAG_KINDS = [
   { id: 'lunchbox', name: 'Hộp cơm' },

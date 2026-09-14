@@ -1,0 +1,18 @@
+{
+  "id": 9,
+  "slug": "lipbalm",
+  "code": "ITM_009",
+  "name": "Son dưỡng môi",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "rolling",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/9.webp",
+    "pixelsPerUnit": 4
+  }
+}

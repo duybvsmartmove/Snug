@@ -1,0 +1,18 @@
+{
+  "id": 14,
+  "slug": "charger",
+  "code": "ITM_014",
+  "name": "Củ sạc",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/sprites/14.webp",
+    "pixelsPerUnit": 4
+  }
+}

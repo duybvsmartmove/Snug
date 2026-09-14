@@ -2,7 +2,6 @@
 import Matter from 'matter-js';
 import { S, BAG, W, H, partsOf, isHeld } from './state.js';
 import { ctx } from './canvas.js';
-import { ART } from '../art/items.js';
 import { drawScene } from '../art/scenes.js';
 import { drawBag, drawBagFront } from '../art/bags.js';
 import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js';
@@ -21,15 +20,12 @@ function strokeShape(b, grow = 1) {
   }
 }
 
+/** Mọi món đều vẽ bằng sprite. Ảnh căn giữa theo trọng tâm body, đúng cách sinh ở tools/gen-sprites. */
 function drawArt(b) {
   const sp = b.def.sprite;
-  if (sp && sp.ready) {
-    const w = sp.img.width / sp.ppu, h = sp.img.height / sp.ppu;
-    ctx.drawImage(sp.img, -w / 2, -h / 2, w, h);
-  } else if (ART[b.def.slug]) {
-    ctx.translate(b.origin.x, b.origin.y);
-    ART[b.def.slug](ctx);
-  }
+  if (!sp?.ready) return;
+  const w = sp.img.width / sp.ppu, h = sp.img.height / sp.ppu;
+  ctx.drawImage(sp.img, -w / 2, -h / 2, w, h);
 }
 
 function drawBody(b) {

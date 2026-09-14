@@ -1,0 +1,18 @@
+{
+  "id": 21,
+  "slug": "cap",
+  "code": "ITM_021",
+  "name": "Mũ lưỡi trai",
+  "meta": {
+    "size": "Medium",
+    "shape": "Irregular",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": false
+  },
+  "sprite": {
+    "src": "assets/sprites/21.webp",
+    "pixelsPerUnit": 4
+  }
+}

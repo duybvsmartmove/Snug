@@ -1,0 +1,40 @@
+{
+  "bags": [
+    {
+      "id": "lunchbox",
+      "name": "Hộp cơm",
+      "margin": 30,
+      "edge": "#B92A38",
+      "pixelsPerUnit": 3,
+      "layers": {
+        "body": "assets/bags/lunchbox-body.webp",
+        "lining": "assets/bags/lunchbox-lining.webp",
+        "frame": "assets/bags/lunchbox-frame.webp"
+      }
+    },
+    {
+      "id": "tote",
+      "name": "Túi tote",
+      "margin": 30,
+      "edge": "#2A8B84",
+      "pixelsPerUnit": 3,
+      "layers": {
+        "body": "assets/bags/tote-body.webp",
+        "lining": "assets/bags/tote-lining.webp",
+        "frame": "assets/bags/tote-frame.webp"
+      }
+    },
+    {
+      "id": "backpack",
+      "name": "Ba lô",
+      "margin": 30,
+      "edge": "#33489C",
+      "pixelsPerUnit": 3,
+      "layers": {
+        "body": "assets/bags/backpack-body.webp",
+        "lining": "assets/bags/backpack-lining.webp",
+        "frame": "assets/bags/backpack-frame.webp"
+      }
+    }
+  ]
+}
