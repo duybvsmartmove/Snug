@@ -2,7 +2,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { solve } from './src/gen/solver.js';
 
-const dir = 'public/content/maps/school-day/levels';
+const dir = 'public/content/draft/maps/school-day/levels';
 const rows = [];
 for (const f of readdirSync(dir).sort()) {
   const lv = JSON.parse(readFileSync(`${dir}/${f}`, 'utf8'));

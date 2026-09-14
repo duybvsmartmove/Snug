@@ -34,21 +34,38 @@ Hết giờ là thua, có thể dùng Extra Time. Hộp bí ẩn mở bằng cá
 
 ## Content pack
 
-Level và art là dữ liệu, không phải code:
+Level và art là dữ liệu, không phải code. Thư mục content có ba tầng:
 
 ```
 public/content/
-  pack.json                        version + danh sách chương
-  maps/school-day/map.json         thứ tự level trong chương
-  maps/school-day/levels/*.json    từng level
-  assets/items/<id>.json           manifest: sprite + collider + metadata
-  assets/sprites/<id>.png          ảnh món
+  draft/                           ← editor ghi vào đây, người chơi chưa thấy
+    pack.json                      version + danh sách chương
+    maps/school-day/map.json       thứ tự level trong chương
+    maps/school-day/levels/*.json  từng level
+    assets/items/<id>.json         manifest: sprite + collider + metadata
+  v1/ v2/ v3/                      bản đã phát hành, chỉ JSON, không sửa lại
+  assets/                          ảnh, tên gắn hash nội dung, dùng chung mọi bản
+  live.json                        con trỏ: bản nào đang phát hành
 ```
 
-Món chưa có ảnh thì game vẽ bằng hàm vector trong `src/art/items.js`.
+Sửa level xong là ghi vào `draft/`, người chơi chưa thấy gì. **Phát hành** mới đóng gói
+`draft/` thành `v<N>/` rồi đổi `live.json`. Bước đổi con trỏ là bước cuối cùng nên người chơi
+không bao giờ gặp trạng thái nửa cũ nửa mới.
 
-Content trong repo này là **bản đóng gói sẵn** đi kèm bản build. Cách đưa thay đổi từ editor
-sang game khi chạy thật: xem `docs/14-content-service.md`.
+```bash
+node tools/publish.mjs status              # xem bản đang phát hành
+node tools/publish.mjs publish "ghi chú"   # phát hành bản mới
+node tools/publish.mjs rollback 2          # quay lui, đổi một con số là xong
+```
+
+Editor có nút **Phát hành** ở thanh trên làm đúng việc này.
+
+Lúc khởi động, game tải `live.json`, so với bản đang giữ ở máy, chỉ tải những file có hash
+khác. JSON lưu ở IndexedDB, ảnh ở Cache Storage, nên mất mạng vẫn chơi được bản đã tải.
+Chi tiết và kế hoạch đưa lên dịch vụ thật: `docs/14-content-service.md`.
+
+Món chưa có ảnh thì game vẽ bằng hàm vector trong `src/art/items.js`. Hiện **chưa có file ảnh nào**
+trong repo, toàn bộ art đang là code vẽ.
 
 ## Chạy cùng Level Editor
 
@@ -69,14 +86,19 @@ Editor tự tìm `../snug/public/content`. Đặt khác thì dùng biến `SNUG_
 ```bash
 node build_levels.mjs     # dựng lại 10 level chương School Day từ template
 node check_levels.mjs     # kiểm tra density, Difficulty Point, solver của cả chương
+node tools/publish.mjs    # phát hành bản nháp hiện tại
 ```
+
+`build_levels.mjs` và `check_levels.mjs` làm việc trên `public/content/draft/`.
 
 ## Cấu trúc mã
 
 ```
 src/
   main.js                điểm vào game
-  content/loader.js      đọc pack / map / level / manifest  ·  setContentBase() đổi nguồn content
+  content/loader.js      đọc pack / map / level / manifest
+  content/sync.js        kiểm tra bản mới, chỉ tải file có hash khác
+  content/store.js       kho ở máy: IndexedDB cho JSON, Cache Storage cho ảnh
   data/items.js          hình vật lý + metadata từng món
   art/                   helpers · items · scenes · scene-registry · bags
   game/                  state · canvas · physics · rules · input · mechanics · boosters · level · render · autoplay

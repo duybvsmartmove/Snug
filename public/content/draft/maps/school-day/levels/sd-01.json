@@ -1,7 +1,7 @@
 {
   "id": "sd-01",
   "name": "Giờ ăn trưa",
-  "timer": 120,
+  "timer": 95,
   "background": 1,
   "container": {
     "skin": "lunchbox",

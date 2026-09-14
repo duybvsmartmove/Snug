@@ -153,20 +153,67 @@ game đọc từ CDN với cơ chế cache ở mục 3. Editor ghi lên bucket t
 WebView, nên phần cập nhật content không phải viết lại. Chỉ cần thêm: kiểm tra version khi app
 quay lại foreground, và chỉ tải art nặng khi đang dùng wifi.
 
-## 6. Trạng thái hiện tại
+## 6. Đã làm được tới đâu
 
-Sau khi tách repo, hai bên đang nối với nhau như sau khi chạy dev:
+Giai đoạn 1 và giai đoạn 3 đã dựng xong và chạy được, **chưa cần backend nào**.
+Giai đoạn 2 (đưa lên dịch vụ thật) là phần còn lại.
+
+### Thư mục content giờ có ba tầng
 
 ```
-snug_level_editor  (cổng 5174)          snug  (cổng 5173)
-  vite dev server                         vite dev server
-  ├─ GET  /content/*   ─────┐             └─ GET /content/*  ─┐
-  └─ POST /__content/save ──┤                                 │
-                            └──→  snug/public/content  ←──────┘
+public/content/
+  draft/            ← editor ghi vào đây. Người chơi KHÔNG thấy.
+  v1/ v2/ v3/       ← bản đã phát hành, chỉ chứa JSON, không bao giờ sửa lại
+  assets/           ← ảnh, tên gắn hash nội dung, dùng chung mọi bản
+  live.json         ← con trỏ: {"version": 3}
 ```
 
-Server dev của editor đọc và ghi thẳng vào thư mục content của game, nên mở hai server cạnh
-nhau là làm việc được như trước khi tách. Đổi chỗ khác bằng biến `SNUG_CONTENT_DIR`.
+### Phát hành
 
-Cách nối này **chỉ dùng được lúc dev**. Bản editor deploy lên web sẽ không có thư mục nào để ghi
-— đó đúng là chỗ giai đoạn 2 lấp vào.
+`tools/publish.mjs` đóng gói draft thành một bản mới:
+
+```bash
+node tools/publish.mjs status              # xem bản đang phát hành
+node tools/publish.mjs publish "ghi chú"   # phát hành bản mới
+node tools/publish.mjs rollback 2          # quay lui
+```
+
+Editor có nút **Phát hành** ở thanh trên gọi đúng hàm này qua server dev, kèm nhãn hiện
+bản đang live.
+
+Ảnh được đặt tên theo hash nội dung rồi để ngoài thư mục bản, nên hai bản dùng chung một
+ảnh không tốn thêm chỗ, và ảnh cache được vĩnh viễn. Đường dẫn ảnh trong JSON được viết lại
+tự động lúc phát hành, người dựng level không phải quan tâm.
+
+### Game nhận thay đổi
+
+`src/content/sync.js` chạy lúc khởi động: tải `live.json`, so với bản đang giữ ở máy, khác
+thì tải `v<N>/index.json` rồi **chỉ tải những file có hash khác**. File không đổi được chuyển
+thẳng từ bản cũ sang, không tốn một byte mạng nào.
+
+`src/content/store.js` giữ kho: JSON trong IndexedDB, ảnh trong Cache Storage, số hiệu bản
+trong localStorage. Chặn hết thì tự lùi về bộ nhớ tạm trong RAM, game vẫn chạy.
+
+Đã đo thực tế: đổi thời gian một level rồi phát hành, lần mở game sau tải đúng ba file
+(`live.json`, `index.json`, và một file level), 12 file còn lại lấy từ kho.
+
+### Khung xem thử của editor
+
+Đọc thẳng bản nháp (`?preview=1` → `useDraft()`), nên sửa xong thấy ngay, không phải phát hành.
+Chơi thật thì đọc bản đã phát hành.
+
+## 7. Còn lại phải làm
+
+**Giai đoạn 2 — đưa content lên dịch vụ thật.** Hiện `publish` ghi ra thư mục trên đĩa và
+server dev của editor phục vụ nó. Bản deploy lên web chưa có chỗ nào để ghi. Cần:
+
+1. Tạo bucket (Supabase Storage hoặc tương đương), bật đọc công khai
+2. Viết driver thay `writeFile` trong `tools/publish.mjs` thành upload
+3. Game gọi `initContent('https://<cdn>/content/')` thay vì `'./content/'` — đúng một dòng
+4. Đăng nhập cho editor, chỉ người trong team mới bấm Phát hành được
+
+**Giai đoạn 4 — mobile.** Đóng gói Capacitor. Ba API lưu trữ ở trên chạy nguyên trong WebView.
+Thêm: kiểm tra bản mới khi app quay lại foreground, và chỉ tải ảnh nặng khi đang dùng wifi.
+
+**Chưa làm: tải trước chương sau.** Mới có một chương nên chưa cần. Khi có chương 2, thêm vào
+`sync.js` một hàm chạy lúc máy rảnh, tải `v<N>/maps/<chương kế tiếp>/` vào kho.

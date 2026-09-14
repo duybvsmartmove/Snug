@@ -17,13 +17,15 @@
   },
   "exports": {
     "./src/*": "./src/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./tools/*": "./tools/*"
   },
   "files": [
     "src",
     "public",
     "index.html",
     "vite.config.js",
-    "README.md"
+    "README.md",
+    "tools"
   ]
 }

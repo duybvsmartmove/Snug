@@ -2,16 +2,46 @@
 import { ITEM_DEFS, defById } from '../data/items.js';
 import { registerImageScene } from '../art/scene-registry.js';
 
-// Nguồn content. Mặc định là thư mục đi kèm bản build.
-// Khi chuyển sang content service từ xa, gọi setContentBase('https://cdn.../v12/') một lần lúc khởi động.
-let BASE = './content/';
+// Nguồn content. Hai chế độ:
+//   · Game    — đọc bản đã phát hành, qua kho ở máy (offline được). Gọi initContent().
+//   · Editor  — đọc thẳng bản nháp, luôn lấy bản mới nhất, không qua kho. Gọi useDraft().
+// Đổi sang content service từ xa sau này chỉ là đổi tham số root của initContent().
+import { syncContent, readContent } from './sync.js';
+
+let BASE = './content/draft/';   // mặc định hợp cho editor; game gọi initContent() để đổi
+let VERSION = 0;
+let useStore = false;
+
 export function setContentBase(url) { BASE = url.endsWith('/') ? url : url + '/'; }
 export const contentBase = () => BASE;
+export const contentVersion = () => VERSION;
+
+/** Editor: đọc thẳng bản nháp trên đĩa, không đụng tới kho đã cache */
+export function useDraft(root = './content/') { BASE = root + 'draft/'; useStore = false; VERSION = 0; }
+
+/**
+ * Game: đồng bộ với server rồi trỏ vào bản đang phát hành.
+ * @returns kết quả của syncContent — {version, changed, offline, firstRun}
+ */
+export async function initContent(root = './content/', onProgress) {
+  const r = await syncContent(root, onProgress);
+  BASE = r.base; VERSION = r.version; useStore = true;
+  cache.clear();
+  return r;
+}
 
 const cache = new Map();
 
+/** Ảnh trong bản phát hành trỏ ra ../assets/<tên>.<hash>.png nên chỉ cần ghép với BASE */
+const assetPath = src => /^(https?:)?\/\//.test(src) ? src : BASE + src;
+
 async function getJSON(path, { fresh = false } = {}) {
   if (!fresh && cache.has(path)) return cache.get(path);
+  if (useStore) {
+    const data = await readContent(VERSION, BASE, path);
+    cache.set(path, data);
+    return data;
+  }
   const res = await fetch(BASE + path + (fresh ? `?t=${Date.now()}` : ''));
   if (!res.ok) throw new Error(`Không tải được ${path} (${res.status})`);
   const data = await res.json();
@@ -47,7 +77,7 @@ export async function loadBackgrounds() {
     try {
       const m = await getJSON(`assets/backgrounds/${id}.json`, { fresh: true });
       const layers = (m.layers || []).map(l => {
-        const img = new Image(); img.src = BASE + l.src + `?v=${Date.now()}`;
+        const img = new Image(); img.src = assetPath(l.src);
         return { ...l, img };
       });
       await Promise.all(layers.map(l => new Promise(res => { l.img.onload = l.img.onerror = res; if (l.img.complete) res(); })));
@@ -85,7 +115,7 @@ export function applyManifest(m) {
       const done = () => { sprite.ready = true; onSpriteReady.forEach(fn => fn(def)); res(def); };
       img.onload = done;
       img.onerror = () => res(def);
-      img.src = BASE + m.sprite.src + (m.sprite.src.includes('?') ? '' : `?v=${Date.now()}`);
+      img.src = assetPath(m.sprite.src);
       if (img.complete && img.naturalWidth) done();
     });
     def.sprite = sprite;

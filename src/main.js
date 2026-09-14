@@ -6,7 +6,7 @@ import { bindBoosters } from './game/boosters.js';
 import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level.js';
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
-import { loadPack, loadMap, loadItemManifests, loadBackgrounds, whenSpriteReady } from './content/loader.js';
+import { initContent, useDraft, loadPack, loadMap, loadItemManifests, loadBackgrounds, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
 
 const params = new URLSearchParams(location.search);
@@ -23,13 +23,24 @@ async function boot() {
   startLoop();
 
   whenSpriteReady(() => { if (S.LEVEL) renderList(); });
+
+  // Trong khung xem thử của editor thì đọc thẳng bản nháp, để sửa xong thấy ngay.
+  // Chơi thật thì đọc bản đã phát hành, có kiểm tra bản mới và có kho ở máy.
+  S.preview = params.get('preview') === '1';
+  if (S.preview) {
+    useDraft('./content/');
+  } else {
+    const sync = await initContent('./content/');
+    if (sync.changed.length) console.info(`content v${sync.version}: cập nhật ${sync.changed.length} file`);
+    if (sync.offline) console.info(`content v${sync.version}: không kết nối được, dùng bản đã lưu`);
+  }
+
   await Promise.all([loadItemManifests(), loadBackgrounds()]);
   const pack = await loadPack({ fresh: true });
   S.mapId = params.get('map') || pack.maps[0];
   S.map = await loadMap(S.mapId, { fresh: true });
 
   // Live preview từ editor: level gửi qua postMessage, không tải từ content
-  S.preview = params.get('preview') === '1';
   window.addEventListener('message', e => {
     const m = e.data || {};
     if (m.type === 'level' && m.level) {

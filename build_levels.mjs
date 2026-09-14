@@ -145,7 +145,7 @@ for (const lv of L) {
     difficulty: { points: pts, tier },
     ...(lv.hint ? { emptyText: lv.hint } : {}),
   };
-  writeFileSync(`public/content/maps/school-day/levels/${lv.id}.json`, JSON.stringify(json, null, 2));
+  writeFileSync(`public/content/draft/maps/school-day/levels/${lv.id}.json`, JSON.stringify(json, null, 2));
   report.push({ lv: lv.id, name: lv.name, bag: lv.bag, n, 'lòng túi': `${bw}×${bh}`, đáy: bottom, density: (density*100).toFixed(0)+'%', 'mục tiêu': (lv.density*100)+'%', pts, tier });
 }
 console.table(report);
