@@ -1,5 +1,10 @@
 # Asset pipeline: thay art vẽ code bằng ảnh (AI gen / designer vẽ)
 
+> **Lưu ý:** đây là bản thiết kế ban đầu. Hai chỗ đã đổi khi làm thật:
+> id món giờ là **số nguyên** (17) chứ không phải tên (`hoodie`), và đường dẫn nằm trong
+> `public/content/draft/assets/` chứ không phải `public/assets/`.
+> Cách làm thực tế xem mục "Thêm ảnh cho món" trong README, cơ chế phát hành xem `14-content-service.md`.
+
 ## Nguyên tắc
 Hình vẽ và vật lý là hai thứ tách rời. Mỗi món/túi/nền là một **manifest JSON** trỏ tới ảnh + dữ liệu hình học. Renderer có 2 chế độ: `sprite` (ảnh) và `vector` (hàm vẽ canvas hiện tại). Có ảnh thì dùng ảnh, chưa có thì fallback vector. Thay art = thay file PNG + chỉnh manifest, không sửa code game.
 

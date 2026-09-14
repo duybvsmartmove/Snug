@@ -67,6 +67,32 @@ Chi tiết và kế hoạch đưa lên dịch vụ thật: `docs/14-content-serv
 Món chưa có ảnh thì game vẽ bằng hàm vector trong `src/art/items.js`. Hiện **chưa có file ảnh nào**
 trong repo, toàn bộ art đang là code vẽ.
 
+### Thêm ảnh cho món
+
+Không sửa code, làm hết trong editor:
+
+1. Mở **🎨 Thư viện art**, tìm món, bấm **Sửa**
+2. Kéo file PNG hoặc WebP nền trong suốt vào ô thả ảnh
+3. Đặt **bề rộng thật** tính bằng pixel logic — đây là kích thước món trong game, không phải
+   kích thước ảnh. Ảnh nên lớn hơn 3–4 lần cho nét trên màn retina
+4. Bấm **Lưu món**. Vùng va chạm tự bám theo viền đục của ảnh
+5. Bấm **Phát hành** khi muốn người chơi nhận được
+
+Editor ghi ra hai file trong bản nháp:
+
+```
+draft/assets/sprites/<id>.png     ảnh
+draft/assets/items/<id>.json      manifest: sprite + collider + metadata
+```
+
+Lúc phát hành, ảnh được đổi tên theo hash nội dung và đưa ra `content/assets/`, dùng chung cho
+mọi bản. Đường dẫn trong JSON được viết lại tự động. Nhờ hash trong tên, ảnh cache được vĩnh viễn
+mà đổi ảnh vẫn ăn ngay, và hai bản dùng chung một ảnh không tốn thêm chỗ.
+
+Muốn bỏ ảnh quay về hình vẽ code thì bấm **Dùng lại hình vẽ** trong cùng hộp thoại.
+
+Ảnh nền và ảnh túi đi theo đúng đường đó, thêm ở phần Bối cảnh trong Thư viện art.
+
 ## Chạy cùng Level Editor
 
 Mở hai server cạnh nhau, editor sẽ đọc và ghi thẳng vào `public/content` của repo này:
