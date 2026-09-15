@@ -172,7 +172,15 @@ export const MYSTERY = { id: -1, slug: 'mystery', code: null, name: 'Hộp bí �
 //   id   — SỐ, trùng số thứ tự trong sheet (ITM_017 → 17). Đây là khoá chính, dùng trong level JSON.
 //   slug — chuỗi ngắn, chỉ dùng để tra hàm vẽ trong art/items.js cho dễ đọc code.
 //   code — mã gốc trong sheet, để đối chiếu khi sheet thay đổi.
-export const defById = id => ITEM_DEFS.find(d => d.id === Number(id));
+/**
+ * Tra món theo mã. Hộp bí ẩn nằm ngoài ITEM_DEFS nhưng vẫn phải tìm ra được,
+ * nếu không loader sẽ tưởng chưa có rồi tạo một bản trùng mã, và bản game dùng
+ * lại là bản không có ảnh.
+ */
+export const defById = id => {
+  const n = Number(id);
+  return ITEM_DEFS.find(d => d.id === n) || (n === -1 ? MYSTERY : undefined);
+};
 export const defBySlug = slug => ITEM_DEFS.find(d => d.slug === slug);
 export const defByCode = code => ITEM_DEFS.find(d => d.code === code);
 /** Diện tích xấp xỉ theo khung vẽ — để so sánh món lớn / nhỏ trong booster */

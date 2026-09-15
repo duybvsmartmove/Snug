@@ -103,10 +103,16 @@ export async function loadBags(only) {
   return kinds;
 }
 
-/** Nạp đúng phần art một chương cần; bỏ trống thì nạp cả kho */
+/**
+ * Nạp đúng phần art một chương cần; bỏ trống thì nạp cả kho.
+ * Hộp bí ẩn (-1) và chìa khoá (0) luôn nạp kèm: level chỉ ghi mã món THẬT bị giấu,
+ * không ghi mã hộp, nên chúng không bao giờ xuất hiện trong danh sách tính tự động.
+ */
+const LUON_CAN = [-1, 0];
 export async function loadChapterAssets(ch) {
   const a = ch?.assets;
-  await Promise.all([loadItemManifests(a?.items), loadBackgrounds(a?.backgrounds), loadBags(a?.bags)]);
+  const items = a?.items ? [...new Set([...a.items, ...LUON_CAN])] : undefined;
+  await Promise.all([loadItemManifests(items), loadBackgrounds(a?.backgrounds), loadBags(a?.bags)]);
 }
 
 const loadImage = src => { const el = new Image(); el.src = assetPath(src); return el; };
