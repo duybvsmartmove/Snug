@@ -144,47 +144,9 @@
   <main class="layout-lib tab-page" id="tab-library" hidden>
     <section class="center">
       <div class="card">
-        <div class="card-head"><b>Thêm art mới</b><span class="hint">Ảnh món cần nền trong suốt. Ảnh nền nên đúng tỉ lệ dọc 420×760.</span></div>
-        <div class="row" style="margin-bottom:.7em">
-          <div class="seg" id="assetKind">
-            <button data-kind="item" class="on">Món đồ</button>
-            <button data-kind="bg">Bối cảnh</button>
-          </div>
-          <span class="hint" id="kindHint"></span>
-        </div>
-        <div class="drop" id="drop">Kéo ảnh vào đây, hoặc <label class="link">chọn file<input id="file" type="file" accept="image/png,image/webp,image/jpeg" hidden></label></div>
-        <div class="row assets-row">
-          <canvas id="assetCanvas" width="320" height="320"></canvas>
-
-          <!-- Biểu mẫu cho MÓN ĐỒ -->
-          <div class="col" id="itemFields">
-            <label class="field">Mã số <input id="aId" type="number" placeholder="31"></label>
-            <label class="field">Tên hiển thị <input id="aName" placeholder="Áo hoodie"></label>
-            <label class="field">Tên mã <input id="aSlug" placeholder="hoodie"></label>
-            <label class="field">Bề ngang trong game <input id="aWidth" type="number" value="80"> px</label>
-            <label class="field">Vùng va chạm <select id="aCollider"><option value="hull">Bám theo hình (tự động)</option><option value="rect">Chữ nhật</option><option value="circle">Tròn</option></select></label>
-            <label class="field">Cỡ <select id="aSize"><option>Small</option><option selected>Medium</option><option>Large</option></select></label>
-            <label class="field">Tính chất <select id="aPhys"><option value="normal">Bình thường</option><option value="rolling">Dễ lăn</option><option value="bouncy">Nảy</option></select></label>
-            <button id="aSaveItem" class="primary">Lưu món này</button>
-            <span class="hint" id="aInfo"></span>
-          </div>
-
-          <!-- Biểu mẫu cho BỐI CẢNH -->
-          <div class="col" id="bgFields" hidden>
-            <label class="field">Mã số <input id="bgId" type="number" min="10" placeholder="10"></label>
-            <label class="field">Tên hiển thị <input id="bgName" placeholder="Góc học tập · tối"></label>
-            <label class="field">Màu lót <input id="bgFill" type="color" value="#F2EAD2"></label>
-            <p class="note">Màu lót phủ phần ảnh không che kín. Hai vạch đỏ trong khung xem trước là mép sàn và sàn vật lý, hãy căn ảnh theo đó.</p>
-            <button id="aSaveBg" class="primary">Lưu bối cảnh này</button>
-            <span class="hint" id="bgInfo"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
         <div class="card-head">
           <b>Danh sách đồ</b>
-          <span class="hint">Bấm Sửa để đổi ảnh, tên và thuộc tính. Mã số không đổi được vì level đang dùng nó.</span>
+          <span class="hint">Bấm Sửa để đổi tên và thuộc tính. Ảnh sinh ở trang Sinh sprite. Mã số không đổi được vì level đang dùng nó.</span>
           <div class="grow"></div>
           <input id="poolSearch" placeholder="tìm theo mã hoặc tên…">
         </div>
@@ -230,8 +192,6 @@
       <div class="row im-body">
         <div class="im-art">
           <canvas id="imCanvas" width="220" height="220"></canvas>
-          <div class="drop small" id="imDrop">Kéo ảnh mới vào đây<br><label class="link">hoặc chọn file<input id="imFile" type="file" accept="image/png,image/webp" hidden></label></div>
-          <button id="imClearArt" class="ghost wide">Bỏ ảnh, quay lại hình vẽ sẵn</button>
         </div>
         <div class="col im-fields">
           <label class="field">Mã số <input id="imId" type="number" disabled></label>
@@ -243,7 +203,6 @@
           <label class="field">Điểm khó <input id="imCost" type="number" min="0" max="5"></label>
           <label class="field"><input id="imLink" type="checkbox"> Buộc dây được</label>
           <label class="field"><input id="imLock" type="checkbox"> Giấu trong hộp bí ẩn được</label>
-          <label class="field" id="imWidthRow">Bề ngang trong game <input id="imWidth" type="number"> px</label>
           <span class="hint" id="imInfo"></span>
         </div>
       </div>

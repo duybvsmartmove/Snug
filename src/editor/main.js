@@ -9,7 +9,6 @@ import { pointInPolygon } from '../util/geom.js';
 import { initDraw } from './draw.js';
 import { initGenerate } from './generate.js';
 import { initPool } from './pool.js';
-import { initAssets } from './assets.js';
 import { initManage, nextLevelId } from './manage.js';
 
 const $ = id => document.getElementById(id);
@@ -278,11 +277,6 @@ async function boot() {
   whenSpriteReady(() => { clearAreaCache(); draw.refreshPalette(); onChange(); });
   gen = initGenerate({ E, setLevel, areaOf, status });
   pool = initPool({ status, onSaved: () => { clearAreaCache(); draw.refreshPalette(); onChange(); frame.contentWindow.postMessage({ type: 'assets' }, '*'); } });
-  initAssets({ status, onSaved: async () => {
-    clearAreaCache(); await loadBackgrounds(); refreshPickers();
-    draw.refreshPalette(); gen.refresh(); pool?.render(); onChange();
-    frame.contentWindow.postMessage({ type: 'assets' }, '*');
-  } });
   initManage({
     E, status, blankLevel, clone, publish,
     onReload: (mapId, levelId) => openChapter(mapId || E.mapId, levelId),

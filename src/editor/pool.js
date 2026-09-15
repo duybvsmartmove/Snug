@@ -2,8 +2,7 @@
 // Mã số là khoá chính nên không cho sửa — level đang tham chiếu tới nó.
 import { ITEM_DEFS, defById } from '../data/items.js';
 import { theme } from '../art/helpers.js';
-import { saveContent, saveBinary, applyManifest, assetHome, indexAsset } from '../content/loader.js';
-import { convexHull, simplify } from '../util/geom.js';
+import { saveContent, applyManifest, assetHome, indexAsset } from '../content/loader.js';
 
 const $ = id => document.getElementById(id);
 
@@ -37,7 +36,6 @@ export function initPool({ status, onSaved }) {
   const table = $('poolTable');
   const modal = $('itemModal');
   let editing = null;          // def đang sửa
-  let newImg = null, newFile = null, clearArt = false;
 
   // ---------- bảng ----------
   function render() {
@@ -74,7 +72,7 @@ export function initPool({ status, onSaved }) {
     }).join('');
   }
   function openEditor(def) {
-    editing = def; newImg = null; newFile = null; clearArt = false;
+    editing = def;
     $('imTitle').textContent = `Sửa món #${def.id}`;
     $('imId').value = def.id;
     $('imName').value = def.name;
@@ -85,11 +83,10 @@ export function initPool({ status, onSaved }) {
     $('imCost').value = def.meta.cost;
     $('imLink').checked = !!def.meta.canLink;
     $('imLock').checked = !!def.meta.canLock;
-    const w = def.box[2] - def.box[0];
-    $('imWidth').value = Math.round(w);
-    $('imWidthRow').hidden = !def.sprite;
-    $('imClearArt').hidden = !def.sprite;
-    $('imInfo').textContent = def.sprite ? 'Đang dùng ảnh. Kéo ảnh khác vào để thay.' : 'Đang dùng hình vẽ sẵn. Kéo ảnh vào để thay bằng art thật.';
+    const [x0, , x1] = def.box;
+    $('imInfo').textContent = def.sprite
+      ? `Ảnh rộng ${Math.round(x1 - x0)}px trong game. Sinh lại ảnh ở trang Sinh sprite.`
+      : 'Món này chưa có ảnh. Sinh ở trang Sinh sprite.';
     paintThumb($('imCanvas'), def, .9);
     modal.hidden = false;
   }
@@ -97,49 +94,6 @@ export function initPool({ status, onSaved }) {
   $('imClose').addEventListener('click', closeEditor);
   modal.addEventListener('click', e => { if (e.target === modal) closeEditor(); });
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) closeEditor(); });
-
-  // ---------- nhận ảnh mới ----------
-  const drop = $('imDrop');
-  const takeFile = f => {
-    if (!f || !/image\/(png|webp)/.test(f.type)) return status('Ảnh món cần là PNG hoặc WebP nền trong suốt', 'bad');
-    newFile = f; clearArt = false;
-    newImg = new Image();
-    newImg.onload = () => {
-      const cv = $('imCanvas'), c = cv.getContext('2d');
-      c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
-      const s = Math.min(cv.width, cv.height) * .9 / Math.max(newImg.width, newImg.height);
-      c.drawImage(newImg, (cv.width - newImg.width * s) / 2, (cv.height - newImg.height * s) / 2, newImg.width * s, newImg.height * s);
-      $('imWidthRow').hidden = false;
-      if (!+$('imWidth').value) $('imWidth').value = 80;
-      $('imInfo').textContent = `Ảnh mới ${newImg.width}×${newImg.height}px. Vùng va chạm sẽ bám theo viền ảnh.`;
-    };
-    newImg.src = URL.createObjectURL(f);
-  };
-  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); takeFile(e.dataTransfer.files[0]); });
-  $('imFile').addEventListener('change', e => takeFile(e.target.files[0]));
-  $('imClearArt').addEventListener('click', () => {
-    clearArt = true; newImg = null; newFile = null;
-    $('imInfo').textContent = 'Sẽ quay lại hình vẽ sẵn sau khi lưu.';
-    $('imWidthRow').hidden = true;
-  });
-
-  /** Vùng va chạm bám theo viền ảnh */
-  function colliderFromImage(img, logicalW) {
-    const off = document.createElement('canvas'); off.width = img.width; off.height = img.height;
-    const oc = off.getContext('2d'); oc.drawImage(img, 0, 0);
-    const data = oc.getImageData(0, 0, img.width, img.height).data;
-    const step = Math.max(1, Math.floor(img.width / 120)), pts = [];
-    for (let y = 0; y < img.height; y += step) for (let x = 0; x < img.width; x += step) if (data[(y * img.width + x) * 4 + 3] > 40) pts.push([x, y]);
-    if (pts.length < 3) return null;
-    const scale = logicalW / img.width;
-    return {
-      kind: 'poly',
-      pts: simplify(convexHull(pts), img.width / 60)
-        .map(([x, y]) => [Math.round((x - img.width / 2) * scale), Math.round((y - img.height / 2) * scale)]),
-    };
-  }
 
   // ---------- lưu ----------
   $('imSave').addEventListener('click', async () => {
@@ -151,34 +105,18 @@ export function initPool({ status, onSaved }) {
     };
     const manifest = { id, slug: ($('imSlug').value || d.slug).trim(), code: d.code || null, name: ($('imName').value || d.name).trim(), meta };
     try {
-      // Món đã có thì ghi đè đúng chỗ cũ; món mới đặt vào thư mục chương đang mở
+      // Giữ nguyên ảnh và vùng va chạm đang có, chỉ ghi lại tên và thuộc tính
       const manifestPath = await assetHome('items', id);
-      const dir = manifestPath.slice(0, manifestPath.lastIndexOf('/'));
-
-      if (newFile && newImg) {
-        const logicalW = +$('imWidth').value || 80;
-        const col = colliderFromImage(newImg, logicalW);
-        if (!col) return status('Ảnh không có vùng đục nào', 'bad');
-        manifest.sprite = { src: `${dir}/${id}.png`, pixelsPerUnit: +(newImg.width / logicalW).toFixed(3) };
-        manifest.collider = col;
-        const b64 = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.readAsDataURL(newFile); });
-        await saveBinary(`${dir}/${id}.png`, b64);
-      } else if (!clearArt) {
-        try {
-          const old = await (await fetch(`./content/draft/${manifestPath}?t=${Date.now()}`)).json();
-          if (old.sprite) manifest.sprite = old.sprite;
-          if (old.collider) manifest.collider = old.collider;
-        } catch {}
-      }
+      try {
+        const old = await (await fetch(`./content/${manifestPath}?t=${Date.now()}`)).json();
+        if (old.sprite) manifest.sprite = old.sprite;
+        if (old.collider) manifest.collider = old.collider;
+      } catch {}
       await saveContent(manifestPath, JSON.stringify(manifest, null, 2));
       await indexAsset('items', id, manifestPath);
 
-      if (clearArt) { delete d.sprite; Object.assign(d, { name: manifest.name, slug: manifest.slug, meta }); }
-      else {
-        const def = applyManifest(manifest);
-        if (def.sprite) await def.sprite.whenReady;
-      }
-      theme.ink = theme.ink;         // giữ nguyên, chỉ để nhắc render lại
+      const def = applyManifest(manifest);
+      if (def.sprite) await def.sprite.whenReady;
       status(`Đã lưu món #${id}`, 'ok');
       closeEditor(); render(); onSaved?.();
     } catch (e) { status('Lỗi lưu món: ' + e.message, 'bad'); }
