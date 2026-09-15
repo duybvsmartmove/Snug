@@ -73,13 +73,22 @@ function drawSelection() {
   ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, Math.PI * 2);
   ctx.fillStyle = '#E2637F'; ctx.fill();
   ctx.lineWidth = Math.max(1.6, R * .18); ctx.strokeStyle = '#FFFFFF'; ctx.stroke();
-  // mũi tên quay 1/4 vòng, vẽ theo bán kính nút
+  // hai mũi tên đối nhau trên một vòng cung, kiểu nút xoay tự do
   ctx.save(); ctx.translate(c.x, c.y);
-  const rr = R * .46;
-  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = Math.max(1.5, R * .2); ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.arc(0, 0, rr, -Math.PI * .95, Math.PI * .3); ctx.stroke();
-  const a = Math.PI * .3, ex = Math.cos(a) * rr, ey = Math.sin(a) * rr, t = R * .34;
-  ctx.beginPath(); ctx.moveTo(ex - t, ey - t * .3); ctx.lineTo(ex + t * .1, ey + t * .8); ctx.lineTo(ex + t * .8, ey - t * .45); ctx.stroke();
+  const rr = R * .44, lw = Math.max(1.5, R * .2), t = R * .3;
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const s0 of [0, Math.PI]) {
+    ctx.beginPath(); ctx.arc(0, 0, rr, s0 + .42, s0 + Math.PI - .42); ctx.stroke();
+    const a = s0 + Math.PI - .42;                       // đầu cung, gắn mũi tên
+    const ex = Math.cos(a) * rr, ey = Math.sin(a) * rr;
+    const tx = -Math.sin(a), ty = Math.cos(a);          // hướng tiếp tuyến
+    const nx = Math.cos(a), ny = Math.sin(a);           // hướng bán kính
+    ctx.beginPath();
+    ctx.moveTo(ex + tx * -t * .1 + nx * t * .55, ey + ty * -t * .1 + ny * t * .55);
+    ctx.lineTo(ex + tx * t, ey + ty * t);
+    ctx.lineTo(ex + tx * -t * .1 - nx * t * .55, ey + ty * -t * .1 - ny * t * .55);
+    ctx.stroke();
+  }
   ctx.restore();
   ctx.restore();
 }

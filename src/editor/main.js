@@ -70,7 +70,7 @@ function pushPreview() {
   clearTimeout(pushT);
   pushT = setTimeout(() => {
     if (!E.previewReady || !E.level) return;
-    const idx = E.map ? Math.max(0, E.map.levels.indexOf(E.level.id)) : 0;
+    const idx = E.map ? Math.max(0, E.map.levels.findIndex(l => l.id === E.level.id)) : 0;
     frame.contentWindow.postMessage({ type: 'level', level: clone(E.level), index: idx, chapter: { no: E.map.no || 1, name: E.map.name || '' } }, '*');
     frame.contentWindow.postMessage({ type: 'timer', on: $('timerToggle').checked }, '*');
   }, 200);
@@ -299,10 +299,14 @@ export async function openLevel(id) {
 $('chapterSelect').addEventListener('change', e => openChapter(e.target.value));
 $('levelSelect').addEventListener('change', e => openLevel(e.target.value));
 $('newLevel').addEventListener('click', () => {
+  // Thêm thẳng vào chương để xoá được ngay; chưa bấm Lưu thì chỉ nằm trong bộ nhớ
   const id = nextLevelId(E.mapId, E.map.levels.map(l => l.id));
   const lv = blankLevel(id); if (E.level) lv.container = clone(E.level.container);
-  setLevel(lv);
-  status('Level mới, chưa lưu. Bấm Lưu để thêm vào chương.', '');
+  E.map.levels.push(lv);
+  indexChapter();
+  setLevel(clone(lv));
+  refreshLevelSelect();
+  status(`Đã thêm level ${E.map.levels.length}, chưa lưu. Bấm Lưu để ghi vào game.`, '');
 });
 
 /**
@@ -319,12 +323,26 @@ export function syncLevelIntoChapter() {
 
 
 $('copyJson').addEventListener('click', async () => { await navigator.clipboard.writeText(JSON.stringify(E.level, null, 2)); status('Đã chép JSON', 'ok'); });
+/** Thử đọc clipboard; trình duyệt chặn hoặc nội dung không phải level thì hỏi tay */
+async function readLevelJson() {
+  let txt = '';
+  try { txt = (await navigator.clipboard.readText()) || ''; } catch {}
+  const parse = t => { const lv = JSON.parse(t); if (!lv.container || !Array.isArray(lv.items)) throw new Error('thiếu container hoặc items'); return lv; };
+  if (txt.trim()) {
+    try { return parse(txt); } catch {}          // clipboard có nhưng không phải level → hỏi tay
+  }
+  const typed = prompt('Dán JSON của level vào đây:');
+  if (typed == null) return null;                // người dùng bấm Huỷ
+  return parse(typed);
+}
+
 $('pasteJson').addEventListener('click', async () => {
   try {
-    const txt = await navigator.clipboard.readText().catch(() => prompt('Dán JSON level:'));
-    const lv = JSON.parse(txt); if (!lv.container || !lv.items) throw new Error('không phải level');
-    setLevel(lv, { keepId: true }); status('Đã dán JSON', 'ok');
-  } catch (e) { status('JSON không hợp lệ: ' + e.message, 'bad'); }
+    const lv = await readLevelJson();
+    if (!lv) return;
+    setLevel(lv, { keepId: true });
+    status(`Đã dán level "${lv.name || lv.id}" · ${lv.items.length} món`, 'ok');
+  } catch (e) { status('Không dán được: ' + e.message, 'bad'); }
 });
 
 // ---------- boot ----------

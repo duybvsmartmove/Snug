@@ -202,3 +202,12 @@ button.mini.danger:hover{background:#FBEFEE}
 .publish.dirty{background:#D9822B;box-shadow:0 2px 0 #A9631C}
 .publish.dirty:hover{background:#E8913A}
 .pal-empty{grid-column:1/-1;margin:.8em .2em;color:var(--soft);font-size:.9em;line-height:1.5}
+
+/* ---- kéo thả đổi thứ tự trong bảng quản lý ---- */
+.mg-table tr[draggable]{cursor:pointer}
+.mg-table .grip{color:var(--soft);cursor:grab;user-select:none;letter-spacing:-2px;font-size:1.05em}
+.mg-table tr.dragging{opacity:.4}
+.mg-table tr.over-top td{box-shadow:inset 0 2px 0 #2E9E6B}
+.mg-table tr.over-bottom td{box-shadow:inset 0 -2px 0 #2E9E6B}
+.mg-table tr.on td{background:#F3EDE4}
+.mg-head .hint{font-weight:400}

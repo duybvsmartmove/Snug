@@ -16,22 +16,14 @@ export function nextLevelId(mapId, existing) {
 
 export function initManage({ E, status, blankLevel, clone, publish, onReload, onLevelPicked }) {
   const modal = $('mgModal');
+  // Chương đang xem trong bảng. Bấm một chương chỉ đổi danh sách level bên dưới,
+  // không đụng tới chương đang mở để sửa ở ngoài.
+  let viewId = null;
+  const viewed = () => E.book.chapters.find(c => c.id === viewId) || E.map;
   const save = async () => { await publish(); };
 
   // ---------- chương ----------
   const renumber = () => E.book.chapters.forEach((c, i) => { c.no = i + 1; });
-
-  async function addChapter() {
-    const name = prompt('Tên chương mới:', '');
-    if (!name) return;
-    const id = slugify(name);
-    if (!id) return status('Tên chương không hợp lệ', 'bad');
-    if (E.book.chapters.some(c => c.id === id)) return status(`Đã có chương mã "${id}"`, 'bad');
-    E.book.chapters.push({ id, no: E.book.chapters.length + 1, name, background: 1, reward: { coin: 40 }, levels: [] });
-    renumber(); await save();
-    status(`Đã thêm chương "${name}"`, 'ok');
-    render(); onReload?.(id);
-  }
 
   async function renameChapter(i) {
     const c = E.book.chapters[i];
@@ -39,14 +31,6 @@ export function initManage({ E, status, blankLevel, clone, publish, onReload, on
     if (!name || name === c.name) return;
     c.name = name; await save();
     status('Đã đổi tên chương', 'ok'); render(); onReload?.(E.mapId);
-  }
-
-  async function moveChapter(i, dir) {
-    const j = i + dir, list = E.book.chapters;
-    if (j < 0 || j >= list.length) return;
-    [list[i], list[j]] = [list[j], list[i]];
-    renumber(); await save();
-    status('Đã đổi thứ tự chương', 'ok'); render(); onReload?.(E.mapId);
   }
 
   async function deleteChapter(i) {
@@ -60,32 +44,39 @@ export function initManage({ E, status, blankLevel, clone, publish, onReload, on
 
   // ---------- level ----------
   async function addLevel() {
-    const id = nextLevelId(E.mapId, E.map.levels.map(l => l.id));
+    const ch = viewed();
+    const id = nextLevelId(ch.id, ch.levels.map(l => l.id));
     const lv = blankLevel(id);
-    if (E.level) lv.container = clone(E.level.container);
-    E.map.levels.push(lv); await save();
-    status(`Đã thêm level ${E.map.levels.length}`, 'ok');
-    render(); onLevelPicked?.(id);
-  }
-  async function moveLevel(i, dir) {
-    const j = i + dir, l = E.map.levels;
-    if (j < 0 || j >= l.length) return;
-    [l[i], l[j]] = [l[j], l[i]]; await save();
-    status('Đã đổi thứ tự level', 'ok'); render(); onReload?.(E.mapId, E.level?.id);
+    if (E.level && ch.id === E.mapId) lv.container = clone(E.level.container);
+    ch.levels.push(lv); await save();
+    status(`Đã thêm level ${ch.levels.length} vào "${ch.name}"`, 'ok');
+    render();
+    if (ch.id === E.mapId) onLevelPicked?.(id);
   }
   async function deleteLevel(i) {
-    const lv = E.map.levels[i];
-    if (!confirm(`Xoá level ${i + 1} (${lv.name || lv.id})?`)) return;
-    E.map.levels.splice(i, 1); await save();
+    const ch = viewed(), lv = ch.levels[i];
+    if (!confirm(`Xoá level ${i + 1} (${lv.name || lv.id}) của chương "${ch.name}"?`)) return;
+    ch.levels.splice(i, 1); await save();
     status(`Đã xoá level ${lv.id}`, 'ok'); render();
-    onLevelPicked?.(E.map.levels[Math.min(i, E.map.levels.length - 1)]?.id);
+    if (ch.id === E.mapId) onLevelPicked?.(ch.levels[Math.min(i, ch.levels.length - 1)]?.id);
   }
   async function duplicateLevel(i) {
-    const src = E.map.levels[i];
-    const id = nextLevelId(E.mapId, E.map.levels.map(l => l.id));
-    E.map.levels.splice(i + 1, 0, { ...clone(src), id, name: `${src.name} (bản sao)` });
+    const ch = viewed(), src = ch.levels[i];
+    const id = nextLevelId(ch.id, ch.levels.map(l => l.id));
+    ch.levels.splice(i + 1, 0, { ...clone(src), id, name: `${src.name} (bản sao)` });
     await save();
-    status('Đã nhân bản level', 'ok'); render(); onLevelPicked?.(id);
+    status('Đã nhân bản level', 'ok'); render();
+    if (ch.id === E.mapId) onLevelPicked?.(id);
+  }
+
+  /** Đổi chỗ hai phần tử trong mảng rồi lưu */
+  async function reorder(list, from, to, after) {
+    if (from === to || to < 0 || to >= list.length) return;
+    const [x] = list.splice(from, 1);
+    list.splice(to, 0, x);
+    await after?.();
+    await save();
+    render();
   }
 
   // ---------- bảng ----------
@@ -106,42 +97,102 @@ export function initManage({ E, status, blankLevel, clone, publish, onReload, on
     return tr;
   }
 
-  function render() {
-    const ct = $('mgChapters');
-    ct.innerHTML = '<tr><th>#</th><th>Tên chương</th><th>Mã</th><th>Level</th><th></th></tr>';
-    E.book.chapters.forEach((c, i) => {
-      const acts = document.createElement('div'); acts.className = 'mini-row';
-      acts.append(
-        btn('↑', 'Lên trên', () => moveChapter(i, -1)),
-        btn('↓', 'Xuống dưới', () => moveChapter(i, 1)),
-        btn('Đổi tên', 'Đổi tên chương', () => renameChapter(i)),
-        btn('Xoá', 'Xoá chương', () => deleteChapter(i), 'danger'),
-      );
-      ct.appendChild(row([String(i + 1), c.name, `<code>${c.id}</code>`, String(c.levels.length), acts],
-        c.id === E.mapId ? 'on' : ''));
+  /** Cho phép kéo các dòng của một bảng để đổi thứ tự */
+  function makeSortable(table, onDrop) {
+    let from = null;
+    table.addEventListener('dragstart', e => {
+      const tr = e.target.closest('tr[draggable]');
+      if (!tr) return;
+      from = +tr.dataset.i;
+      tr.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(from));   // Firefox cần dòng này
     });
-
-    const lt = $('mgLevels');
-    $('mgLevelHead').textContent = `Level của chương "${E.map.name}"`;
-    lt.innerHTML = '<tr><th>#</th><th>Tên level</th><th>Mã</th><th>Món</th><th></th></tr>';
-    E.map.levels.forEach((lv, i) => {
-      const acts = document.createElement('div'); acts.className = 'mini-row';
-      acts.append(
-        btn('↑', 'Lên trên', () => moveLevel(i, -1)),
-        btn('↓', 'Xuống dưới', () => moveLevel(i, 1)),
-        btn('Mở', 'Mở level này', async () => { onLevelPicked?.(lv.id); modal.hidden = true; }),
-        btn('Nhân bản', 'Tạo bản sao', () => duplicateLevel(i)),
-        btn('Xoá', 'Xoá level', () => deleteLevel(i), 'danger'),
-      );
-      lt.appendChild(row([String(i + 1), lv.name || lv.id, `<code>${lv.id}</code>`, String((lv.items || []).length), acts],
-        lv.id === E.level?.id ? 'on' : ''));
+    table.addEventListener('dragover', e => {
+      const tr = e.target.closest('tr[draggable]');
+      if (!tr || from === null) return;
+      e.preventDefault();
+      const r = tr.getBoundingClientRect();
+      const duoi = e.clientY > r.top + r.height / 2;
+      table.querySelectorAll('tr.over-top,tr.over-bottom').forEach(x => x.classList.remove('over-top', 'over-bottom'));
+      tr.classList.add(duoi ? 'over-bottom' : 'over-top');
+    });
+    table.addEventListener('dragleave', e => {
+      if (!table.contains(e.relatedTarget)) table.querySelectorAll('tr.over-top,tr.over-bottom').forEach(x => x.classList.remove('over-top', 'over-bottom'));
+    });
+    table.addEventListener('drop', e => {
+      const tr = e.target.closest('tr[draggable]');
+      table.querySelectorAll('tr.over-top,tr.over-bottom,tr.dragging').forEach(x => x.classList.remove('over-top', 'over-bottom', 'dragging'));
+      if (!tr || from === null) return;
+      e.preventDefault();
+      const r = tr.getBoundingClientRect();
+      let to = +tr.dataset.i + (e.clientY > r.top + r.height / 2 ? 1 : 0);
+      if (to > from) to--;
+      const f = from; from = null;
+      onDrop(f, to).catch(err => status('Lỗi: ' + err.message, 'bad'));
+    });
+    table.addEventListener('dragend', () => {
+      from = null;
+      table.querySelectorAll('tr.over-top,tr.over-bottom,tr.dragging').forEach(x => x.classList.remove('over-top', 'over-bottom', 'dragging'));
     });
   }
 
-  $('mgBtn').addEventListener('click', () => { render(); modal.hidden = false; });
+  function render() {
+    const ch = viewed();
+    if (!viewId) viewId = ch?.id;
+
+    const ct = $('mgChapters');
+    ct.innerHTML = '<tr><th></th><th>#</th><th>Tên chương</th><th>Level</th><th></th></tr>';
+    E.book.chapters.forEach((c, i) => {
+      const acts = document.createElement('div'); acts.className = 'mini-row';
+      acts.append(
+        btn('Đổi tên', 'Đổi tên chương', () => renameChapter(i)),
+        btn('Xoá', 'Xoá chương cùng level bên trong', () => deleteChapter(i), 'danger'),
+      );
+      const tr = row(['<span class="grip" title="Kéo để đổi thứ tự">⋮⋮</span>', String(i + 1),
+                      `${c.name} <code>${c.id}</code>`, String(c.levels.length), acts],
+                     c.id === viewId ? 'on' : '');
+      tr.draggable = true; tr.dataset.i = i;
+      tr.addEventListener('click', e => {
+        if (e.target.closest('button')) return;
+        viewId = c.id; render();
+      });
+      ct.appendChild(tr);
+    });
+
+    const lt = $('mgLevels');
+    $('mgLevelHead').textContent = `Level của chương "${ch.name}"`;
+    lt.innerHTML = '<tr><th></th><th>#</th><th>Tên level</th><th>Món</th><th></th></tr>';
+    ch.levels.forEach((lv, i) => {
+      const acts = document.createElement('div'); acts.className = 'mini-row';
+      acts.append(
+        btn('Mở', 'Mở level này để sửa', async () => {
+          if (ch.id !== E.mapId) await onReload?.(ch.id, lv.id);
+          else onLevelPicked?.(lv.id);
+          modal.hidden = true;
+        }),
+        btn('Nhân bản', 'Tạo bản sao ngay dưới', () => duplicateLevel(i)),
+        btn('Xoá', 'Xoá level', () => deleteLevel(i), 'danger'),
+      );
+      const tr = row(['<span class="grip" title="Kéo để đổi thứ tự">⋮⋮</span>', String(i + 1),
+                      `${lv.name || lv.id} <code>${lv.id}</code>`, String((lv.items || []).length), acts],
+                     lv.id === E.level?.id && ch.id === E.mapId ? 'on' : '');
+      tr.draggable = true; tr.dataset.i = i;
+      lt.appendChild(tr);
+    });
+  }
+
+  makeSortable($('mgChapters'), (f, t) => reorder(E.book.chapters, f, t, async () => {
+    renumber();
+    status('Đã đổi thứ tự chương', 'ok');
+  }));
+  makeSortable($('mgLevels'), (f, t) => reorder(viewed().levels, f, t, async () => {
+    status('Đã đổi thứ tự level', 'ok');
+  }));
+
+  $('mgBtn').addEventListener('click', () => { viewId = E.mapId; render(); modal.hidden = false; });
   $('mgClose').addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', e => { if (e.target === modal) modal.hidden = true; });
-  $('mgAddChapter').addEventListener('click', () => addChapter().catch(e => status('Lỗi: ' + e.message, 'bad')));
   $('mgAddLevel').addEventListener('click', () => addLevel().catch(e => status('Lỗi: ' + e.message, 'bad')));
 
   return { render };

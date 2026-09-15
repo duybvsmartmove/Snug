@@ -16,8 +16,7 @@ import { toast, hideHint } from '../ui/hud.js';
 const { Body, World, Query, Vector } = Matter;
 
 const DRAG_PX = 7;                 // di chuyển quá ngưỡng này thì coi là kéo, không phải chạm chọn
-const ROTATE_STEP = Math.PI / 2;   // mỗi lần bấm xoay 90°
-const ROTATE_MS = 170;             // thời gian quay hết 90°, để vật lý kịp đẩy đồ xung quanh
+// Xoay tự do: đặt ngón lên nút hai mũi tên ở góc món rồi kéo, món quay theo ngón.
 /** Bán kính nút xoay: co theo món để không lấn át vật, nhưng vẫn đủ to để chạm trúng */
 export function rotButtonR(body) {
   const [x0, y0, x1, y1] = body.def.box;
@@ -45,7 +44,6 @@ export function pickUp(body, p) {
   S.selected = null;
   const group = groupOf(body);
   for (const b of group) {
-    b.rotTarget = null;
     if (b.isStatic) Body.setStatic(b, false);
     Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
     World.remove(S.world, b);
@@ -105,27 +103,37 @@ export function drop() {
   S.drag = null;
 }
 
-// ---------- xoay bằng nút ----------
-/** Bấm một cái: đặt mục tiêu quay thêm 90°. Quay dần trong ROTATE_MS để vật lý kịp đẩy đồ xung quanh. */
-function rotateStep() {
-  const b = S.selected; if (!b) return;
-  b.rotTarget = (b.rotTarget ?? b.angle) + ROTATE_STEP;
+// ---------- xoay tự do bằng một ngón ----------
+// Chạm vào nút hai mũi tên ở góc món rồi kéo: món quay theo đúng hướng ngón đi,
+// giống cách xoay ảnh trong các app dựng video. Thả ngón là dừng ở đúng góc đó.
+let spin = null;   // { body, id, startAngle, startPointer }
+
+function beginSpin(body, p, pointerId) {
+  spin = {
+    body, id: pointerId,
+    startAngle: body.angle,
+    startPointer: Math.atan2(p.y - body.position.y, p.x - body.position.x),
+  };
+  Body.setAngularVelocity(body, 0);
 }
 
-/** Gọi mỗi frame: đưa món tới góc mục tiêu */
-export function tickRotation(dt) {
-  for (const b of S.bodies) {
-    if (b.rotTarget == null) continue;
-    const diff = b.rotTarget - b.angle;
-    const step = (ROTATE_STEP / ROTATE_MS) * dt;
-    if (Math.abs(diff) <= step) { Body.setAngle(b, b.rotTarget); b.rotTarget = null; }
-    else Body.setAngle(b, b.angle + Math.sign(diff) * step);
-    Body.setAngularVelocity(b, 0);
-    if (b.tether) {                       // xoay một món thì món buộc cùng không bị giật theo
-      const o = b.tether.a === b ? b.tether.b : b.tether.a;
-      if (o) Body.setVelocity(o, { x: o.velocity.x * .4, y: o.velocity.y * .4 });
-    }
+function moveSpin(p) {
+  const b = spin.body;
+  const now = Math.atan2(p.y - b.position.y, p.x - b.position.x);
+  Body.setAngle(b, spin.startAngle + (now - spin.startPointer));
+  Body.setAngularVelocity(b, 0);
+  if (b.tether) {                       // món buộc cùng không bị giật theo
+    const o = b.tether.a === b ? b.tether.b : b.tether.a;
+    if (o) Body.setVelocity(o, { x: o.velocity.x * .4, y: o.velocity.y * .4 });
   }
+}
+
+export const isSpinning = () => !!spin;
+
+/** Giữ món đang xoay đứng yên, không để vật lý quay tiếp */
+export function tickRotation() {
+  if (!spin) return;
+  Body.setAngularVelocity(spin.body, 0);
 }
 
 function hitRotateButton(p) {
@@ -139,11 +147,11 @@ let pending = null;   // món vừa chạm xuống, chưa biết là chạm ch�
 
 function onDown(e) {
   if (S.won || S.lost || S.paused) return;
-  canvas.setPointerCapture(e.pointerId);
+  try { canvas.setPointerCapture(e.pointerId); } catch {}   // con trỏ giả lập thì bỏ qua
   const p = toLogical(e);
   if (S.drag) return;
 
-  if (hitRotateButton(p)) { rotateStep(); return; }   // bấm nút xoay: mỗi lần 90°
+  if (hitRotateButton(p)) { beginSpin(S.selected, p, e.pointerId); return; }   // giữ nút rồi kéo để xoay
 
   const hit = Query.point(S.bodies.flatMap(partsOf), p);
   const body = hit.length ? hit[0].parent : null;
@@ -154,6 +162,7 @@ function onDown(e) {
 
 function onMove(e) {
   const p = toLogical(e);
+  if (spin && e.pointerId === spin.id) { moveSpin(p); return; }
   if (pending && e.pointerId === pending.id) {
     if (Vector.magnitude(Vector.sub(p, pending.startP)) > DRAG_PX) {   // đã kéo đủ xa → nhấc lên
       pickUp(pending.body, pending.startP);
@@ -166,6 +175,7 @@ function onMove(e) {
 }
 
 function onUp(e) {
+  if (spin && e.pointerId === spin.id) { spin = null; return; }
   if (pending && e.pointerId === pending.id) {          // chạm nhẹ → chọn hoặc bỏ chọn
     S.selected = S.selected === pending.body ? null : pending.body;
     pending = null;
