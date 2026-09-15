@@ -64,7 +64,16 @@ export function markDirty() {
 // ---------- live preview ----------
 // Khung xem thử là chính game, chạy trong iframe cùng origin
 const frame = $('game');
-frame.src = './index.html?preview=1';
+/**
+ * Khung xem thử chạy đúng bản game thật, chỉ khác tham số preview=1.
+ * Bật "Hiện vùng va chạm" thì nạp lại kèm colliders=1 để soi hình vật lý có bám sát
+ * ảnh không — cùng một công tắc với game, không phải chế độ vẽ riêng của editor.
+ */
+const napKhungXemThu = () => {
+  E.previewReady = false;
+  frame.src = './index.html?preview=1' + ($('colliderToggle')?.checked ? '&colliders=1' : '');
+};
+napKhungXemThu();
 let pushT = null;
 function pushPreview() {
   clearTimeout(pushT);
@@ -353,6 +362,8 @@ async function boot() {
 
   await Promise.all([loadItemManifests(), loadBackgrounds(), loadBags()]);
   refreshPickers();
+
+  $('colliderToggle')?.addEventListener('change', napKhungXemThu);   // nạp lại khung xem thử với công tắc mới
 
   draw = initDraw({ E, onChange, status, areaOf });
   whenSpriteReady(() => { clearAreaCache(); draw.refreshPalette(); onChange(); });

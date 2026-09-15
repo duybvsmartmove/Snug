@@ -19,6 +19,33 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   const toLogical = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
   const itemPos = it => it.inBag ? abs(it.x ?? 0, it.y ?? -30) : { x: it.x, y: it.y };
 
+  /**
+   * Đường viền vùng va chạm THẬT của một món, trong hệ toạ độ riêng của nó.
+   * Vùng va chạm nay sinh từ viền ảnh nên phần lớn là đa giác; lấy khung chữ nhật bao
+   * ngoài mà dùng thì người dựng level nhìn món to hơn thực tế và bấm trúng cả góc trống.
+   */
+  function vienHinh(def) {
+    if (def.kind === 'poly' && def.pts?.length) return def.pts;
+    if (def.kind === 'circle') {
+      const r = def.r, n = 20, pts = [];
+      for (let i = 0; i < n; i++) pts.push([Math.cos(i / n * 2 * Math.PI) * r, Math.sin(i / n * 2 * Math.PI) * r]);
+      return pts;
+    }
+    const [x0, y0, x1, y1] = def.box;
+    return [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  }
+
+  /** Điểm (lx, ly) trong hệ toạ độ món có nằm trong hình không */
+  function trongHinh(def, lx, ly) {
+    const pts = vienHinh(def);
+    let trong = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j];
+      if ((yi > ly) !== (yj > ly) && lx < (xj - xi) * (ly - yi) / (yj - yi) + xi) trong = !trong;
+    }
+    return trong;
+  }
+
   // ---------- vẽ ----------
   function drawDef(def, x, y, angle, alpha = 1, scale = 1) {
     ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(angle || 0);
@@ -67,9 +94,14 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
       drawDef(it.locked ? MYSTERY : def, p.x, p.y, it.angle, it.inBag ? .9 : 1, Number(it.scale) || 1);
       if (it.inBag) { ctx.fillStyle = '#E2B04A'; ctx.font = '800 10px Nunito'; ctx.fillText('IN BAG', p.x - 18, p.y - 26); }
       if (sel === it) {
-        const [x0, y0, x1, y1] = (it.locked ? MYSTERY : def).box;
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(it.angle || 0);
-        ctx.strokeStyle = '#E2637F'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.strokeRect(x0 - 4, y0 - 4, x1 - x0 + 8, y1 - y0 + 8); ctx.setLineDash([]); ctx.restore();
+        const d2 = it.locked ? MYSTERY : def, k = Number(it.scale) || 1;
+        const pts = vienHinh(d2);
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(it.angle || 0); ctx.scale(k, k);
+        ctx.strokeStyle = '#E2637F'; ctx.lineWidth = 2 / k; ctx.setLineDash([5 / k, 4 / k]); ctx.lineJoin = 'round';
+        ctx.beginPath();
+        pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+        ctx.closePath(); ctx.stroke();
+        ctx.setLineDash([]); ctx.restore();
       }
     }
     // control points
@@ -87,9 +119,9 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     for (let i = L.items.length - 1; i >= 0; i--) {
       const it = L.items[i], def = it.locked ? MYSTERY : defById(it.id); if (!def) continue;
       const c = itemPos(it), dx = p.x - c.x, dy = p.y - c.y, a = -(it.angle || 0);
-      const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
-      const [x0, y0, x1, y1] = def.box;
-      if (lx >= x0 && lx <= x1 && ly >= y0 && ly <= y1) return it;
+      const k = Number(it.scale) || 1;
+      const lx = (dx * Math.cos(a) - dy * Math.sin(a)) / k, ly = (dx * Math.sin(a) + dy * Math.cos(a)) / k;
+      if (trongHinh(def, lx, ly)) return it;
     }
     return null;
   }
