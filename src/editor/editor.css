@@ -43,7 +43,7 @@ code{background:#F1EAE3;padding:.1em .4em;border-radius:4px}
 @media (max-width:1300px){
   .layout{grid-template-columns:300px minmax(380px,1fr);grid-template-areas:"preview center" "metrics center"}
   .preview{grid-area:preview} .center{grid-area:center} .metrics{grid-area:metrics;position:static}
-  .phone-wrap,.phone-wrap iframe{width:300px;height:543px}
+  .phone-wrap{max-width:300px}
 }
 @media (max-width:940px){
   .layout{grid-template-columns:1fr;grid-template-areas:"center" "preview" "metrics"}
@@ -56,8 +56,8 @@ code{background:#F1EAE3;padding:.1em .4em;border-radius:4px}
 
 /* ---------- xem thử ---------- */
 .preview{position:sticky;top:64px}
-.phone-wrap{width:340px;height:615px;border-radius:26px;overflow:hidden;box-shadow:0 14px 30px rgba(43,34,48,.18);border:1px solid var(--line);background:#EADFD6}
-.phone-wrap iframe{width:340px;height:615px;border:0;display:block}
+.phone-wrap{width:100%;max-width:340px;aspect-ratio:340/615;border-radius:26px;overflow:hidden;box-shadow:0 14px 30px rgba(43,34,48,.18);border:1px solid var(--line);background:#EADFD6}
+.phone-wrap iframe{width:100%;height:100%;border:0;display:block}
 .preview-actions{display:flex;gap:.5em;margin-top:.7em}
 .chk{display:flex;align-items:center;gap:.4em;margin-top:.6em;color:var(--soft);font-size:.85em;font-weight:700}
 
@@ -69,7 +69,7 @@ code{background:#F1EAE3;padding:.1em .4em;border-radius:4px}
 #fitBag input{width:3.4em;padding:.1em .2em;text-align:right}
 
 /* Canvas đúng 420px, phần còn lại nhường hết cho bảng sửa món và kho đồ */
-.canvas-card{display:grid;grid-template-columns:minmax(0,420px) minmax(210px,320px);gap:.9em;justify-content:start}
+.canvas-card{display:grid;grid-template-columns:minmax(0,420px) minmax(210px,1fr);gap:.9em}
 #edit{width:100%;max-width:420px;aspect-ratio:420/760;border-radius:14px;border:1px solid var(--line);background:#F3EBE3;cursor:crosshair;touch-action:none;justify-self:center}
 .side{display:flex;flex-direction:column;gap:.55em;min-height:0}
 .sel{border:1px solid var(--line);border-radius:10px;padding:.7em .8em;font-size:.88em;background:#FBF8F4}
