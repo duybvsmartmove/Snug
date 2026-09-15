@@ -87,6 +87,11 @@ const SOUNDS = {
   // thả món xuống chỗ hợp lệ
   drop() { const o = buf(.18); tone(o,{dur:.15,f:p=>380-200*p,gain:.3,wave:'tri',env:{a:.003,r:.12}});
            noise(o,{dur:.08,gain:.14,lp:.14,env:{a:.002,r:.07}}); return o; },
+  // đồ tiếp đất: tiếng gỗ cộc ngắn, khác hẳn tiếng người chơi thả tay
+  land() { const o = buf(.16);
+           tone(o,{dur:.13,f:p=>210-90*p,gain:.34,wave:'tri',env:{a:.002,r:.1,curve:2.8}});
+           tone(o,{dur:.05,f:p=>640-260*p,gain:.14,wave:'sine',env:{a:.001,r:.045}});
+           noise(o,{dur:.07,gain:.16,lp:.22,env:{a:.001,r:.06}}); return o; },
   // món vừa khít, tick xanh sáng lên
   fit() { const o = buf(.34); tone(o,{dur:.16,f:N.C6,gain:.26,env:{a:.003,r:.14}});
           tone(o,{at:.07,dur:.24,f:N.E6,gain:.24,env:{a:.003,r:.21}});

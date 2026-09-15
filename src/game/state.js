@@ -53,5 +53,7 @@ export const S = {
   puffs: [], startTime: 0, shownSec: -1, jiggle: null,
 };
 
+/** Món đã thả vào sân chưa. Đầu màn đồ vào lần lượt nên có lúc body chưa nằm trong thế giới vật lý. */
+export const daVao = b => !b.chuaVao;
 export const partsOf = b => (b.parts.length > 1 ? b.parts.slice(1) : [b]);
 export const isHeld = b => !!(S.drag && (S.drag.group ? S.drag.group.includes(b) : S.drag.body === b));

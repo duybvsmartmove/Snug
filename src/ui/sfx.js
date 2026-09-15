@@ -5,7 +5,7 @@
 // được dựng ở lần chạm đầu tiên rồi mới tải file.
 const BASE = './audio/';
 
-const NAMES = ['tap', 'tapBig', 'pick', 'drop', 'fit', 'nope', 'eject', 'jiggle',
+const NAMES = ['tap', 'tapBig', 'pick', 'drop', 'land', 'fit', 'nope', 'eject', 'jiggle',
   'shrink', 'trash', 'unlock', 'tick', 'whoosh', 'star', 'win', 'lose', 'unlockLv'];
 
 const KEY = 'snug.audio.v1';

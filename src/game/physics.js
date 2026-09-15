@@ -9,7 +9,7 @@ Matter.Common.setDecomp(decompNS.default ?? decompNS);
 import { S, BAG, W, H, FLOOR_Y, PAD } from './state.js';
 import { polygonArea } from '../util/geom.js';
 
-const { Engine, World, Bodies, Body, Vertices } = Matter;
+const { Engine, World, Bodies, Body, Vertices, Events } = Matter;
 
 const MAT = { friction: .6, frictionStatic: .8, restitution: .26, density: .0018 };
 
@@ -71,6 +71,14 @@ function polygonWalls(poly, opt) {
   return walls;
 }
 
+/**
+ * Ai muốn biết món vừa va vào cái gì thì đăng ký ở đây.
+ * Đi vòng qua callback chứ không gọi thẳng module tiếng và hiệu ứng: file này được
+ * Level Editor dùng chung, mà hai module kia lại bám vào canvas của game.
+ */
+let baoVaCham = null;
+export const onImpact = fn => { baoVaCham = fn; };
+
 /** Engine mới + tường quanh màn + thành túi theo polygon + block chặn */
 export function createWorld() {
   const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
@@ -86,6 +94,20 @@ export function createWorld() {
     ...BAG.blocks.map(b => Bodies.rectangle(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h, { ...wallOpt, label: 'block' })),
   ];
   World.add(engine.world, walls);
+
+  // Matter báo cặp va chạm ngay khi vừa chạm nhau, lúc này .speed vẫn là tốc độ
+  // trước khi bị giải va chạm triệt tiêu — đúng cái cần để biết cú va mạnh hay nhẹ.
+  Events.on(engine, 'collisionStart', e => {
+    if (!baoVaCham) return;
+    for (const pair of e.pairs) {
+      const A = pair.bodyA.parent, B = pair.bodyB.parent;
+      const mon = A.isStatic ? B : B.isStatic ? A : (A.speed >= B.speed ? A : B);
+      if (mon.isStatic) continue;
+      const p = pair.activeContacts?.[0]?.vertex;
+      baoVaCham(mon, mon.speed, p ? { x: p.x, y: p.y } : mon.position, A.isStatic || B.isStatic);
+    }
+  });
+
   S.engine = engine; S.world = engine.world; S.staticBodies = walls;
   return engine;
 }

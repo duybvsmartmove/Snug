@@ -7,8 +7,10 @@ import { bindBoosters } from './game/boosters.js';
 import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level.js';
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
+import { bindImpacts } from './game/rules.js';
 import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
+import * as FX from './game/fx.js';
 import { initHome, showHome, hideHome } from './ui/home.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
 
@@ -22,6 +24,7 @@ async function boot() {
   bindOverlayButtons({ onAgain: restart, onNext: nextLevel, onPrev: prevLevel, onExtraTime: extraTime, onHome: goHome });
   bindInput();
   bindBoosters();
+  bindImpacts();
   resize();
   startLoop();
 
@@ -102,7 +105,7 @@ async function buildWithArt(level) {
 // Hook debug ở chế độ dev: mở console gõ __game.S để xem trạng thái, __game.drag(id, x, y) để thử kéo.
 if (import.meta.env?.DEV) {
   window.__game = {
-    S, restart, nextLevel, prevLevel, autoplay,
+    S, FX, restart, nextLevel, prevLevel, autoplay,
     body: id => S.bodies.find(b => b.label === id),
     async drag(id, tx, ty, steps = 10) {
       const cv = document.getElementById('game'), r = cv.getBoundingClientRect();

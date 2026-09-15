@@ -18,6 +18,25 @@ export function sparkle(x, y, { n = 14, color = '#5FBF9B', speed = 1, life = 620
   }
 }
 
+/** Bụi tung lên chỗ món vừa tiếp đất: hạt nhỏ bắn ngang rồi rơi xuống */
+export function dust(x, y, { n = 5, manh = .5 } = {}) {
+  for (let i = 0; i < n; i++) {
+    const ngang = (Math.random() - .5) * 2;
+    parts.push({
+      x: x + ngang * 8, y: y - 2,
+      vx: ngang * (40 + Math.random() * 54) * (.6 + manh),
+      vy: -(24 + Math.random() * 42) * (.5 + manh),
+      g: 200, t: 0, life: 420 + Math.random() * 340,
+      size: 2.6 + Math.random() * 3.4 * (.7 + manh),
+      // Hai tông xen nhau: nền sàn gỗ chỗ sáng chỗ tối, một tông thì có chỗ chìm hẳn
+      color: i % 3 === 0 ? 'rgba(120,86,56,.5)' : 'rgba(255,248,236,.92)',
+      shape: 'dot',
+    });
+  }
+  // quầng bẹt sát mặt sàn, cho cú chạm có sức nặng
+  rings.push({ x, y, r0: 3, r1: 18 + manh * 22, t: 0, life: 300, color: 'rgba(255,250,240,.75)', width: 3, bet: true });
+}
+
 /** Vòng sáng lan ra rồi mờ dần */
 export function ring(x, y, { color = '#5FBF9B', r0 = 8, r1 = 58, life = 480, width = 4 } = {}) {
   rings.push({ x, y, r0, r1, t: 0, life, color, width });
@@ -95,7 +114,11 @@ export function drawFx(dt) {
     ctx.globalAlpha = (1 - k) * .95;
     ctx.strokeStyle = r.color;
     ctx.lineWidth = r.width * (1 - k) + .6;
-    ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * k, 0, Math.PI * 2); ctx.stroke();
+    const bk = r.r0 + (r.r1 - r.r0) * k;
+    ctx.beginPath();
+    if (r.bet) ctx.ellipse(r.x, r.y, bk, bk * .34, 0, 0, Math.PI * 2);
+    else ctx.arc(r.x, r.y, bk, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 

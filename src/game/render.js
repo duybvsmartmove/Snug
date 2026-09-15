@@ -9,6 +9,7 @@ import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings, jiggleOffset } from './mechanics.js';
 import { updateClock, showLose } from '../ui/hud.js';
 import { drawFx } from './fx.js';
+import { tickEntrance } from './level.js';
 
 const { Engine } = Matter;
 
@@ -30,6 +31,7 @@ function drawArt(b) {
 }
 
 function drawBody(b) {
+  if (b.chuaVao) return;                 // chưa tới lượt rơi xuống thì chưa có gì để vẽ
   const held = isHeld(b), ghost = held && S.drag.ghost, ok = S.checked.has(b.itemId);
   const shake = ghost ? (Math.random() - .5) * 2.5 : 0;   // GDD: không vừa → rung nhẹ
   ctx.save();
@@ -126,7 +128,7 @@ function frame(now) {
 
   if (S.engine) {
     if (active) moveHeld(dt);
-    if (active) { tickPhone(dt); tickRotation(dt); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt); }
+    if (active) { tickEntrance(); tickPhone(dt); tickRotation(dt); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt); }
     checkEject();
     updateChecked();
     updateClock();

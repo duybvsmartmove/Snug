@@ -8,7 +8,7 @@ import { createTethers } from './mechanics.js';
 import { resetBoosts } from './boosters.js';
 import { renderHeader, renderList, hideWin, hideLose, hidePause } from '../ui/hud.js';
 import { clearFx } from './fx.js';
-import { duckMusic } from '../ui/sfx.js';
+import { duckMusic, sfx } from '../ui/sfx.js';
 import { setSpot } from './progress.js';
 
 const { Body, World } = Matter;
@@ -56,17 +56,46 @@ export function build(level) {
     if (x == null || y == null) { const col = i % 6, row = Math.floor(i / 6); x = 40 + col * ((W - 80) / 5); y = TABLE_Y + 30 + row * 70; }
     const b = makeItem(it.locked ? MYSTERY : def, x, y);
     b.itemId = def.id; b.label = def.slug; b.realDef = def; b.locked = !!it.locked;
+    b.datSan = !!it.inBag;
     // Cỡ riêng của món trong CHÍNH level này, không đụng tới món ở level khác
     const k = Number(it.scale) || 1;
     if (k !== 1) { Body.scale(b, k, k); b.artScale *= k; b.levelScale = k; }
     Body.setAngle(b, it.angle || 0);
     S.bodies.push(b);
-    // Đồ ngoài túi rơi tự do xuống sàn, nằm lộn xộn tự nhiên thay vì xếp thành lưới
-    if (!it.inBag) Body.setVelocity(b, { x: (Math.random() - .5) * 1.5, y: 0 });
   });
-  World.add(S.world, S.bodies);
+  thaDoVaoSan();
+  sfx('whoosh', { gain: .34, rate: .88 });   // một nhịp mở màn trước khi đồ đổ xuống
   createTethers();
   renderList(true);
+}
+
+// Mở màn: đồ rơi xuống lần lượt chứ không đổ ụp một lúc.
+// Rơi cùng lúc thì mấy chục cú va chạm dồn vào một phần tư giây, nghe thành một tiếng ù
+// và mắt cũng không kịp thấy gì. Thả từ món gần sàn nhất trở lên để món phía trên rơi
+// xuống chồng lên món đã nằm yên, đúng thứ tự người thiết kế xếp.
+const NHIP_THA = 75;          // mili giây giữa hai món
+const CHO_DAU = 120;          // nghỉ một nhịp trước khi món đầu tiên rơi
+
+function thaDoVaoSan() {
+  const datSan = S.bodies.filter(b => b.datSan);
+  const roiXuong = S.bodies.filter(b => !b.datSan).sort((a, b) => b.position.y - a.position.y);
+  World.add(S.world, datSan);                      // món đặt sẵn trong túi có mặt ngay
+  const t0 = performance.now() + CHO_DAU;
+  roiXuong.forEach((b, i) => { b.chuaVao = true; b.vaoLuc = t0 + i * NHIP_THA; });
+}
+
+/** Gọi mỗi khung hình: thả những món đã tới lượt vào thế giới vật lý */
+export function tickEntrance() {
+  if (!S.world) return;
+  const now = performance.now();
+  for (const b of S.bodies) {
+    if (!b.chuaVao || now < b.vaoLuc) continue;
+    b.chuaVao = false;
+    // Ném nhẹ xuống thay vì thả rơi từ đứng yên: hàng đồ dưới cùng chỉ cách sàn vài chục
+    // pixel, buông không thì chạm đất quá nhẹ, không ra tiếng mà cũng không tung bụi.
+    Body.setVelocity(b, { x: (Math.random() - .5) * 1.5, y: 3.2 });
+    World.add(S.world, b);
+  }
 }
 
 /** Tải level thứ idx của map hiện tại rồi dựng */

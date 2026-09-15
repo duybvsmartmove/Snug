@@ -1,11 +1,12 @@
 // Luật của túi: đồ có nằm gọn trong lòng túi (polygon) không, ảo ảnh khi chồng lấn, đẩy đồ chòi mép ra, tính tiến độ.
 import Matter from 'matter-js';
 import { KEY_ID } from '../data/items.js';
-import { S, BAG, PAD, W, TABLE_Y, FLOOR_Y, partsOf, isHeld } from './state.js';
+import { S, BAG, PAD, W, TABLE_Y, FLOOR_Y, partsOf, isHeld, daVao } from './state.js';
 import { pointInPolygonTolerant } from '../util/geom.js';
 import { toast, renderList, showWin } from '../ui/hud.js';
 import { sfx, sfxSeq, duckMusic } from '../ui/sfx.js';
-import { sparkle, ring, confetti, shake, floatText } from './fx.js';
+import { sparkle, ring, confetti, shake, floatText, dust } from './fx.js';
+import { onImpact } from './physics.js';
 import { markDone, setSpot } from './progress.js';
 
 const { Body, Bounds, Collision } = Matter;
@@ -42,7 +43,7 @@ export function computeGhost(body, group = [body]) {
   const z = bagZone(body);
   if (z.inZone && !z.fullyInside) return true;
   const mine = partsOf(body);
-  const others = S.bodies.filter(b => !group.includes(b)).flatMap(partsOf).concat(S.staticBodies);
+  const others = S.bodies.filter(b => !group.includes(b) && daVao(b)).flatMap(partsOf).concat(S.staticBodies);
   for (const a of mine) {
     for (const b of others) {
       if (!Bounds.overlaps(a.bounds, b.bounds)) continue;
@@ -93,11 +94,43 @@ export function eject(b) {
 /** Đồ nằm yên mà vẫn chòi ra khỏi miệng túi → đẩy ra */
 export function checkEject() {
   for (const b of S.bodies) {
-    if (isHeld(b)) continue;
+    if (isHeld(b) || b.chuaVao) continue;
     const z = bagZone(b);
     if (z.inZone && !z.fullyInside && b.speed < .5 && b.angularSpeed < .05) { if (++b.stuck > 28) eject(b); }
     else b.stuck = 0;
   }
+}
+
+// ---------- va chạm: tiếng tiếp đất và bụi tung lên ----------
+const VA_NHE = 1.6;        // dưới mức này là món chỉ cọ vào nhau, không phải cú rơi
+const NGHI_MOI_MON = 130;  // một món không kêu hai lần sát nhau
+const TOI_DA_MOT_NHIP = 3; // nhiều món chạm đất cùng lúc thì chỉ lấy vài tiếng, tránh ù
+
+let nhipMoc = 0, nhipDem = 0;
+
+/** Bật tiếng và bụi mỗi khi có món tiếp đất. Chỉ game gọi, editor không. */
+export function bindImpacts() {
+  onImpact((b, v, diem, vaoTuong) => {
+    if (v < VA_NHE || b.chuaVao || isHeld(b)) return;
+    const now = performance.now();
+    if (b.vaLuc > now - NGHI_MOI_MON) return;
+    b.vaLuc = now;
+    if (now - nhipMoc > 90) { nhipMoc = now; nhipDem = 0; }
+    if (++nhipDem > TOI_DA_MOT_NHIP) return;
+
+    const manh = Math.min(1, (v - VA_NHE) / 4.2);
+    // món càng to tiếng càng trầm, nghe ra được là vật nặng hay vật nhẹ
+    const [x0, , x1] = b.def.box;
+    const be = Math.max(16, (x1 - x0) * (b.artScale || 1));
+    sfx('land', {
+      gain: .3 + manh * .55,
+      rate: 1.34 - Math.min(.48, be / 150) + (Math.random() - .5) * .1,
+    });
+    // Chạm sàn thì bụi bốc rõ, rơi trúng món khác thì chỉ lơ thơ vài hạt.
+    dust(diem.x, diem.y, vaoTuong
+      ? { n: 3 + Math.round(manh * 5), manh }
+      : { n: 2 + Math.round(manh * 2), manh: manh * .5 });
+  });
 }
 
 const fmt = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
@@ -115,7 +148,7 @@ export function updateChecked() {
   let changed = false;
   const now = performance.now();
   for (const b of S.bodies) {
-    if (b.itemId === KEY_ID) continue;
+    if (b.itemId === KEY_ID || b.chuaVao) continue;
     const was = S.checked.has(b.itemId);
     const roiTay = isHeld(b) || b.locked;
     const inside = !roiTay && bagZone(b).fullyInside;

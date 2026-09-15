@@ -7,7 +7,7 @@
 //    Chồng lên món khác hoặc chòi mép túi thì thành ảo ảnh, thả ra sẽ bật ngược ra ngoài.
 //  - Món buộc dây được nhấc theo cặp, coi như một khối, để dây không kéo lê món kia.
 import Matter from 'matter-js';
-import { S, partsOf } from './state.js';
+import { S, partsOf, daVao } from './state.js';
 import { canvas, toLogical } from './canvas.js';
 import { computeGhost, findFreeSpot, bagZone } from './rules.js';
 import { tetherSuspend, tetherRestore } from './mechanics.js';
@@ -172,7 +172,7 @@ function onDown(e) {
 
   if (hitRotateButton(p)) { beginSpin(S.selected, p, e.pointerId); return; }   // nút ở góc món
 
-  const hit = Query.point(S.bodies.flatMap(partsOf), p);
+  const hit = Query.point(S.bodies.filter(daVao).flatMap(partsOf), p);
   const body = hit.length ? hit[0].parent : null;
 
   // Đang chọn một món mà chạm ra chỗ trống: kéo ở đâu cũng xoay được món đó.

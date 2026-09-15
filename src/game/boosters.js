@@ -1,7 +1,7 @@
 // Booster theo GDD: Jiggle (lắc túi), Resize (thu nhỏ 20% món lớn nhất ngoài túi), Throw Out (bỏ 1 món thường).
 // Mỗi loại có số lượt riêng, hiện badge trên nút.
 import Matter from 'matter-js';
-import { S, isHeld } from './state.js';
+import { S, isHeld, daVao } from './state.js';
 import { areaOf } from '../data/items.js';
 import { removeBody } from './physics.js';
 import { bagZone } from './rules.js';
@@ -39,7 +39,7 @@ const largeIds = () => S.ITEMS.slice().sort((a, b) => areaOf(b) - areaOf(a)).sli
 /** Món được phép bỏ: không phải 3 món lớn nhất, không buộc dây, không phải hộp bí ẩn hay chìa khóa */
 function throwableItems() {
   const big = largeIds();
-  return S.bodies.filter(b => !b.tether && !b.locked && b.label !== 'key' && !big.includes(b.itemId) && !isHeld(b));
+  return S.bodies.filter(b => daVao(b) && !b.tether && !b.locked && b.label !== 'key' && !big.includes(b.itemId) && !isHeld(b));
 }
 
 /** Throw Out: bỏ ngẫu nhiên một món thường, ưu tiên món còn nằm ngoài túi */
@@ -67,7 +67,7 @@ function useJiggle() {
 
 function useResize() {
   if (S.boosts.resize <= 0 || S.won || S.lost) return;
-  const cands = S.bodies.filter(b => !bagZone(b).fullyInside && !isHeld(b) && b.label !== 'key');
+  const cands = S.bodies.filter(b => daVao(b) && !bagZone(b).fullyInside && !isHeld(b) && b.label !== 'key');
   if (!cands.length) { sfx('nope'); return toast('Không còn món nào ngoài túi'); }
   const b = cands.sort((x, y) => y.area - x.area)[0];
   Body.scale(b, .8, .8); b.artScale *= .8;   // GDD: thu nhỏ 20%
