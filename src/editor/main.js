@@ -81,6 +81,7 @@ window.addEventListener('message', e => { if (e.data?.type === 'ready') { E.prev
 // Mọi chương và level nằm trong MỘT file: content/levels.json của repo game.
 // Bấm Phát hành là ghi lại file đó, game đọc thẳng từ máy, không qua mạng.
 export async function publish(note = '') {
+  syncLevelIntoChapter();     // level đang sửa là bản chép riêng, phải trả về chương trước khi ghi
   const b = E.book;
   b.version = (b.version || 0) + 1;
   b.publishedAt = new Date().toISOString();
@@ -296,18 +297,27 @@ $('newLevel').addEventListener('click', () => {
   status('Level mới, chưa lưu. Bấm Lưu để thêm vào chương.', '');
 });
 
-/** Ghi level đang sửa vào chương, rồi lưu cả file sắp xếp */
-async function saveLevel(level) {
-  const i = E.map.levels.findIndex(l => l.id === level.id);
-  if (i >= 0) E.map.levels[i] = clone(level);
-  else E.map.levels.push(clone(level));
+/**
+ * Trả level đang sửa về đúng chỗ của nó trong chương.
+ * E.level là bản chép riêng để sửa thoải mái, nên không tự động vào E.book.
+ * Mọi đường lưu đều phải đi qua đây, nếu không file ghi ra sẽ thiếu đúng phần vừa sửa.
+ */
+export function syncLevelIntoChapter() {
+  if (!E.level || !E.map) return;
+  const i = E.map.levels.findIndex(l => l.id === E.level.id);
+  if (i >= 0) E.map.levels[i] = clone(E.level);
+  else E.map.levels.push(clone(E.level));
+}
+
+async function saveLevel() {
+  syncLevelIntoChapter();
   indexChapter();
   await publish();
   refreshLevelSelect();
   markDirty();
 }
 $('saveBtn').addEventListener('click', async () => {
-  try { await saveLevel(E.level); status(`Đã lưu "${E.level.name}"`, 'ok'); frame.contentWindow.postMessage({ type: 'assets' }, '*'); }
+  try { await saveLevel(); status(`Đã lưu "${E.level.name}"`, 'ok'); frame.contentWindow.postMessage({ type: 'assets' }, '*'); }
   catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
 });
 $('assignBtn').addEventListener('click', async () => {
