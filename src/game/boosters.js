@@ -7,6 +7,8 @@ import { removeBody } from './physics.js';
 import { bagZone } from './rules.js';
 import { jiggle } from './mechanics.js';
 import { toast } from '../ui/hud.js';
+import { sfx } from '../ui/sfx.js';
+import { sparkle, ring, shake, floatText } from './fx.js';
 
 const { Body } = Matter;
 
@@ -44,11 +46,13 @@ function throwableItems() {
 function useThrow() {
   if (S.boosts.throw <= 0 || S.won || S.lost) return;
   const all = throwableItems();
-  if (!all.length) return toast('Không có món nào bỏ được');
+  if (!all.length) { sfx('nope'); return toast('Không có món nào bỏ được'); }
   const outside = all.filter(b => !bagZone(b).fullyInside);
   const pool = outside.length ? outside : all;
   const b = pool[Math.floor(Math.random() * pool.length)];
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
+  sfx('trash'); sparkle(b.position.x, b.position.y, { n: 16, color: '#E8434F', speed: 1.3 });
+  floatText(b.position.x, b.position.y - 16, 'Bỏ đi', { color: '#E8434F' });
   removeBody(b); S.gone.add(b.itemId);
   S.boosts.throw--; renderBoosts();
   toast(`Đã bỏ ${b.realDef.name}`);
@@ -57,16 +61,19 @@ function useThrow() {
 function useJiggle() {
   if (S.boosts.jiggle <= 0 || S.won || S.lost) return;
   S.boosts.jiggle--; renderBoosts();
+  sfx('jiggle'); shake(420);
   jiggle();
 }
 
 function useResize() {
   if (S.boosts.resize <= 0 || S.won || S.lost) return;
   const cands = S.bodies.filter(b => !bagZone(b).fullyInside && !isHeld(b) && b.label !== 'key');
-  if (!cands.length) return toast('Không còn món nào ngoài túi');
+  if (!cands.length) { sfx('nope'); return toast('Không còn món nào ngoài túi'); }
   const b = cands.sort((x, y) => y.area - x.area)[0];
   Body.scale(b, .8, .8); b.artScale *= .8;   // GDD: thu nhỏ 20%
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
+  sfx('shrink'); ring(b.position.x, b.position.y, { color: '#3D8BFF', r1: 40, life: 420 });
+  floatText(b.position.x, b.position.y - 18, '−20%', { color: '#2A66C8' });
   S.boosts.resize--; renderBoosts();
   toast(`Đã thu nhỏ ${b.realDef.name} 20%`);
 }

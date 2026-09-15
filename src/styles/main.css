@@ -136,3 +136,188 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 /* ---- bảng màu theo bối cảnh ---- */
 #phone.beach{--ink:#24425C;--ink-soft:#6F8BA3;--rose:#F2705B;--gold:#FFD166;--mint:#2FB59A;--panel:#EAF4F7}
 #phone.beach .cta{box-shadow:0 4px 0 #C4533F}
+
+/* ==========================================================================
+   MÀN HÌNH PHỦ: trang chủ và bản đồ chương
+   ========================================================================== */
+.screen{
+  position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .28s ease, transform .36s cubic-bezier(.2,.9,.3,1.15), visibility .28s;
+}
+.screen.show{opacity:1;visibility:visible;transform:none;pointer-events:auto}
+
+/* ---- trang chủ ---- */
+.home{
+  transform:scale(1.04);
+  background:
+    radial-gradient(120% 70% at 50% 0%, #FFF6EA 0%, #F3E3D2 46%, #E7CDB6 100%);
+}
+.home-glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(38% 22% at 18% 22%, rgba(255,255,255,.72), transparent 70%),
+    radial-gradient(30% 18% at 84% 14%, rgba(226,176,74,.28), transparent 70%),
+    radial-gradient(60% 34% at 50% 104%, rgba(226,99,127,.20), transparent 70%);
+  animation:homeGlow 9s ease-in-out infinite alternate;
+}
+@keyframes homeGlow{from{opacity:.75;transform:translateY(0)}to{opacity:1;transform:translateY(-1.4%)}}
+
+.home-inner{
+  position:relative;flex:1;min-height:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;gap:.6em;
+  padding:8% 7% 5.5%;
+}
+.brand{text-align:center}
+.brand-sub{
+  font:800 .62em "Nunito";letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);
+  opacity:.85;margin-bottom:.35em;
+}
+.brand-name{
+  margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:2.55em;line-height:.96;
+  color:var(--ink);letter-spacing:-.01em;text-shadow:0 3px 0 rgba(255,255,255,.75);
+}
+.brand-name em{font-style:normal;color:var(--rose);display:inline-block;animation:tilt 3.6s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+
+/* thẻ chương: cho biết đang ở chương nào, đã qua bao nhiêu màn */
+.chcard{
+  position:relative;width:100%;background:var(--card);border-radius:1.5em;
+  padding:1em 1.15em 1.05em;text-align:center;
+  box-shadow:0 6px 0 rgba(59,42,74,.10), 0 16px 34px rgba(59,42,74,.18);
+  animation:floaty 5s ease-in-out infinite;
+}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-.4em)}}
+/* Ô ảnh cao cố định, ảnh luôn co vừa bên trong: sprite gốc cả nghìn pixel,
+   để tự do là nó tràn xuống đè mất tên chương. */
+.chcard-art{position:relative;height:8.6em;margin:-.1em 0 .45em;
+  animation:bobArt 3.4s ease-in-out infinite}
+.chcard-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  filter:drop-shadow(0 8px 12px rgba(59,42,74,.22))}
+@keyframes bobArt{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-.35em) rotate(1.5deg)}}
+.chcard-art img:not([src]),.chcard-art img[src=""]{display:none}
+.chcard-no{font:800 .6em "Nunito";letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.chcard-name{font-family:"Fredoka";font-weight:700;font-size:1.5em;line-height:1.15;color:var(--ink);margin:.05em 0 .5em}
+.bar{height:.62em;border-radius:999px;background:#EDE2E8;overflow:hidden;box-shadow:inset 0 2px 3px rgba(59,42,74,.12)}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--rose));
+  transition:width .7s cubic-bezier(.2,.9,.3,1)}
+.chcard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:.55em;
+  font:800 .7em "Nunito";color:var(--ink-soft)}
+.pill{background:#F6EFE4;color:var(--ink);border-radius:999px;padding:.24em .75em;font-weight:800}
+
+.home-actions{width:100%;display:flex;flex-direction:column;gap:.55em}
+.cta.wide{width:100%;display:flex;align-items:center;justify-content:center;gap:.5em}
+.bic{width:1.05em;height:1.05em;fill:currentColor;flex:none}
+.cta.play{
+  font-size:1.35em;padding:.62em 1em;border-radius:1em;
+  background:linear-gradient(180deg,#F0748F,#D9536F);
+  box-shadow:0 6px 0 #AC3E56, 0 14px 26px rgba(59,42,74,.24);
+  position:relative;overflow:hidden;animation:playPulse 2.4s ease-in-out infinite;
+}
+.cta.play:active{transform:translateY(4px);box-shadow:0 2px 0 #AC3E56;animation:none}
+@keyframes playPulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-.14em)}}
+/* vệt sáng chạy ngang nút Chơi */
+.cta.play::after{
+  content:"";position:absolute;top:-60%;left:-40%;width:35%;height:220%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:rotate(18deg);animation:shine 3.4s ease-in-out infinite;
+}
+@keyframes shine{0%,62%{left:-40%}88%,100%{left:120%}}
+
+.home-tools{position:absolute;top:4.2%;right:4.6%;display:flex;gap:.45em;z-index:2}
+.iconbtn{
+  width:2.4em;height:2.4em;border:0;border-radius:.8em;cursor:pointer;flex:none;
+  background:rgba(255,255,255,.82);color:var(--ink);display:grid;place-items:center;
+  box-shadow:0 3px 0 rgba(59,42,74,.12);-webkit-tap-highlight-color:transparent;
+}
+.iconbtn svg{width:56%;height:56%;fill:currentColor}
+.iconbtn:active{transform:translateY(3px);box-shadow:none}
+.iconbtn.off{color:var(--ink-soft);background:rgba(255,255,255,.5)}
+
+/* ---- bản đồ chương & màn ---- */
+.mapscr{transform:translateX(14%);background:linear-gradient(180deg,#F7EEE3,#EADCCC)}
+.mhead{
+  flex:none;display:flex;align-items:center;gap:.7em;padding:4.4% 4.6% 2.6%;
+  background:rgba(255,255,255,.55);backdrop-filter:blur(6px);
+}
+.mhead b{font-family:"Fredoka";font-weight:700;font-size:1.25em}
+.mlist{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;
+  padding:.8em 4.6% 6%;display:flex;flex-direction:column;gap:.9em}
+.mlist::-webkit-scrollbar{width:.4em}
+.mlist::-webkit-scrollbar-thumb{background:rgba(59,42,74,.18);border-radius:999px}
+
+.chblock{background:var(--card);border-radius:1.25em;padding:.9em 1em 1em;
+  box-shadow:0 4px 0 rgba(59,42,74,.07), 0 10px 22px rgba(59,42,74,.10);
+  animation:riseIn .42s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes riseIn{from{opacity:0;transform:translateY(1.2em)}to{opacity:1;transform:none}}
+.chblock.locked{opacity:.62}
+.chblock-head{display:flex;align-items:baseline;gap:.5em;margin-bottom:.1em}
+.chblock-no{font:800 .6em "Nunito";letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft)}
+.chblock-head .done{margin-left:auto;font:800 .7em "Nunito";color:var(--mint)}
+.chblock h3{margin:0 0 .55em;font-family:"Fredoka";font-weight:700;font-size:1.22em;color:var(--ink)}
+.chblock .lockmsg{font:800 .72em "Nunito";color:var(--ink-soft);display:flex;align-items:center;gap:.35em}
+.chblock .lockmsg svg{width:1em;height:1em;fill:currentColor}
+
+.lvgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:.5em}
+.lv{
+  position:relative;aspect-ratio:1;border:0;border-radius:.8em;cursor:pointer;
+  font:800 1.05em "Fredoka";display:grid;place-items:center;-webkit-tap-highlight-color:transparent;
+  background:#F1E7DC;color:var(--ink-soft);box-shadow:0 3px 0 rgba(59,42,74,.10);
+  animation:popIn .3s cubic-bezier(.2,.9,.3,1.5) both;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.lv:active{transform:translateY(3px);box-shadow:none}
+.lv.open{background:var(--card);color:var(--ink);box-shadow:0 3px 0 rgba(59,42,74,.14)}
+.lv.done{background:var(--mint);color:#fff;box-shadow:0 3px 0 #3F9077}
+.lv.done::after{content:"";position:absolute;right:.2em;top:.16em;width:.5em;height:.5em;border-radius:50%;
+  background:#fff;box-shadow:0 0 0 .1em rgba(63,144,119,.35)}
+.lv.now{background:var(--rose);color:#fff;box-shadow:0 3px 0 #B94B64;animation:popIn .3s cubic-bezier(.2,.9,.3,1.5) both, nowPulse 1.6s ease-in-out infinite .35s}
+@keyframes nowPulse{0%,100%{box-shadow:0 3px 0 #B94B64, 0 0 0 0 rgba(226,99,127,.5)}50%{box-shadow:0 3px 0 #B94B64, 0 0 0 .55em rgba(226,99,127,0)}}
+.lv.lock{color:#C4B5AE;cursor:not-allowed}
+.lv.lock span{display:none}
+.lv.lock::before{content:"";width:.95em;height:.95em;background:currentColor;
+  -webkit-mask:var(--lockmask) center/contain no-repeat;mask:var(--lockmask) center/contain no-repeat}
+.lv:disabled:active{transform:none;box-shadow:0 3px 0 rgba(59,42,74,.10)}
+:root{--lockmask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10V7.5a5 5 0 0 1 10 0V10h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zm2 0h6V7.5a3 3 0 0 0-6 0z'/></svg>")}
+
+/* ==========================================================================
+   HIỆU ỨNG CHUNG
+   ========================================================================== */
+/* rung màn hình khi món bị bật ra hoặc hết giờ */
+#game.shake{animation:shake .38s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{
+  10%,90%{transform:translateX(-1.5px)} 20%,80%{transform:translateX(3px)}
+  30%,50%,70%{transform:translateX(-5px)} 40%,60%{transform:translateX(5px)}
+}
+/* số món còn lại nảy mỗi khi thay đổi */
+.counter b.bump{animation:bump .34s cubic-bezier(.2,.9,.3,1.6)}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.42)}100%{transform:scale(1)}}
+.counter.clear b{color:var(--mint)}
+/* toast bật ra thay vì chỉ hiện */
+.hint{animation:toastIn .3s cubic-bezier(.2,.9,.3,1.5)}
+.hint.hide{animation:none}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,.6em) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+/* nút bấm nào cũng nảy nhẹ */
+.cta,.iconbtn,.pause,.boost,.lv{transition:transform .09s ease, box-shadow .09s ease}
+.linkbtn{display:block;margin:.9em auto 0;border:0;background:transparent;cursor:pointer;
+  font:800 .78em "Nunito";color:var(--ink-soft);padding:.3em .6em;border-radius:.6em}
+.linkbtn:hover{background:#F6EFE4}
+/* sao ở màn thắng nảy ra lần lượt */
+.overlay.show .stars svg{animation:starPop .5s cubic-bezier(.2,.9,.3,1.8) both}
+.overlay.show .stars svg:nth-child(1){animation-delay:.12s}
+.overlay.show .stars svg:nth-child(2){animation-delay:.26s}
+.overlay.show .stars svg:nth-child(3){animation-delay:.4s}
+@keyframes starPop{0%{opacity:0;transform:scale(.2) rotate(-40deg)}70%{opacity:1;transform:scale(1.25) rotate(8deg)}100%{opacity:1;transform:none}}
+/* thẻ thua rung nhẹ khi hiện ra */
+#lose.show .card{animation:loseShake .5s ease .1s}
+@keyframes loseShake{0%,100%{transform:none}25%{transform:translateX(-.5em) rotate(-1.2deg)}60%{transform:translateX(.42em) rotate(1deg)}}
+/* đồng hồ nhấp nháy đỏ ở 10 giây cuối đã có; thêm quầng sáng */
+.timer.urgent{animation:tick .6s infinite alternate, urgentGlow 1.2s ease-in-out infinite}
+@keyframes urgentGlow{0%,100%{box-shadow:0 4px 0 #B94B64}50%{box-shadow:0 4px 0 #B94B64, 0 0 1.2em rgba(226,99,127,.75)}}
+
+@media (prefers-reduced-motion: reduce){
+  .home-glow,.brand-name em,.chcard,.chcard-art img,.cta.play,.cta.play::after,
+  .lv,.chblock,.counter b.bump,.hint,.overlay.show .stars svg,#lose.show .card,#game.shake,.lv.now
+  {animation:none !important}
+  .screen{transition:opacity .15s}
+}

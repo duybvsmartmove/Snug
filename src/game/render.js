@@ -8,6 +8,7 @@ import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js'
 import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings, jiggleOffset } from './mechanics.js';
 import { updateClock, showLose } from '../ui/hud.js';
+import { drawFx } from './fx.js';
 
 const { Engine } = Matter;
 
@@ -35,7 +36,9 @@ function drawBody(b) {
   if (ghost) ctx.globalAlpha = .6;
   else if (held) { ctx.shadowColor = 'rgba(59,42,74,.4)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 10; }
   ctx.translate(b.position.x + shake, b.position.y); ctx.rotate(b.angle);
-  ctx.scale(b.artScale || 1, b.artScale || 1);
+  // vừa nhấc lên thì phồng ra một nhịp rồi về cỡ cũ, cho cảm giác món rời khỏi mặt bàn
+  const pop = held && b.pop != null && b.pop < 1 ? 1 + Math.sin(b.pop * Math.PI) * .09 : 1;
+  ctx.scale((b.artScale || 1) * pop, (b.artScale || 1) * pop);
   ctx.lineJoin = 'round';
   drawArt(b);
   ctx.restore();
@@ -150,6 +153,7 @@ function frame(now) {
     withJiggle(drawBagFront);
     drawSelection();
     drawPuffs(dt);
+    drawFx(dt);
   }
   requestAnimationFrame(frame);
 }

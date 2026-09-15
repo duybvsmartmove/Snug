@@ -12,6 +12,7 @@ import { canvas, toLogical } from './canvas.js';
 import { computeGhost, findFreeSpot, bagZone } from './rules.js';
 import { tetherSuspend, tetherRestore } from './mechanics.js';
 import { toast, hideHint } from '../ui/hud.js';
+import { sfx } from '../ui/sfx.js';
 
 const { Body, World, Query, Vector } = Matter;
 
@@ -58,6 +59,8 @@ export function pickUp(body, p) {
     lift: 0, liftTo: liftOf(body),
     ghost: true, lastValid: null,
   };
+  body.pop = 0;                     // món nảy nhẹ một nhịp lúc rời tay khỏi mặt bàn
+  sfx('pick', { rate: 1 + (Math.random() - .5) * .12 });
   hideHint();
 }
 
@@ -83,10 +86,11 @@ function liftOf(b) {
 }
 
 /** Gọi mỗi frame trước Engine.update */
-export function moveHeld() {
+export function moveHeld(dt = 16) {
   const d = S.drag; if (!d) return;
   const b = d.body;
   d.lift += (d.liftTo - d.lift) * .25;          // dâng dần, món theo ngón lên chứ không nhảy cóc
+  if (b.pop != null && b.pop < 1) b.pop = Math.min(1, b.pop + dt / 220);
   const want = Vector.sub(d.target, Vector.rotate(d.offsetLocal, b.angle));
   want.y -= d.lift;
   Body.setPosition(b, { x: b.position.x + (want.x - b.position.x) * .55, y: b.position.y + (want.y - b.position.y) * .55 });
@@ -112,7 +116,8 @@ export function drop() {
     World.add(S.world, x);
   }
   if (b.tether) tetherRestore(b.tether);
-  if (bounce) { S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 }); toast('Không vừa!'); }
+  if (bounce) { S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 }); toast('Không vừa!'); sfx('nope'); }
+  else sfx('drop', { rate: 1 + (Math.random() - .5) * .1, gain: .9 });
   S.drag = null;
 }
 
@@ -201,6 +206,7 @@ function onUp(e) {
   }
   if (pending && e.pointerId === pending.id) {          // chạm nhẹ → chọn hoặc bỏ chọn
     S.selected = S.selected === pending.body ? null : pending.body;
+    sfx('tap', { gain: .45, rate: S.selected ? 1.3 : 1 });
     pending = null;
     return;
   }

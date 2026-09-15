@@ -4,6 +4,9 @@ import { KEY_ID } from '../data/items.js';
 import { S, BAG, PAD, W, TABLE_Y, FLOOR_Y, partsOf, isHeld } from './state.js';
 import { pointInPolygonTolerant } from '../util/geom.js';
 import { toast, renderList, showWin } from '../ui/hud.js';
+import { sfx, sfxSeq, duckMusic } from '../ui/sfx.js';
+import { sparkle, ring, confetti, shake, floatText } from './fx.js';
+import { markDone, setSpot } from './progress.js';
 
 const { Body, Bounds, Collision } = Matter;
 
@@ -67,6 +70,7 @@ export function findFreeSpot(b, group = [b]) {
 
 function ejectOne(b) {
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
+  sfx('eject'); shake(320);
   findFreeSpot(b);
   Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
   b.stuck = 0;
@@ -104,7 +108,17 @@ export function updateChecked() {
   for (const b of S.bodies) {
     if (b.itemId === KEY_ID) continue;
     const ok = bagZone(b).fullyInside && !b.locked && (b.speed < .9 || b.isStatic) && !isHeld(b);
-    if (ok !== S.checked.has(b.itemId)) { ok ? S.checked.add(b.itemId) : S.checked.delete(b.itemId); changed = true; }
+    if (ok !== S.checked.has(b.itemId)) {
+      if (ok) {
+        S.checked.add(b.itemId);
+        // vừa khít: tiếng chuông cao dần theo số món đã xếp, kèm vòng sáng và tia
+        const n = S.checked.size;
+        sfx('fit', { rate: 1 + Math.min(6, n - 1) * .045 });
+        ring(b.position.x, b.position.y, { color: '#5FBF9B', r1: 46 });
+        sparkle(b.position.x, b.position.y, { n: 10, color: '#8FE0C1', life: 520 });
+      } else S.checked.delete(b.itemId);
+      changed = true;
+    }
   }
   for (const id of S.gone) if (!S.checked.has(id)) { S.checked.add(id); changed = true; }
   if (changed) renderList(false);
@@ -113,7 +127,18 @@ export function updateChecked() {
     if (++S.winFrames > 45 && !S.won) {
       S.won = true;
       const used = (S.LEVEL.timer || 0) - Math.ceil(S.timeLeft / 1000);
-      showWin(`Cả ${S.ITEMS.length} món đã nằm gọn trong túi · ${fmt(Math.max(0, used))}`);
+      if (S.map) {
+        const lanDau = markDone(S.map.id, S.levelIdx);
+        setSpot(S.map.id, Math.min(S.levelIdx + 1, S.map.levels.length - 1));
+        // lần đầu qua được và còn level phía sau → báo có màn mới mở
+        if (lanDau && S.levelIdx + 1 < S.map.levels.length) sfx('unlockLv', { delay: 1.15, gain: .9 });
+      }
+      confetti(90); sfx('win'); sfxSeq('star', 3, { step: .16, rate: 1, up: .14 }); duckMusic(true);
+      floatText(210, 300, 'Vừa khít!', { color: '#5FBF9B', size: 26, life: 1200 });
+      // Bảng thắng có lớp mờ phủ kín màn: hiện ngay thì che mất pháo giấy vừa bắn.
+      // Chờ một nhịp cho người chơi nhìn thấy ăn mừng rồi bảng mới trượt vào.
+      const txt = `Cả ${S.ITEMS.length} món đã nằm gọn trong túi · ${fmt(Math.max(0, used))}`;
+      setTimeout(() => { if (S.won) showWin(txt); }, 700);
     }
   } else S.winFrames = 0;
 }

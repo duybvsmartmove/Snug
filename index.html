@@ -87,6 +87,56 @@
       </button>
     </div>
 
+    <!-- ================= Màn chủ ================= -->
+    <div class="screen home" id="home">
+      <div class="home-glow"></div>
+      <div class="home-inner">
+        <div class="brand">
+          <div class="brand-sub">SmartMove · Inno Team</div>
+          <h1 class="brand-name">Everything<br><em>Fits</em></h1>
+        </div>
+
+        <!-- Đang ở chương nào, đã qua bao nhiêu màn, màn tiếp theo là màn mấy -->
+        <div class="chcard" id="homeChapter">
+          <div class="chcard-art"><img id="homeArt" alt="" draggable="false"><img id="homeArt2" alt="" draggable="false"></div>
+          <div class="chcard-no" id="homeNo">CHƯƠNG 1</div>
+          <div class="chcard-name" id="homeName">—</div>
+          <div class="bar"><i id="homeBar"></i></div>
+          <div class="chcard-foot">
+            <span id="homeCount">0/0 màn</span>
+            <span class="pill" id="homeNext">LEVEL 1</span>
+          </div>
+        </div>
+
+        <div class="home-actions">
+          <button class="cta wide ghost" id="mapBtn">
+            <svg viewBox="0 0 24 24" class="bic"><rect x="3" y="3" width="7.4" height="7.4" rx="2"/><rect x="13.6" y="3" width="7.4" height="7.4" rx="2"/><rect x="3" y="13.6" width="7.4" height="7.4" rx="2"/><rect x="13.6" y="13.6" width="7.4" height="7.4" rx="2"/></svg>
+            Chọn màn chơi
+          </button>
+          <button class="cta wide play" id="playBtn">
+            <svg viewBox="0 0 24 24" class="bic"><path d="M7 4.6v14.8a1 1 0 0 0 1.53.85l11.2-7.4a1 1 0 0 0 0-1.7L8.53 3.75A1 1 0 0 0 7 4.6z"/></svg>
+            <span id="playLabel">Chơi</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="home-tools">
+        <button class="iconbtn" id="sfxBtn" aria-label="Bật tắt âm thanh"></button>
+        <button class="iconbtn" id="musicBtn" aria-label="Bật tắt nhạc nền"></button>
+      </div>
+    </div>
+
+    <!-- ================= Bản đồ chương & màn ================= -->
+    <div class="screen mapscr" id="mapscr">
+      <header class="mhead">
+        <button class="iconbtn" id="mapBack" aria-label="Quay lại">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <b>Chọn màn chơi</b>
+      </header>
+      <div class="mlist" id="mapList"></div>
+    </div>
+
     <!-- Pause menu -->
     <div class="overlay" id="pause">
       <div class="card">
@@ -94,6 +144,7 @@
         <div class="actions col">
           <button class="cta" id="resumeBtn">Chơi tiếp</button>
           <button class="cta ghost" id="restartBtn">Chơi lại</button>
+          <button class="cta ghost" id="homeBtn">Về trang chủ</button>
           <div class="lvnav"><button id="prevLv">‹ Level trước</button><button id="nextLv">Level sau ›</button></div>
         </div>
       </div>
@@ -110,6 +161,7 @@
         <h2>Vừa khít!</h2>
         <p id="winText"></p>
         <div class="actions"><button class="cta ghost" id="again">Chơi lại</button><button class="cta" id="next">Level tiếp →</button></div>
+        <button class="linkbtn" id="winHome">Về trang chủ</button>
       </div>
     </div>
 
@@ -120,6 +172,7 @@
         <h2>Suýt nữa rồi!</h2>
         <p id="loseText">Hết giờ.</p>
         <div class="actions"><button class="cta ghost" id="retry">Thử lại</button><button class="cta" id="extraTime">+60 giây · 100 coin</button></div>
+        <button class="linkbtn" id="loseHome">Về trang chủ</button>
       </div>
     </div>
   </div>

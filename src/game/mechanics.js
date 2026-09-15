@@ -5,6 +5,8 @@ import { S, isHeld, partsOf } from './state.js';
 import { replaceBody, removeBody, makeItem } from './physics.js';
 import { bagZone } from './rules.js';
 import { toast, repaintSlot } from '../ui/hud.js';
+import { sfx } from '../ui/sfx.js';
+import { sparkle, ring } from './fx.js';
 import { ctx } from './canvas.js';
 import { theme } from '../art/helpers.js';
 
@@ -77,6 +79,9 @@ export function checkUnlock() {
     const nb = replaceBody(box, real); nb.locked = false;
   }
   repaintSlot(real.id, real);
+  sfx('unlock');
+  ring(box.position.x, box.position.y, { color: '#E2B04A', r1: 64, life: 620, width: 5 });
+  sparkle(box.position.x, box.position.y, { n: 18, color: '#FFD98A', speed: 1.4, life: 780 });
   toast(`Mở khóa: ${real.name}!`, 1600);
 }
 

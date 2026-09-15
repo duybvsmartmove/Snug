@@ -7,6 +7,9 @@ import { makeItem, createWorld } from './physics.js';
 import { createTethers } from './mechanics.js';
 import { resetBoosts } from './boosters.js';
 import { renderHeader, renderList, hideWin, hideLose, hidePause } from '../ui/hud.js';
+import { clearFx } from './fx.js';
+import { duckMusic } from '../ui/sfx.js';
+import { setSpot } from './progress.js';
 
 const { Body, World } = Matter;
 
@@ -38,6 +41,7 @@ export function build(level) {
   S.drag = null; S.selected = null;
   S.checked = new Set(); S.gone = new Set(); S.winFrames = 0; S.won = false; S.lost = false; S.paused = false;
   S.unlockFrames = 0; S.unlockHinted = false; S.puffs = [];
+  clearFx(); duckMusic(false);
   S.startTime = performance.now(); S.shownSec = -1;
   S.timeLeft = (level.timer || 90) * 1000;
   resetBoosts();
@@ -68,6 +72,7 @@ export function build(level) {
 /** Tải level thứ idx của map hiện tại rồi dựng */
 export async function loadAndBuild(idx) {
   S.levelIdx = Math.max(0, Math.min(idx, S.map.levels.length - 1));
+  if (S.map && !S.preview) setSpot(S.map.id, S.levelIdx);
   const level = S.map.levels[S.levelIdx];   // level nằm sẵn trong file sắp xếp
   build(level);
   return level;

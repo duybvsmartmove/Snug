@@ -9,6 +9,8 @@ import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
 import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
+import { initHome, showHome, hideHome } from './ui/home.js';
+import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
 
 const params = new URLSearchParams(location.search);
 
@@ -17,7 +19,7 @@ function extraTime() { // booster Extra Time (GDD): +60s sau khi hết giờ l�
 }
 
 async function boot() {
-  bindOverlayButtons({ onAgain: restart, onNext: nextLevel, onPrev: prevLevel, onExtraTime: extraTime });
+  bindOverlayButtons({ onAgain: restart, onNext: nextLevel, onPrev: prevLevel, onExtraTime: extraTime, onHome: goHome });
   bindInput();
   bindBoosters();
   resize();
@@ -26,15 +28,11 @@ async function boot() {
   whenSpriteReady(() => { if (S.LEVEL) renderList(); });
 
   S.preview = params.get('preview') === '1';
+  setSilent(S.preview);            // khung xem thử trong editor thì im lặng
+  if (!S.preview) unlockOnFirstGesture();
 
   // Toàn bộ nội dung nằm trong bản build: một file sắp xếp và thư mục ảnh. Không gọi mạng.
   await loadBook({ fresh: S.preview });
-  const ch = chapterById(params.get('map') || chapters()[0]?.id);
-  S.mapId = ch.id;
-  S.map = ch;
-
-  // Chỉ nạp ảnh của chương đang chơi
-  await loadChapterAssets(ch);
 
   // Live preview từ editor: level gửi qua postMessage, không tải từ content
   window.addEventListener('message', e => {
@@ -53,11 +51,44 @@ async function boot() {
     }
     if (m.type === 'timer') { S.timerOn = !!m.on; }
   });
-  if (S.preview) { window.parent.postMessage({ type: 'ready' }, '*'); return; }
+  if (S.preview) {
+    const ch = chapterById(params.get('map') || chapters()[0]?.id);
+    S.mapId = ch.id; S.map = ch;
+    await loadChapterAssets(ch);
+    window.parent.postMessage({ type: 'ready' }, '*');
+    return;
+  }
 
-  const byId = params.get('level');
-  const idx = byId ? Math.max(0, S.map.levels.findIndex(l => l.id === byId)) : Number(params.get('i') || 0);
+  initHome({ chapters: chapters(), onPlay: startLevel });
+
+  // Mở thẳng một level qua địa chỉ (?level=… hoặc ?i=…) thì bỏ qua trang chủ
+  const byId = params.get('level'), byIdx = params.get('i');
+  if (byId != null || byIdx != null) {
+    const ch = chapterById(params.get('map') || chapters()[0]?.id);
+    const idx = byId ? Math.max(0, ch.levels.findIndex(l => l.id === byId)) : Number(byIdx || 0);
+    await startLevel(ch, idx);
+  } else {
+    showHome();
+  }
+}
+
+/** Vào chơi một level: đổi chương thì nạp thêm art của chương đó trước */
+async function startLevel(ch, idx) {
+  if (!S.map || S.mapId !== ch.id) {
+    S.mapId = ch.id; S.map = ch;
+    await loadChapterAssets(ch);
+  }
+  hideHome();
+  await initAudio();
+  startMusic();
   await loadAndBuild(idx);
+}
+
+/** Về trang chủ: dừng ván đang chơi lại, không tính là thua */
+function goHome() {
+  S.paused = true; S.drag = null; S.selected = null;
+  duckMusic(false);
+  showHome();
 }
 
 /** Dựng level trong khung xem thử, nạp trước ảnh của những món chưa có */
