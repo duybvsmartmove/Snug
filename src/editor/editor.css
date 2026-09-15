@@ -194,3 +194,5 @@ button.mini.danger:hover{background:#FBEFEE}
 #poolScope{border:1px solid var(--line);border-radius:7px;padding:.28em .5em;font:700 .84em "Nunito";background:#fff;color:var(--ink)}
 .tag.own{background:#E4F3E8;color:#2E7D4F;border-radius:5px;padding:.1em .45em;font:800 .78em "Nunito"}
 .tag.lent{background:#EFEAE2;color:var(--soft);border-radius:5px;padding:.1em .45em;font:800 .78em "Nunito"}
+#ghBtn.warn{border-color:#E0913A;color:#B96A18;background:#FFF4E4}
+#ghBtn b{font-weight:800}

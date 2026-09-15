@@ -122,19 +122,24 @@ Xong thì có hai link chia sẻ được:
 | `https://<chủ>.github.io/<repo>/` | game |
 | `https://<chủ>.github.io/<repo>/editor.html` | Level Editor |
 
-### Editor trên web khác gì bản ở máy
+### Editor trên web lưu bằng cách nào
 
-Trang trên Pages là trang tĩnh nên **không ghi file được**. Editor tự dò lúc khởi động và
-đổi giao diện theo:
+Trang trên Pages là trang tĩnh nên không ghi file được. Editor tự dò lúc khởi động rồi chọn
+đường lưu:
 
 | | Chạy ở máy | Trên Pages |
 |---|---|---|
-| Nút **Lưu sắp xếp** | có, ghi thẳng `levels.json` | ẩn |
-| Nút **Tải levels.json** | có | có, và là cách duy nhất để giữ thay đổi |
+| Lưu sắp xếp | ghi thẳng `public/content/levels.json` | commit file đó lên GitHub |
+| Cần token | không | có, dán một lần cho mỗi trình duyệt |
+| Người chơi thấy sau | mở lại game | khoảng 40 giây, workflow tự deploy lại |
 
-Người ngoài vào link editor vẫn xem và sắp xếp thoải mái, nhưng muốn thay đổi thành thật thì
-phải tải `levels.json` về, chép vào `public/content/` rồi commit. Nhờ vậy không ai sửa được
-nội dung game chỉ bằng cách mở link.
+Trên web, nút **🔑** ở thanh trên mở hộp thoại dán token. Tạo ở **GitHub → Settings →
+Developer settings → Fine-grained tokens**, chọn đúng repo này, cấp **Contents: Read and write**.
+Token nằm trong `localStorage` của trình duyệt người dùng, chỉ gửi tới `api.github.com`,
+thu hồi lúc nào cũng được.
+
+Ai không có token thì vẫn xem và sắp xếp được, nhưng chỉ tải `levels.json` về máy chứ không
+sửa được nội dung game. Mỗi người một token nên lịch sử commit cho biết ai đổi gì.
 
 ## Script dựng content
 

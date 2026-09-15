@@ -10,6 +10,7 @@ import { initDraw } from './draw.js';
 import { initGenerate } from './generate.js';
 import { initPool } from './pool.js';
 import { initManage, nextLevelId } from './manage.js';
+import * as gh from './github.js';
 
 const $ = id => document.getElementById(id);
 const areaCache = new Map();
@@ -80,7 +81,10 @@ export async function publish(note = '') {
     }
     ch.assets = { items: [...items].sort((a, c) => a - c), backgrounds: [...bgs].sort((a, c) => a - c), bags: [...bags].sort() };
   }
-  await saveContent('levels.json', JSON.stringify(b, null, 2));
+  const text = JSON.stringify(b, null, 2);
+  if (canWrite) await saveContent('levels.json', text);          // chạy ở máy: ghi thẳng ra file
+  else if (gh.hasToken()) await gh.putBook(b);                    // trên web: commit lên GitHub
+  else throw new Error('chưa nối GitHub — bấm nút 🔑 để dán token');
   return b.version;
 }
 
@@ -98,7 +102,8 @@ $('publishBtn').addEventListener('click', async () => {
   try {
     const v = await publish();
     $('liveTag').textContent = `v${v}`;
-    status(`Đã lưu sắp xếp · bản v${v}`, 'ok');
+    status(canWrite ? `Đã lưu sắp xếp · bản v${v}`
+                    : `Đã đẩy lên GitHub · bản v${v}. Khoảng 40 giây nữa người chơi nhận được.`, 'ok');
     frame.contentWindow.postMessage({ type: 'assets' }, '*');
   } catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
   finally { btn.disabled = false; }
@@ -111,6 +116,42 @@ $('downloadBtn').addEventListener('click', () => {
   a.href = URL.createObjectURL(blob); a.download = 'levels.json'; a.click();
   URL.revokeObjectURL(a.href);
   status('Đã tải levels.json — chép vào snug/public/content/', 'ok');
+});
+
+// ---------- nối GitHub ----------
+// Bản trên web không ghi file được, nên lưu bằng cách commit levels.json lên repo.
+function paintGhTag() {
+  $('ghTag').textContent = gh.hasToken() ? `${gh.REPO.owner}/${gh.REPO.repo}` : 'chưa nối';
+  $('ghBtn').classList.toggle('warn', !gh.hasToken());
+}
+function openGh() {
+  $('ghRepoName').textContent = `${gh.REPO.owner}/${gh.REPO.repo}`;
+  $('ghBranchName').textContent = gh.REPO.branch;
+  $('ghPath').textContent = gh.REPO.path;
+  $('ghToken').value = gh.hasToken() ? '••••••••' : '';
+  $('ghStatus').textContent = '';
+  $('ghModal').hidden = false;
+}
+$('ghBtn').addEventListener('click', openGh);
+$('ghClose').addEventListener('click', () => { $('ghModal').hidden = true; });
+$('ghModal').addEventListener('click', e => { if (e.target === $('ghModal')) $('ghModal').hidden = true; });
+$('ghSave').addEventListener('click', async () => {
+  const typed = $('ghToken').value.trim();
+  const token = typed === '••••••••' ? gh.readToken() : typed;
+  if (!token) { $('ghStatus').textContent = 'Chưa dán token'; return; }
+  $('ghStatus').textContent = 'đang kiểm tra…';
+  try {
+    const name = await gh.check(token);
+    gh.writeToken(token);
+    paintGhTag();
+    $('ghStatus').textContent = `Đã nối ${name}`;
+    setTimeout(() => { $('ghModal').hidden = true; }, 900);
+  } catch (e) { $('ghStatus').textContent = 'Lỗi: ' + e.message; }
+});
+$('ghForget').addEventListener('click', () => {
+  gh.clearToken(); paintGhTag();
+  $('ghToken').value = '';
+  $('ghStatus').textContent = 'Đã xoá token khỏi trình duyệt này';
 });
 
 // ---------- metrics ----------
@@ -296,13 +337,10 @@ async function boot() {
 
   await probeWriter();
   if (!canWrite) {
-    // Trang tĩnh: ẩn nút ghi, nhắc dùng nút tải file
-    $('publishBtn').hidden = true;
-    $('downloadBtn').classList.add('publish');
-    $('downloadBtn').classList.remove('ghost');
-    $('downloadBtn').textContent = 'Tải levels.json';
-    $('downloadBtn').title = 'Bản trên web không ghi file được. Tải về rồi chép vào public/content/ và commit.';
-    status('Bản trên web chỉ xem và sắp xếp. Xong thì bấm Tải levels.json rồi chép vào repo.', '');
+    // Trang tĩnh: lưu bằng cách commit lên GitHub, cần token dán một lần
+    $('ghBtn').hidden = false;
+    paintGhTag();
+    if (!gh.hasToken()) status('Bấm 🔑 để nối GitHub, sau đó Lưu sắp xếp sẽ đẩy thẳng lên.', '');
   }
 }
 boot().catch(e => { console.error(e); status('Lỗi khởi động: ' + e.message, 'bad'); });

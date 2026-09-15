@@ -24,6 +24,7 @@
       Lưu sắp xếp <span class="live" id="liveTag">v?</span>
     </button>
     <button id="downloadBtn" class="ghost" title="Tải levels.json về máy">Tải JSON</button>
+    <button id="ghBtn" class="ghost" title="Nối với GitHub để lưu thẳng" hidden>🔑 <b id="ghTag">chưa nối</b></button>
     <span id="status" class="status"></span>
   </header>
 
@@ -216,6 +217,32 @@
       </div>
     </div>
   </div>
+
+    <!-- Nối GitHub: chỉ cần token, repo đã biết sẵn -->
+    <div class="modal" id="ghModal" hidden>
+      <div class="modal-card" style="width:min(560px,100%)">
+        <div class="modal-head"><b>Lưu thẳng lên GitHub</b><button id="ghClose" class="ghost">Đóng</button></div>
+        <p class="tip">
+          Bản editor trên web không ghi file được. Dán token vào đây một lần, sau đó bấm
+          <b>Lưu sắp xếp</b> là ghi thẳng <code id="ghPath"></code> lên GitHub, khoảng 40 giây sau
+          người chơi nhận được.
+        </p>
+        <p class="repo-line">Repo: <b id="ghRepoName">—</b> · nhánh <b id="ghBranchName">—</b></p>
+        <label class="field grow2">Token GitHub
+          <input id="ghToken" type="password" placeholder="github_pat_…" autocomplete="off">
+        </label>
+        <p class="tip">
+          Tạo ở <b>GitHub → Settings → Developer settings → Fine-grained tokens</b>, chọn đúng repo trên,
+          cấp <b>Contents: Read and write</b>. Token nằm trong trình duyệt của bạn, chỉ gửi tới GitHub,
+          thu hồi được bất cứ lúc nào.
+        </p>
+        <div class="row">
+          <button id="ghSave" class="primary">Nối</button>
+          <button id="ghForget" class="ghost">Quên token</button>
+          <span id="ghStatus" class="status"></span>
+        </div>
+      </div>
+    </div>
 
     <!-- Quản lý chương và level -->
     <div class="modal" id="mgModal" hidden>
