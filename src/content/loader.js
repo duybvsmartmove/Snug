@@ -154,7 +154,6 @@ async function post(url, body) {
   return res.json();
 }
 export async function saveContent(path, text) { cache.delete(path); return post('/__content/save', { path, text }); }
-export const saveBinary = (path, base64) => post('/__content/save', { path, base64 });
 export async function deleteContent(path) { cache.delete(path); return post('/__content/delete', { path }); }
 
 /** Thư mục chương mà art MỚI sẽ được đặt vào. Editor đặt lại mỗi khi đổi chương. */

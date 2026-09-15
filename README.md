@@ -58,56 +58,31 @@ những ảnh nào nên game chỉ nạp phần của chương đang chơi.
 
 ## Art
 
-**Toàn bộ phần nhìn là sprite.** Không còn hàm vẽ hình nào trong đường chạy của game:
-món, bối cảnh và túi đều là ảnh nạp từ content pack. Nhờ vậy art dùng lại được cho Unity.
+**Toàn bộ phần nhìn là sprite.** Không còn hàm vẽ hình nào trong game: món, bối cảnh và túi
+đều là ảnh PNG. Hai chương hiện có tổng 74 ảnh, khoảng 7,9 MB.
 
-Art là **PNG**, dùng chung được cho cả web lẫn Unity. Tổng 44 ảnh, khoảng 4,5 MB.
-
-### Art xếp theo chương
+Art xếp theo chương, ảnh và file mô tả nằm cạnh nhau:
 
 ```
-public/content/draft/assets/
-  index.json                  mục lục: mã số → đường dẫn file mô tả
+public/content/assets/
+  index.json                      mục lục: mã số → đường dẫn file mô tả
   01-school-day/
-    items/        17.png + 17.json           ảnh và mô tả nằm cạnh nhau
+    items/        17.png + 17.json
     backgrounds/  bg-1.png + 1.json
     bags/         lunchbox-body.png + lunchbox.json
-  02-<chương sau>/
+  02-weekend-trip/
     …
 ```
 
-Chương sau thêm thư mục của nó. Món **dùng lại** ở nhiều chương thì **không nhân bản**:
-file cứ nằm ở chương đầu tiên tạo ra nó, chương sau chỉ cần mã số, `index.json` lo phần
-tìm đường. Theo bảng Level Design thì việc này xảy ra nhiều, ví dụ Water Bottle có mặt ở 6 chương.
+Món **dùng lại** ở nhiều chương thì không nhân bản: file nằm ở chương đầu tiên tạo ra nó,
+chương sau chỉ ghi mã số vào level, `index.json` lo phần tìm đường. Theo bảng Level Design
+việc này xảy ra nhiều, ví dụ Water Bottle có mặt ở 6 chương.
 
-Thư mục chương là cách xếp cho **người** nhìn. Lúc phát hành, ảnh được đổi tên theo hash nội dung
-và gom về một chỗ phẳng, nên hai chương dùng chung một ảnh chỉ tốn một file.
+### Thay art
 
-### Chương nào tải ảnh của chương đó
-
-Mỗi chương tự khai báo cần những ảnh nào. Danh sách do `tools/publish.mjs` quét các level
-rồi ghi vào `map.json` lúc phát hành, không phải điền tay:
-
-```json
-"assets": { "items": [0,1,3,4,…], "backgrounds": [1,2,3], "bags": ["backpack","lunchbox","tote"] }
-```
-
-Game chỉ nạp phần của chương đang chơi, rồi lúc máy rảnh mới tải trước chương kế tiếp
-(`prefetchChapter`). Nhờ vậy thêm chương mới **không phải tải lại ảnh của chương cũ**.
-
-Chương đi kèm bản build nằm sẵn trong `public/content`, mở lần đầu không cần mạng.
-
-### Sinh lại sprite
-
-Art gốc vẽ bằng canvas được giữ ở `tools/legacy-art/` để còn sinh lại ảnh ở độ phân giải khác.
-Nó **không nằm trong bản build**, chỉ trang sinh sprite bên editor mới dùng tới.
-
-Mở `http://localhost:5173/tools/gen-sprites.html` rồi bấm **Sinh toàn bộ PNG**. Trang này vẽ
-32 món ở tỉ lệ 4×, 3 bối cảnh ở 2×, 3 chiếc túi ở 3× rồi ghi thẳng vào bản nháp kèm manifest.
-Muốn ảnh to hơn cho Unity thì sửa `ITEM_SCALE`, `BG_SCALE`, `BAG_SCALE` trong `gen-sprites.js`.
-
-Ảnh món được căn sao cho tâm ảnh trùng trọng tâm hình vật lý, nếu không món sẽ lệch khỏi
-vùng va chạm.
+Đặt file PNG mới đè lên file cũ, giữ nguyên tên và đường dẫn mà `index.json` đang trỏ tới.
+File mô tả đi kèm (`17.json`) khai báo `pixelsPerUnit`, tức ảnh lớn gấp mấy lần kích thước
+thật trong game, và `collider` là vùng va chạm. Đổi ảnh mà giữ đúng tỉ lệ thì không phải sửa gì.
 
 ### Túi có ba lớp
 
@@ -121,31 +96,15 @@ Túi không thể là một ảnh phẳng vì lòng túi đổi hình theo từn
 
 Ngăn khoá, mép lòng túi và chữ gợi ý vẫn vẽ lúc chơi vì chúng là dữ liệu của từng level.
 
-### Thêm ảnh cho món
+### Chương nào nạp ảnh của chương đó
 
-Không sửa code, làm hết trong editor:
+Mỗi chương khai báo cần những ảnh nào ngay trong `levels.json`, do editor tính lại mỗi lần lưu:
 
-1. Mở **🎨 Thư viện art**, tìm món, bấm **Sửa**
-2. Kéo file PNG hoặc WebP nền trong suốt vào ô thả ảnh
-3. Đặt **bề rộng thật** tính bằng pixel logic — đây là kích thước món trong game, không phải
-   kích thước ảnh. Ảnh nên lớn hơn 3–4 lần cho nét trên màn retina
-4. Bấm **Lưu món**. Vùng va chạm tự bám theo viền đục của ảnh
-5. Bấm **Phát hành** khi muốn người chơi nhận được
-
-Editor ghi ra hai file trong bản nháp:
-
-```
-draft/assets/sprites/<id>.png     ảnh
-draft/assets/items/<id>.json      manifest: sprite + collider + metadata
+```json
+"assets": { "items": [0,1,3,4,…], "backgrounds": [1,2,3], "bags": ["backpack","lunchbox","tote"] }
 ```
 
-Lúc phát hành, ảnh được đổi tên theo hash nội dung và đưa ra `content/assets/`, dùng chung cho
-mọi bản. Đường dẫn trong JSON được viết lại tự động. Nhờ hash trong tên, ảnh cache được vĩnh viễn
-mà đổi ảnh vẫn ăn ngay, và hai bản dùng chung một ảnh không tốn thêm chỗ.
-
-Muốn bỏ ảnh quay về hình vẽ code thì bấm **Dùng lại hình vẽ** trong cùng hộp thoại.
-
-Ảnh nền và ảnh túi đi theo đúng đường đó, thêm ở phần Bối cảnh trong Thư viện art.
+Game chỉ nạp phần của chương đang chơi, không đụng tới ảnh của chương khác.
 
 ## Deploy
 
@@ -192,9 +151,6 @@ src/
   ui/hud.js            HUD và các overlay
   util/geom.js         hình học + PRNG có seed
   editor/              main · draw · manage · generate · pool · assets · editor.css
-tools/
-  gen-sprites.html     trang sinh sprite PNG
-  legacy-art/          art canvas gốc, chỉ dùng để sinh lại ảnh, không vào bản build
 public/content/        levels.json + assets
 docs/                  bản chép GDD từ Notion + kế hoạch
 ```
