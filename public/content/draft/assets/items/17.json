@@ -12,7 +12,7 @@
     "canLock": false
   },
   "sprite": {
-    "src": "assets/sprites/17.webp",
+    "src": "assets/sprites/17.png",
     "pixelsPerUnit": 4
   }
 }

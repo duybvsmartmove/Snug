@@ -1,1 +1,1 @@
-{"id":19,"slug":"milk","code":"ITM_019","name":"Hộp sữa","meta":{"size":"Small","shape":"Rectangle","physics":"normal","cost":1,"canLink":true,"canLock":true},"sprite":{"src":"../assets/19.9d486b15.webp","pixelsPerUnit":4}}
+{"id":19,"slug":"milk","code":"ITM_019","name":"Hộp sữa","meta":{"size":"Small","shape":"Rectangle","physics":"normal","cost":1,"canLink":true,"canLock":true},"sprite":{"src":"../assets/19.58708bb7.png","pixelsPerUnit":4}}

@@ -53,12 +53,38 @@ export const loadPack = opts => getJSON('pack.json', opts);
 export const loadMap = (mapId, opts) => getJSON(`maps/${mapId}/map.json`, opts);
 export const loadLevel = (mapId, levelId, opts) => getJSON(`maps/${mapId}/levels/${levelId}.json`, opts);
 
-/** Danh sách item có manifest riêng (sprite / collider / meta override) */
-export async function loadItemManifests() {
-  let index;
-  cache.delete('assets/items/index.json');
-  try { index = await getJSON('assets/items/index.json', { fresh: true }); } catch { return; }
-  await Promise.all((index.items || []).map(async id => {
+/**
+ * Nạp đúng phần ảnh một chương cần. Danh sách do publish tính sẵn và ghi vào map.json,
+ * nên thêm chương mới không phải tải lại ảnh của chương cũ.
+ */
+export async function loadChapterAssets(map) {
+  const a = map?.assets;
+  await Promise.all([
+    loadItemManifests(a?.items),
+    loadBackgrounds(a?.backgrounds),
+    loadBags(a?.bags),
+  ]);
+  return a || null;
+}
+
+/** Tải sẵn ảnh của một chương khác lúc máy rảnh, để vào chương đó không phải chờ */
+export function prefetchChapter(mapId) {
+  const run = () => loadMap(mapId).then(loadChapterAssets).catch(() => {});
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 8000 });
+  else setTimeout(run, 3000);
+}
+
+/**
+ * Nạp manifest món. Truyền danh sách id thì chỉ nạp bấy nhiêu — dùng cho game, mỗi chương
+ * chỉ cần ảnh của chương đó. Bỏ trống thì nạp cả kho — dùng cho editor.
+ */
+export async function loadItemManifests(ids) {
+  let list = ids;
+  if (!list) {
+    cache.delete('assets/items/index.json');
+    try { list = (await getJSON('assets/items/index.json', { fresh: true })).items || []; } catch { return; }
+  }
+  await Promise.all(list.map(async id => {
     try {
       const m = await getJSON(`assets/items/${id}.json`, { fresh: true });
       const def = applyManifest(m);
@@ -67,12 +93,13 @@ export async function loadItemManifests() {
   }));
 }
 
-/** Nạp các nền dạng ảnh trong content pack */
-export async function loadBackgrounds() {
-  let index;
-  cache.delete('assets/backgrounds/index.json');
-  try { index = await getJSON('assets/backgrounds/index.json', { fresh: true }); } catch { return []; }
-  const ids = index.backgrounds || [];
+/** Nạp nền dạng ảnh. Truyền danh sách id thì chỉ nạp bấy nhiêu. */
+export async function loadBackgrounds(only) {
+  let ids = only;
+  if (!ids) {
+    cache.delete('assets/backgrounds/index.json');
+    try { ids = (await getJSON('assets/backgrounds/index.json', { fresh: true })).backgrounds || []; } catch { return []; }
+  }
   await Promise.all(ids.map(async id => {
     try {
       const m = await getJSON(`assets/backgrounds/${id}.json`, { fresh: true });
@@ -87,12 +114,12 @@ export async function loadBackgrounds() {
   return ids;
 }
 
-/** Nạp ảnh ba lớp của từng kiểu túi */
-export async function loadBags() {
+/** Nạp ảnh ba lớp của từng kiểu túi. Truyền danh sách id thì chỉ nạp bấy nhiêu. */
+export async function loadBags(only) {
   let index;
   cache.delete('assets/bags/index.json');
   try { index = await getJSON('assets/bags/index.json', { fresh: true }); } catch { return []; }
-  const list = index.bags || [];
+  const list = (index.bags || []).filter(b => !only || only.includes(b.id));
   await Promise.all(list.map(async def => {
     const img = {};
     await Promise.all(Object.entries(def.layers || {}).map(([k, src]) => new Promise(res => {

@@ -69,14 +69,22 @@ Chi tiết và kế hoạch đưa lên dịch vụ thật: `docs/14-content-serv
 **Toàn bộ phần nhìn là sprite.** Không còn hàm vẽ hình nào trong đường chạy của game:
 món, bối cảnh và túi đều là ảnh nạp từ content pack. Nhờ vậy art dùng lại được cho Unity.
 
-Mỗi ảnh có hai bản:
+Art là **PNG**, dùng chung được cho cả web lẫn Unity. Tổng 44 ảnh, khoảng 4,5 MB.
 
-| Đuôi | Dùng cho | Nằm ở |
-|---|---|---|
-| `.png` | bản gốc, mang sang Unity | `draft/assets/` trong repo |
-| `.webp` | game tải về | bản phát hành trên CDN |
+### Chương nào tải ảnh của chương đó
 
-Bản phát hành chỉ mang `.webp` nên nhẹ hơn khoảng mười lần: 0,37 MB thay vì 4,5 MB.
+Mỗi chương tự khai báo cần những ảnh nào. Danh sách do `tools/publish.mjs` quét các level
+rồi ghi vào `map.json` lúc phát hành, không phải điền tay:
+
+```json
+"assets": { "items": [0,1,3,4,…], "backgrounds": [1,2,3], "bags": ["backpack","lunchbox","tote"] }
+```
+
+Game chỉ nạp phần của chương đang chơi, rồi lúc máy rảnh mới tải trước chương kế tiếp
+(`prefetchChapter`). Nhờ vậy thêm chương mới **không phải tải lại ảnh của chương cũ**.
+
+Chương đi kèm bản build nằm sẵn trong `public/content`, mở lần đầu không cần mạng.
+Chỉ chương phát hành sau mới phải tải về.
 
 ### Sinh lại sprite
 

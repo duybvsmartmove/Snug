@@ -1,1 +1,1 @@
-{"id":30,"slug":"paintbox","code":"ITM_030","name":"Hộp màu nước","meta":{"size":"Medium","shape":"Rectangle","physics":"normal","cost":2,"canLink":true,"canLock":true},"sprite":{"src":"../assets/30.bc978adb.webp","pixelsPerUnit":4}}
+{"id":30,"slug":"paintbox","code":"ITM_030","name":"Hộp màu nước","meta":{"size":"Medium","shape":"Rectangle","physics":"normal","cost":2,"canLink":true,"canLock":true},"sprite":{"src":"../assets/30.8bbdbcaa.png","pixelsPerUnit":4}}

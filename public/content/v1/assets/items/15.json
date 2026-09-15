@@ -1,1 +1,1 @@
-{"id":15,"slug":"waterbottle","code":"ITM_015","name":"Bình nước","meta":{"size":"Medium","shape":"Long","physics":"rolling","cost":2,"canLink":true,"canLock":true},"sprite":{"src":"../assets/15.c2e16ea0.webp","pixelsPerUnit":4}}
+{"id":15,"slug":"waterbottle","code":"ITM_015","name":"Bình nước","meta":{"size":"Medium","shape":"Long","physics":"rolling","cost":2,"canLink":true,"canLock":true},"sprite":{"src":"../assets/15.103dd4e1.png","pixelsPerUnit":4}}

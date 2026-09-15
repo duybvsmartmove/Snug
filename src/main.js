@@ -6,7 +6,7 @@ import { bindBoosters } from './game/boosters.js';
 import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level.js';
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
-import { initContent, useDraft, loadPack, loadMap, loadItemManifests, loadBackgrounds, loadBags, whenSpriteReady } from './content/loader.js';
+import { initContent, useDraft, loadPack, loadMap, loadChapterAssets, prefetchChapter, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
 
 const params = new URLSearchParams(location.search);
@@ -35,10 +35,14 @@ async function boot() {
     if (sync.offline) console.info(`content v${sync.version}: không kết nối được, dùng bản đã lưu`);
   }
 
-  await Promise.all([loadItemManifests(), loadBackgrounds(), loadBags()]);
   const pack = await loadPack({ fresh: true });
   S.mapId = params.get('map') || pack.maps[0];
   S.map = await loadMap(S.mapId, { fresh: true });
+
+  // Chỉ nạp ảnh của chương đang chơi. Chương khác để dành, lúc máy rảnh mới tải trước.
+  await loadChapterAssets(S.map);
+  const next = pack.maps[pack.maps.indexOf(S.mapId) + 1];
+  if (next) prefetchChapter(next);
 
   // Live preview từ editor: level gửi qua postMessage, không tải từ content
   window.addEventListener('message', e => {
@@ -51,7 +55,7 @@ async function boot() {
     if (m.type === 'restart') { stopAutoplay(); restart(); }
     if (m.type === 'autoplay') autoplay();
     if (m.type === 'assets') { // editor vừa thêm/sửa art → nạp lại rồi dựng lại level
-      Promise.all([loadItemManifests(), loadBackgrounds(), loadBags()]).then(() => { if (S.LEVEL) build(S.LEVEL); });
+      loadChapterAssets(S.map).then(() => { if (S.LEVEL) build(S.LEVEL); });
     }
     if (m.type === 'timer') { S.timerOn = !!m.on; }
   });

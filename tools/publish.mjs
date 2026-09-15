@@ -42,6 +42,30 @@ function remap(node, map) {
   return node;
 }
 
+
+/**
+ * Quét các level của một chương để biết chương đó cần những ảnh nào.
+ * Nhờ danh sách này, game chỉ nạp ảnh của chương đang chơi thay vì nạp hết kho.
+ */
+function chapterAssets(draft, mapRel) {
+  const dir = dirname(mapRel);
+  const map = JSON.parse(readFileSync(join(draft, mapRel), 'utf8'));
+  const items = new Set(), backgrounds = new Set(), bags = new Set();
+  for (const id of map.levels || []) {
+    const f = join(draft, dir, 'levels', `${id}.json`);
+    if (!existsSync(f)) continue;
+    const lv = JSON.parse(readFileSync(f, 'utf8'));
+    for (const it of lv.items || []) items.add(Number(it.id));
+    if (lv.background != null) backgrounds.add(Number(lv.background));
+    if (lv.container?.skin) bags.add(lv.container.skin);
+  }
+  return {
+    items: [...items].sort((a, b) => a - b),
+    backgrounds: [...backgrounds].sort((a, b) => a - b),
+    bags: [...bags].sort(),
+  };
+}
+
 export const readLive = root => {
   const p = join(root, 'live.json');
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { version: 0 };
@@ -74,12 +98,9 @@ export function publish(root, { note = '' } = {}) {
   const assetMap = new Map();
   let assetCount = 0;
   const all = walk(draft);
-  const webpTwin = new Set(all.filter(r => r.endsWith('.webp')).map(r => r.slice(0, -5)));
   for (const rel of all) {
     const ext = extname(rel).toLowerCase();
     if (!BIN.has(ext)) continue;
-    // .png là bản gốc để mang sang Unity, đã nằm trong repo; bản phát hành chỉ cần .webp
-    if (ext === '.png' && webpTwin.has(rel.slice(0, -4))) continue;
     const buf = readFileSync(join(draft, rel));
     const name = `${basename(rel, ext)}.${hash8(buf)}${ext}`;
     const dest = join(root, 'assets', name);
@@ -94,7 +115,9 @@ export function publish(root, { note = '' } = {}) {
   const prevIndex = prev ? readIndex(root, prev) : null;
   for (const rel of all) {
     if (!rel.endsWith('.json')) continue;
-    const text = JSON.stringify(remap(JSON.parse(readFileSync(join(draft, rel), 'utf8')), assetMap));
+    let data = remap(JSON.parse(readFileSync(join(draft, rel), 'utf8')), assetMap);
+    if (/^maps\/[^/]+\/map\.json$/.test(rel.split('\\').join('/'))) data = { ...data, assets: chapterAssets(draft, rel) };
+    const text = JSON.stringify(data);
     const h = hash8(Buffer.from(text));
     writeFile(join(vdir, rel), text);
     files[rel] = { hash: h, size: Buffer.byteLength(text) };
