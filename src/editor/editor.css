@@ -196,3 +196,8 @@ button.mini.danger:hover{background:#FBEFEE}
 .tag.lent{background:#EFEAE2;color:var(--soft);border-radius:5px;padding:.1em .45em;font:800 .78em "Nunito"}
 #ghBtn.warn{border-color:#E0913A;color:#B96A18;background:#FFF4E4}
 #ghBtn b{font-weight:800}
+
+/* chấm báo có thay đổi chưa lưu */
+.publish .dot{width:8px;height:8px;border-radius:50%;background:#FFD34B;box-shadow:0 0 0 2px rgba(0,0,0,.18)}
+.publish.dirty{background:#D9822B;box-shadow:0 2px 0 #A9631C}
+.publish.dirty:hover{background:#E8913A}

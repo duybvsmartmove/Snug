@@ -46,6 +46,19 @@ export function onChange() {
   draw?.render();
   metrics();
   pushPreview();
+  markDirty();
+}
+
+/**
+ * Báo level đang sửa đã khác bản đã lưu hay chưa.
+ * Khung Xem thử hiện ngay thứ đang sửa, còn game đọc từ file, nên không có dấu này
+ * rất dễ tưởng đã lưu rồi.
+ */
+export function markDirty() {
+  const saved = E.map?.levels.find(l => l.id === E.level?.id);
+  const dirty = !saved || JSON.stringify(saved) !== JSON.stringify(E.level);
+  $('publishBtn').classList.toggle('dirty', dirty);
+  $('dirtyDot').hidden = !dirty;
 }
 
 // ---------- live preview ----------
@@ -102,6 +115,7 @@ $('publishBtn').addEventListener('click', async () => {
   try {
     const v = await publish();
     $('liveTag').textContent = `v${v}`;
+    markDirty();
     status(canWrite ? `Đã lưu sắp xếp · bản v${v}`
                     : `Đã đẩy lên GitHub · bản v${v}. Khoảng 40 giây nữa người chơi nhận được.`, 'ok');
     frame.contentWindow.postMessage({ type: 'assets' }, '*');
@@ -263,13 +277,14 @@ export async function openChapter(mapId, levelId) {
   const pick = E.map.levels.find(l => l.id === levelId) || E.map.levels[0];
   setLevel(pick ? clone(pick) : blankLevel(nextLevelId(E.mapId, [])));
   refreshChapterSelect(); refreshLevelSelect(); draw?.clearSelection();
-  draw?.computeChapterItems(); pool?.computeChapterItems();
+  draw?.computeChapterItems();
+  markDirty(); pool?.computeChapterItems();
 }
 export async function openLevel(id) {
   const lv = E.map.levels.find(l => l.id === id);
   if (!lv) return;
   setLevel(clone(lv));
-  refreshLevelSelect(); draw?.clearSelection();
+  refreshLevelSelect(); draw?.clearSelection(); markDirty();
 }
 
 $('chapterSelect').addEventListener('change', e => openChapter(e.target.value));
@@ -289,6 +304,7 @@ async function saveLevel(level) {
   indexChapter();
   await publish();
   refreshLevelSelect();
+  markDirty();
 }
 $('saveBtn').addEventListener('click', async () => {
   try { await saveLevel(E.level); status(`Đã lưu "${E.level.name}"`, 'ok'); frame.contentWindow.postMessage({ type: 'assets' }, '*'); }
@@ -300,7 +316,7 @@ $('assignBtn').addEventListener('click', async () => {
     const cur = E.map.levels.findIndex(l => l.id === E.level.id);
     if (cur < 0) { E.map.levels.splice(n - 1, 0, clone(E.level)); }
     else { const [x] = E.map.levels.splice(cur, 1); E.map.levels.splice(n - 1, 0, clone(E.level)); }
-    indexChapter(); await publish(); refreshLevelSelect(); onChange();
+    indexChapter(); await publish(); refreshLevelSelect(); onChange(); markDirty();
     status(`Đã đặt vào vị trí ${n}`, 'ok');
   } catch (e) { status('Lỗi: ' + e.message, 'bad'); }
 });
