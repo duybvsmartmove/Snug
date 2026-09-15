@@ -55,6 +55,7 @@ export function pickUp(body, p) {
     rel: group.map(b => ({ b, d: Vector.rotate(Vector.sub(b.position, body.position), -body.angle), a: b.angle - body.angle })),
     target: p, startP: p,
     offsetLocal: Vector.rotate(Vector.sub(p, body.position), -body.angle),
+    lift: 0, liftTo: liftOf(body),
     ghost: true, lastValid: null,
   };
   hideHint();
@@ -71,15 +72,23 @@ function syncGroup(d) {
   }
 }
 
-/** Gọi mỗi frame trước Engine.update */
 // Khi kéo, món được nhấc lên cao hơn điểm chạm để ngón tay không che mất nó.
-const LIFT = 56;
+// Mức nhấc tính theo chính món chứ không dùng một con số cố định: lòng túi chỉ cao
+// hơn trăm đơn vị, một mức cố định lớn sẽ hất món văng khỏi miệng túi ngay khi vừa chạm,
+// trong khi cũng mức đó ở khay dưới lại trông bình thường vì chỗ trống rộng.
+const LIFT_MIN = 12, LIFT_MAX = 34;
+function liftOf(b) {
+  const box = b.def?.box; if (!box) return LIFT_MIN;
+  return Math.max(LIFT_MIN, Math.min(LIFT_MAX, (box[3] - box[1]) * (b.artScale || 1) * .45));
+}
 
+/** Gọi mỗi frame trước Engine.update */
 export function moveHeld() {
   const d = S.drag; if (!d) return;
   const b = d.body;
+  d.lift += (d.liftTo - d.lift) * .25;          // dâng dần, món theo ngón lên chứ không nhảy cóc
   const want = Vector.sub(d.target, Vector.rotate(d.offsetLocal, b.angle));
-  want.y -= LIFT;
+  want.y -= d.lift;
   Body.setPosition(b, { x: b.position.x + (want.x - b.position.x) * .55, y: b.position.y + (want.y - b.position.y) * .55 });
   syncGroup(d);
   d.ghost = d.group.some(x => computeGhost(x, d.group));
