@@ -127,12 +127,18 @@ export function initPool({ E, status, onSaved }) {
     return null;            // compound: nhiều mảnh, manifest chưa tả được
   }
 
-  /** Nhân vùng va chạm theo hệ số */
+  /**
+   * Nhân vùng va chạm theo hệ số.
+   * Giữ hai chữ số thập phân đúng như lúc sinh collider từ viền ảnh. Làm tròn về số
+   * nguyên thì mỗi đỉnh xê dịch tới 0,6 đơn vị — với món nhỏ là lệch 2-3% bề ngang,
+   * đường viền lồi lõm hẳn ra, và đổi cỡ vài lần là sai số dồn lại.
+   */
+  const tron = v => +v.toFixed(2);
   function scaleCollider(c, k) {
     if (!c) return c;
-    if (c.kind === 'circle') return { ...c, r: Math.round(c.r * k) };
-    if (c.kind === 'rect') return { ...c, w: Math.round(c.w * k), h: Math.round(c.h * k), chamfer: Math.round((c.chamfer || 0) * k) };
-    if (c.kind === 'poly') return { ...c, pts: c.pts.map(([x, y]) => [Math.round(x * k), Math.round(y * k)]) };
+    if (c.kind === 'circle') return { ...c, r: tron(c.r * k) };
+    if (c.kind === 'rect') return { ...c, w: tron(c.w * k), h: tron(c.h * k), chamfer: tron((c.chamfer || 0) * k) };
+    if (c.kind === 'poly') return { ...c, pts: c.pts.map(([x, y]) => [tron(x * k), tron(y * k)]) };
     return c;
   }
 
