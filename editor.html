@@ -146,8 +146,12 @@
       <div class="card">
         <div class="card-head">
           <b>Danh sách đồ</b>
-          <span class="hint">Bấm Sửa để đổi tên và thuộc tính. Ảnh sinh ở trang Sinh sprite. Mã số không đổi được vì level đang dùng nó.</span>
+          <span class="hint">Bấm Sửa để đổi tên và thuộc tính. Mã số không đổi được vì level đang dùng nó.</span>
           <div class="grow"></div>
+          <select id="poolScope" title="Lọc theo chương">
+            <option value="chapter">Chương này</option>
+            <option value="all">Cả kho</option>
+          </select>
           <input id="poolSearch" placeholder="tìm theo mã hoặc tên…">
         </div>
         <div class="tablewrap"><table id="poolTable"></table></div>

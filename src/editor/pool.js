@@ -3,6 +3,7 @@
 import { ITEM_DEFS, defById } from '../data/items.js';
 import { theme } from '../art/helpers.js';
 import { saveContent, applyManifest, assetHome, indexAsset } from '../content/loader.js';
+import { chapterItemIds, byChapterFirst } from './chapter-items.js';
 
 const $ = id => document.getElementById(id);
 
@@ -32,17 +33,27 @@ function paintThumb(cv, def, pad = .82) {
   c.fillRect(px * .18, cv.height * .18, px * .64, cv.height * .64);
 }
 
-export function initPool({ status, onSaved }) {
+export function initPool({ E, status, onSaved }) {
   const table = $('poolTable');
   const modal = $('itemModal');
   let editing = null;          // def đang sửa
 
   // ---------- bảng ----------
+  // Mặc định chỉ hiện món của chương đang mở: món riêng lên trước, món mượn xuống sau
+  let chapterItems = null, chapterOwn = null;
+  async function computeChapterItems() {
+    ({ all: chapterItems, own: chapterOwn } = await chapterItemIds(E));
+    render();
+  }
+
   function render() {
     const q = ($('poolSearch').value || '').toLowerCase();
+    const scope = $('poolScope').value;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    table.innerHTML = '<tr><th></th><th>#</th><th>Tên</th><th>Cỡ</th><th>Hình dáng</th><th>Tính chất</th><th>Khó</th><th>Art</th><th></th></tr>';
-    for (const d of ITEM_DEFS) {
+    table.innerHTML = '<tr><th></th><th>#</th><th>Tên</th><th>Cỡ</th><th>Hình dáng</th><th>Tính chất</th><th>Khó</th><th>Chương</th><th></th></tr>';
+    const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
+    for (const d of order) {
+      if (scope === 'chapter' && chapterItems && !chapterItems.has(d.id) && d.id > 0) continue;
       if (q && !`${d.id} ${d.name} ${d.slug}`.toLowerCase().includes(q)) continue;
       const m = d.meta, tr = document.createElement('tr');
       const cv = document.createElement('canvas'); cv.width = cv.height = 34 * dpr;
@@ -55,7 +66,8 @@ export function initPool({ status, onSaved }) {
       cell(m.shape);
       cell(`<span class="tag ${m.physics}">${PHYS_TEXT[m.physics] || m.physics}</span>`);
       cell(String(m.cost));
-      cell(d.sprite ? 'ảnh' : 'hình vẽ');
+      const own = !chapterOwn || chapterOwn.has(d.id) || d.id <= 0;
+      cell(own ? '<span class="tag own">của chương</span>' : '<span class="tag lent">mượn</span>');
       const btn = document.createElement('button'); btn.textContent = 'Sửa';
       btn.addEventListener('click', () => openEditor(d));
       cell(btn, 'act');
@@ -63,6 +75,7 @@ export function initPool({ status, onSaved }) {
     }
   }
   $('poolSearch').addEventListener('input', render);
+  $('poolScope').addEventListener('change', render);
 
   // ---------- hộp thoại ----------
   function fillSelect(el, opts, val) {
@@ -123,5 +136,6 @@ export function initPool({ status, onSaved }) {
   });
 
   render();
-  return { render };
+  computeChapterItems();
+  return { render, computeChapterItems };
 }

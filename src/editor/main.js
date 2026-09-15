@@ -214,7 +214,7 @@ export async function openChapter(mapId, levelId) {
   const pick = E.map.levels.find(l => l.id === levelId) || E.map.levels[0];
   setLevel(pick ? clone(pick) : blankLevel(nextLevelId(E.mapId, [])));
   refreshChapterSelect(); refreshLevelSelect(); draw?.clearSelection();
-  draw?.computeChapterItems();
+  draw?.computeChapterItems(); pool?.computeChapterItems();
 }
 export async function openLevel(id) {
   const lv = E.map.levels.find(l => l.id === id);
@@ -276,7 +276,7 @@ async function boot() {
   draw = initDraw({ E, onChange, status, areaOf });
   whenSpriteReady(() => { clearAreaCache(); draw.refreshPalette(); onChange(); });
   gen = initGenerate({ E, setLevel, areaOf, status });
-  pool = initPool({ status, onSaved: () => { clearAreaCache(); draw.refreshPalette(); onChange(); frame.contentWindow.postMessage({ type: 'assets' }, '*'); } });
+  pool = initPool({ E, status, onSaved: () => { clearAreaCache(); draw.refreshPalette(); onChange(); frame.contentWindow.postMessage({ type: 'assets' }, '*'); } });
   initManage({
     E, status, blankLevel, clone, publish,
     onReload: (mapId, levelId) => openChapter(mapId || E.mapId, levelId),

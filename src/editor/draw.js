@@ -3,7 +3,7 @@ import { ITEM_DEFS, MYSTERY, defById, labelOf } from '../data/items.js';
 import { theme } from '../art/helpers.js';
 import { W, H, TABLE_Y, FLOOR_Y } from '../game/state.js';
 import { pointInPolygon, polygonArea } from '../util/geom.js';
-import { loadAssetIndex } from '../content/loader.js';
+import { chapterItemIds, byChapterFirst } from './chapter-items.js';
 
 const $ = id => document.getElementById(id);
 const INK = { 1: '#3B2A4A', 2: '#3B2A4A', 3: '#4A2F3A' };
@@ -225,23 +225,9 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   }
 
   // ---------- palette ----------
-  // "Chương này" = món có ảnh nằm trong thư mục của chương, cộng món mà level trong chương
-  // đang dùng (gồm cả món mượn từ chương khác). Đủ để dựng level mà không phải cuộn cả kho.
-  let chapterItems = null;     // món chương này dùng được
-  let chapterOwn = null;        // món có ảnh nằm trong thư mục chương này
+  let chapterItems = null, chapterOwn = null;
   async function computeChapterItems() {
-    const set = new Set(), own = new Set();
-    for (const it of E.level?.items || []) set.add(Number(it.id));
-    for (const lv of E.levelItemIds?.values() || []) for (const id of lv) set.add(Number(id));
-    try {
-      const index = await loadAssetIndex(true);
-      const folder = `assets/${String(E.map?.no || 1).padStart(2, '0')}-${E.mapId}/`;
-      for (const [id, path] of Object.entries(index.items || {})) {
-        if (!path.startsWith(folder)) continue;
-        set.add(Number(id)); own.add(Number(id));
-      }
-    } catch {}
-    chapterItems = set; chapterOwn = own;
+    ({ all: chapterItems, own: chapterOwn } = await chapterItemIds(E));
     refreshPalette();
   }
 
@@ -249,9 +235,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const pal = $('palette'), q = ($('palSearch').value || '').toLowerCase(); pal.innerHTML = '';
     const scope = $('palScope').value;
     // Món riêng của chương lên trước, món mượn từ chương khác xuống sau
-    const order = scope === 'chapter' && chapterOwn
-      ? [...ITEM_DEFS].sort((a, b) => (chapterOwn.has(b.id) ? 1 : 0) - (chapterOwn.has(a.id) ? 1 : 0))
-      : ITEM_DEFS;
+    const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
     for (const def of order) {
       if (scope === 'chapter' && chapterItems && !chapterItems.has(def.id) && def.id > 0) continue;
       if (q && !`${def.id} ${def.name} ${def.slug}`.toLowerCase().includes(q)) continue;

@@ -191,3 +191,6 @@ button.mini.danger:hover{background:#FBEFEE}
 /* món mượn từ chương khác: mờ hơn một chút cho dễ phân biệt */
 .palette button.borrowed{opacity:.72}
 .palette button.borrowed:hover{opacity:1}
+#poolScope{border:1px solid var(--line);border-radius:7px;padding:.28em .5em;font:700 .84em "Nunito";background:#fff;color:var(--ink)}
+.tag.own{background:#E4F3E8;color:#2E7D4F;border-radius:5px;padding:.1em .45em;font:800 .78em "Nunito"}
+.tag.lent{background:#EFEAE2;color:var(--soft);border-radius:5px;padding:.1em .45em;font:800 .78em "Nunito"}
