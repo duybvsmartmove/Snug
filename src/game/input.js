@@ -19,8 +19,8 @@ const DRAG_PX = 7;                 // di chuyển quá ngưỡng này thì coi l
 // Xoay tự do: đặt ngón lên nút hai mũi tên ở góc món rồi kéo, món quay theo ngón.
 /** Bán kính nút xoay: co theo món để không lấn át vật, nhưng vẫn đủ to để chạm trúng */
 export function rotButtonR(body) {
-  const [x0, y0, x1, y1] = body.def.box;
-  return Math.max(8, Math.min(12, Math.min(x1 - x0, y1 - y0) * .3));
+  const [x0, y0, x1, y1] = body.def.box, k = body.artScale || 1;
+  return Math.max(9, Math.min(14, Math.min(x1 - x0, y1 - y0) * k * .3));
 }
 
 /**
@@ -28,8 +28,8 @@ export function rotButtonR(body) {
  * nhờ vậy nút luôn nằm ở một góc cố định của vật thay vì nhảy quanh khung bao.
  */
 export function rotateButtonPos(body) {
-  const [, y0, x1] = body.def.box;
-  const c = Vector.rotate({ x: x1, y: y0 }, body.angle);
+  const [, y0, x1] = body.def.box, k = body.artScale || 1;
+  const c = Vector.rotate({ x: x1 * k, y: y0 * k }, body.angle);
   return { x: body.position.x + c.x, y: body.position.y + c.y };
 }
 
@@ -72,10 +72,14 @@ function syncGroup(d) {
 }
 
 /** Gọi mỗi frame trước Engine.update */
+// Khi kéo, món được nhấc lên cao hơn điểm chạm để ngón tay không che mất nó.
+const LIFT = 56;
+
 export function moveHeld() {
   const d = S.drag; if (!d) return;
   const b = d.body;
   const want = Vector.sub(d.target, Vector.rotate(d.offsetLocal, b.angle));
+  want.y -= LIFT;
   Body.setPosition(b, { x: b.position.x + (want.x - b.position.x) * .55, y: b.position.y + (want.y - b.position.y) * .55 });
   syncGroup(d);
   d.ghost = d.group.some(x => computeGhost(x, d.group));
@@ -106,11 +110,11 @@ export function drop() {
 // ---------- xoay tự do bằng một ngón ----------
 // Chạm vào nút hai mũi tên ở góc món rồi kéo: món quay theo đúng hướng ngón đi,
 // giống cách xoay ảnh trong các app dựng video. Thả ngón là dừng ở đúng góc đó.
-let spin = null;   // { body, id, startAngle, startPointer }
+let spin = null;   // { body, id, startAngle, startPointer, moved }
 
 function beginSpin(body, p, pointerId) {
   spin = {
-    body, id: pointerId,
+    body, id: pointerId, moved: false,
     startAngle: body.angle,
     startPointer: Math.atan2(p.y - body.position.y, p.x - body.position.x),
   };
@@ -119,6 +123,7 @@ function beginSpin(body, p, pointerId) {
 
 function moveSpin(p) {
   const b = spin.body;
+  spin.moved = true;
   const now = Math.atan2(p.y - b.position.y, p.x - b.position.x);
   Body.setAngle(b, spin.startAngle + (now - spin.startPointer));
   Body.setAngularVelocity(b, 0);
@@ -151,12 +156,17 @@ function onDown(e) {
   const p = toLogical(e);
   if (S.drag) return;
 
-  if (hitRotateButton(p)) { beginSpin(S.selected, p, e.pointerId); return; }   // giữ nút rồi kéo để xoay
+  if (hitRotateButton(p)) { beginSpin(S.selected, p, e.pointerId); return; }   // nút ở góc món
 
   const hit = Query.point(S.bodies.flatMap(partsOf), p);
   const body = hit.length ? hit[0].parent : null;
 
-  if (!body) { S.selected = null; return; }
+  // Đang chọn một món mà chạm ra chỗ trống: kéo ở đâu cũng xoay được món đó.
+  // Chạm mà không kéo thì coi như bỏ chọn, xử lý ở onUp.
+  if (!body) {
+    if (S.selected) beginSpin(S.selected, p, e.pointerId);
+    return;
+  }
   pending = { body, startP: p, id: e.pointerId };
 }
 
@@ -175,7 +185,11 @@ function onMove(e) {
 }
 
 function onUp(e) {
-  if (spin && e.pointerId === spin.id) { spin = null; return; }
+  if (spin && e.pointerId === spin.id) {
+    if (!spin.moved && !hitRotateButton(toLogical(e))) S.selected = null;   // chạm chỗ trống, không kéo → bỏ chọn
+    spin = null;
+    return;
+  }
   if (pending && e.pointerId === pending.id) {          // chạm nhẹ → chọn hoặc bỏ chọn
     S.selected = S.selected === pending.body ? null : pending.body;
     pending = null;

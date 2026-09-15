@@ -220,10 +220,13 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
         <button data-s="reset" class="ghost" title="Về 100%">↺</button>
       </div>
       <div class="mech">
-        <button data-m="link" class="${sel.link ? 'on' : ''}" ${m.canLink ? '' : 'disabled'}>${sel.link ? 'Buộc với #' + sel.link : 'Buộc dây…'}</button>
-        <button data-m="locked" class="${sel.locked ? 'on' : ''}" ${m.canLock ? '' : 'disabled'}>Hộp bí ẩn</button>
-        <button data-m="inBag" class="${sel.inBag ? 'on' : ''}">Đặt sẵn trong túi</button>
-        <button data-m="del">Xoá</button>
+        <button data-m="link" class="${sel.link ? 'on' : ''}" ${m.canLink ? '' : 'disabled'}
+          title="Nối món này với một món khác bằng dây. Hai món phải nhấc và xếp cùng nhau.">${sel.link ? 'Buộc với #' + sel.link : 'Buộc dây…'}</button>
+        <button data-m="locked" class="${sel.locked ? 'on' : ''}" ${m.canLock ? '' : 'disabled'}
+          title="Giấu món này trong hộp bí ẩn. Người chơi phải kéo chìa khoá chạm vào hộp mới mở ra.">Hộp bí ẩn</button>
+        <button data-m="inBag" class="${sel.inBag ? 'on' : ''}"
+          title="Món nằm sẵn trong túi từ đầu màn, không phải xếp. Dùng cho chìa khoá hoặc đồ vướng chỗ.">Đặt sẵn trong túi</button>
+        <button data-m="del" title="Bỏ món khỏi level này">Xoá</button>
       </div>`;
     const setScale = v => {
       const k = Math.min(300, Math.max(25, Math.round(v))) / 100;
