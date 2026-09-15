@@ -43,6 +43,7 @@ function groupOf(body) {
 
 export function pickUp(body, p) {
   S.selected = null;
+  S.luuTui = null;          // bỏ ảnh chụp của lần thả trước, sắp có lần thả mới
   const group = groupOf(body);
   for (const b of group) {
     if (b.isStatic) Body.setStatic(b, false);
@@ -103,15 +104,34 @@ export function drop() {
   const d = S.drag; if (!d) return;
   const b = d.body;
   let bounce = false;
+
+  // Chụp lại thế xếp đang có trong túi TRƯỚC khi món này rơi vào.
+  // Túi đầy mà cố nhét thêm thì đống đồ bị ép, món đang nằm gọn có thể bị nặn trào ra
+  // khỏi miệng túi. Nếu hoá ra chính món vừa thả mới là món không vừa, ta trả những
+  // món kia về đúng chỗ cũ — công sức xếp của người chơi không mất vì một lần thử hỏng.
+  S.luuTui = {
+    monTha: b,
+    list: S.bodies
+      .filter(x => !d.group.includes(x) && !x.chuaVao && bagZone(x).fullyInside)
+      .map(x => ({ b: x, x: x.position.x, y: x.position.y, a: x.angle })),
+  };
   if (d.ghost) {
-    if (d.group.some(x => bagZone(x).inZone)) {          // không vừa trong túi → bật ngược ra ngoài
+    if (d.group.some(x => bagZone(x).inZone)) {          // không vừa trong túi → trả ra khay
+      // Món bị dời chỗ tức thì, nên đánh dấu cả nơi nó rời đi lẫn nơi nó hiện ra,
+      // không thì người chơi chỉ thấy món tự nhiên biến mất rồi mọc ở chỗ khác.
+      S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
       findFreeSpot(b, d.group); syncGroup(d); bounce = true;
     } else if (d.lastValid) {
       Body.setPosition(b, d.lastValid); Body.setAngle(b, d.lastValid.angle); syncGroup(d);
     } else { findFreeSpot(b, d.group); syncGroup(d); }
   }
+  const luc = performance.now();
   for (const x of d.group) {
-    Body.setVelocity(x, bounce ? { x: (Math.random() - .5) * 4, y: -6 } : { x: 0, y: 0 });
+    x.thaLuc = luc;          // luật đẩy ra khỏi túi chờ món rơi hẳn rồi mới xét
+    // Món không vừa đã bị dời hẳn xuống khay rồi; bơm thêm vận tốc ngược lên nữa thì
+    // nó vọt lên mấy chục pixel ngay sau khi vừa hiện ra, nhìn như bị hất tung.
+    // Chỉ đẩy nhẹ sang ngang để thấy là món vừa bị trả ra, còn lại để trọng lực lo.
+    Body.setVelocity(x, bounce ? { x: (Math.random() - .5) * 1.6, y: 0 } : { x: 0, y: 0 });
     Body.setAngularVelocity(x, 0);
     World.add(S.world, x);
   }

@@ -1,5 +1,5 @@
 // Điểm vào của game. Tải content pack, dựng level, chạy loop. Nghe postMessage từ Level Editor để live preview.
-import { S } from './game/state.js';
+import { S, BAG } from './game/state.js';
 import { defById } from './data/items.js';
 import { resize } from './game/canvas.js';
 import { bindInput } from './game/input.js';
@@ -11,6 +11,7 @@ import { bindImpacts } from './game/rules.js';
 import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
 import * as FX from './game/fx.js';
+import * as RULES from './game/rules.js';
 import { initHome, showHome, hideHome } from './ui/home.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
 
@@ -105,7 +106,7 @@ async function buildWithArt(level) {
 // Hook debug ở chế độ dev: mở console gõ __game.S để xem trạng thái, __game.drag(id, x, y) để thử kéo.
 if (import.meta.env?.DEV) {
   window.__game = {
-    S, FX, restart, nextLevel, prevLevel, autoplay,
+    S, BAG, FX, RULES, restart, nextLevel, prevLevel, autoplay, stopAutoplay,
     body: id => S.bodies.find(b => b.label === id),
     async drag(id, tx, ty, steps = 10) {
       const cv = document.getElementById('game'), r = cv.getBoundingClientRect();

@@ -55,13 +55,22 @@ export function computeGhost(body, group = [body]) {
   return false;
 }
 
-/** Tìm một chỗ trống trên khay để đặt đồ */
+/**
+ * Tìm một chỗ trống trên khay để đặt đồ.
+ * Ưu tiên chỗ ngay dưới nơi món vừa bị trả ra, tìm mãi không được mới nới rộng dần:
+ * quăng món sang tận đầu kia của khay thì mắt người chơi không kịp bám theo,
+ * nhìn cứ như món tự nhiên biến mất.
+ */
 export function findFreeSpot(b, group = [b]) {
   const pad = group.length > 1 ? 46 : 0;   // cặp buộc dây cần chỗ rộng hơn
   const hx = (b.bounds.max.x - b.bounds.min.x) / 2 + pad, hy = (b.bounds.max.y - b.bounds.min.y) / 2 + pad;
+  const xCu = b.position.x;
+  const traiNhat = 20 + hx, phaiNhat = Math.max(traiNhat, W - 20 - hx);
   for (let t = 0; t < 40; t++) {
+    const toaRa = 46 + (t / 40) * W;       // vòng đầu bám sát chỗ cũ, sau đó lan rộng ra
+    const x = xCu + (Math.random() - .5) * 2 * toaRa;
     Body.setPosition(b, {
-      x: 20 + hx + Math.random() * Math.max(10, W - 40 - hx * 2),
+      x: Math.max(traiNhat, Math.min(phaiNhat, x)),
       y: TABLE_Y + 10 + hy + Math.random() * Math.max(10, FLOOR_Y - TABLE_Y - 20 - hy * 2),
     });
     if (!computeGhost(b, group)) return;
@@ -70,11 +79,44 @@ export function findFreeSpot(b, group = [b]) {
 }
 
 function ejectOne(b) {
-  S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
-  sfx('eject'); shake(320);
+  S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });   // chỗ món rời đi
+  // Rung nhẹ thôi: túi đầy thì chuyện này xảy ra luôn, rung mạnh mỗi lần thành ra
+  // như bị phạt, trong khi đây chỉ là món không vừa nên được trả lại khay.
+  sfx('eject', { gain: .7 }); shake(150);
   findFreeSpot(b);
   Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
+  S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });   // chỗ món hiện ra
   b.stuck = 0;
+}
+
+/**
+ * Trả đống đồ trong túi về đúng thế trước lần thả vừa rồi.
+ * Chỉ dùng khi chính món vừa thả là món không vừa: lúc đó những món bị nó xô ra
+ * không có lỗi gì, không việc gì phải mất chỗ.
+ */
+function hoanTacTui() {
+  const luu = S.luuTui; if (!luu) return 0;
+  S.luuTui = null;
+  const now = performance.now();
+  let n = 0;
+  for (const m of luu.list) {
+    const b = m.b;
+    if (!S.bodies.includes(b) || isHeld(b) || bagZone(b).fullyInside) continue;
+    // Nhớ chỗ hiện tại: chỗ cũ có thể đã bị món khác chiếm trong lúc xô đẩy vừa rồi,
+    // đặt bừa về là hai món lồng vào nhau. Chèn được thì mới nhận, không thì để nguyên.
+    const cu = { x: b.position.x, y: b.position.y, a: b.angle };
+    Body.setPosition(b, { x: m.x, y: m.y });
+    Body.setAngle(b, m.a);
+    if (computeGhost(b)) {                      // chỗ cũ không còn trống
+      Body.setPosition(b, { x: cu.x, y: cu.y });
+      Body.setAngle(b, cu.a);
+      continue;
+    }
+    Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
+    b.stuck = 0; b.thaLuc = now;
+    n++;
+  }
+  return n;
 }
 
 /** Đẩy đồ không vừa ra khay. Đồ buộc chung thì đẩy cả cặp, giữ nguyên khoảng cách. */
@@ -89,16 +131,64 @@ export function eject(b) {
     S.puffs.push({ x: pair[1].position.x, y: pair[1].position.y, t: 0 });
     toast('Đồ buộc chung phải vào túi cùng nhau');
   } else toast('Không vừa! Đồ bị đẩy ra ngoài');
+
+  // Chính món vừa thả là món không vừa → trả lại thế xếp cũ cho những món bị nó xô.
+  if (S.luuTui && pair.includes(S.luuTui.monTha)) {
+    const n = hoanTacTui();
+    if (n) toast(`Không vừa! Đã trả ${n} món về chỗ cũ`, 1800);
+  }
 }
 
-/** Đồ nằm yên mà vẫn chòi ra khỏi miệng túi → đẩy ra */
+// Trước khi kết luận món chòi ra khỏi miệng túi, phải chắc là nó đã rơi hẳn và nằm im.
+// Thả tay xong món còn chạm món khác, nảy lên, trườn xuống khe — trong lúc đó có thể nó
+// vướng mép túi một nhịp, nhưng đó chưa phải chỗ nằm cuối cùng của nó.
+const CHO_SAU_THA = 700;   // mili giây sau khi buông tay mới bắt đầu xét
+const YEN_TOC = .25;       // chậm hơn mức này mới tính là đã nằm, không còn trườn
+const YEN_XOAY = .03;
+const YEN_DU_LAU = 75;     // số khung nằm im liên tục, khoảng 1,2 giây
+
+/** Đồ đã nằm hẳn mà vẫn chòi ra khỏi miệng túi → trả lại khay */
 export function checkEject() {
+  const now = performance.now();
+  theoDoiMonVuaTha(now);
   for (const b of S.bodies) {
-    if (isHeld(b) || b.chuaVao) continue;
+    if (b.chuaVao) continue;
     const z = bagZone(b);
-    if (z.inZone && !z.fullyInside && b.speed < .5 && b.angularSpeed < .05) { if (++b.stuck > 28) eject(b); }
-    else b.stuck = 0;
+
+    // Trong lòng túi thì đồ thôi nảy. Túi chật mà đồ còn nảy thì thả một món xuống là
+    // hất luôn món đang nằm gọn bay khỏi miệng túi — Matter lấy độ nảy LỚN NHẤT của hai
+    // vật, nên chỉ tắt nảy ở món vừa thả thì không ăn thua. Ra khay thì trả lại như cũ,
+    // món "bouncy" vẫn nảy đúng chất của nó ở ngoài.
+    if (b.restGoc != null) b.restitution = z.inZone ? Math.min(b.restGoc, .02) : b.restGoc;
+
+    if (isHeld(b)) continue;
+    if (b.thaLuc > now - CHO_SAU_THA) { b.stuck = 0; continue; }   // vừa buông, còn đang rơi
+    if (z.inZone && !z.fullyInside && b.speed < YEN_TOC && b.angularSpeed < YEN_XOAY) {
+      if (++b.stuck > YEN_DU_LAU) eject(b);
+    } else b.stuck = 0;
   }
+}
+
+/**
+ * Canh món vừa thả. Luật đẩy-ra-khỏi-túi chỉ chạy với món còn nằm trong vùng túi, nên
+ * món trượt hẳn ra ngoài rồi thì không ai gọi hoàn tác. Ở đây canh riêng: món vừa thả
+ * mà rốt cuộc nằm ngoài túi thì cũng là một lần thả hỏng, trả những món bị nó xô về chỗ cũ.
+ */
+function theoDoiMonVuaTha(now) {
+  const luu = S.luuTui; if (!luu) return;
+  const b = luu.monTha;
+  if (!S.bodies.includes(b)) { S.luuTui = null; return; }
+  if (isHeld(b)) return;
+  const tuKhiTha = now - (b.thaLuc || 0);
+  if (tuKhiTha < 900) return;                 // còn đang rơi, chưa biết kết quả
+  const z = bagZone(b);
+  if (!z.inZone) {                            // đã văng hẳn ra ngoài túi
+    const n = hoanTacTui();
+    if (n) toast(`Không vừa! Đã trả ${n} món về chỗ cũ`, 1800);
+    return;
+  }
+  if (z.fullyInside && b.speed < YEN_TOC) S.luuTui = null;   // vào được rồi, thôi canh
+  else if (tuKhiTha > 8000) S.luuTui = null;                 // treo lơ lửng quá lâu thì bỏ qua
 }
 
 // ---------- va chạm: tiếng tiếp đất và bụi tung lên ----------

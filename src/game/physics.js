@@ -36,6 +36,7 @@ export function makeItem(def, x, y) {
   else if (def.extra) body = Body.create({ parts: [makePart(def, x, y), makePart(def.extra, x, y)], ...bo });
   else body = makePart(def, x, y);
   body.restitution = bo.restitution;
+  body.restGoc = bo.restitution;    // độ nảy gốc, để tắt tạm lúc món nằm trong túi rồi trả lại
   if (def.meta?.physics === 'rolling') { body.friction = .15; body.frictionStatic = .2; }
   body.itemId = def.id;        // khoá chính (số), dùng để so khớp với level JSON
   body.label = def.slug;       // tên ngắn, tiện khi xem log
@@ -83,15 +84,20 @@ export const onImpact = fn => { baoVaCham = fn; };
 export function createWorld() {
   const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
   engine.gravity.y = 1.1;
+  // Sàn và tường màn hình bám chắc, để đồ trên khay không trượt lung tung.
   const wallOpt = { isStatic: true, friction: .8, restitution: .1, label: 'wall' };
+  // Thành túi thì trơn. Để dính như sàn thì món bị ép vào thành là ma sát ghì cứng luôn,
+  // treo lơ lửng giữa túi không chịu tụt xuống, nhìn như kẹt. Trơn thì nó trượt xuống
+  // lấp chỗ trống bên dưới, đống đồ cũng xẹp lại nên đỡ chòi ra khỏi miệng túi.
+  const tuiOpt = { ...wallOpt, friction: .04, frictionStatic: .06 };
   const t = 60;
   const walls = [
     Bodies.rectangle(W / 2, FLOOR_Y + t / 2, W + 200, t, wallOpt),
     Bodies.rectangle(-t / 2, H / 2, t, H * 2, wallOpt),
     Bodies.rectangle(W + t / 2, H / 2, t, H * 2, wallOpt),
     Bodies.rectangle(W / 2, -t, W * 2, t, wallOpt),
-    ...polygonWalls(BAG.poly, wallOpt),
-    ...BAG.blocks.map(b => Bodies.rectangle(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h, { ...wallOpt, label: 'block' })),
+    ...polygonWalls(BAG.poly, tuiOpt),
+    ...BAG.blocks.map(b => Bodies.rectangle(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h, { ...tuiOpt, label: 'block' })),
   ];
   World.add(engine.world, walls);
 

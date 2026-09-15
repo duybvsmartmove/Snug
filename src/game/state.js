@@ -51,6 +51,8 @@ export const S = {
   timeLeft: 0, timerOn: true,
   // hiệu ứng
   puffs: [], startTime: 0, shownSec: -1, jiggle: null,
+  // thế xếp trong túi ngay trước lần thả gần nhất, để hoàn tác nếu lần thả đó hỏng
+  luuTui: null,
 };
 
 /** Món đã thả vào sân chưa. Đầu màn đồ vào lần lượt nên có lúc body chưa nằm trong thế giới vật lý. */

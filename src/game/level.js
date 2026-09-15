@@ -38,7 +38,7 @@ export function build(level) {
   hideWin(); hideLose(); hidePause();
 
   // trạng thái
-  S.drag = null; S.selected = null;
+  S.drag = null; S.selected = null; S.luuTui = null;
   S.checked = new Set(); S.gone = new Set(); S.winFrames = 0; S.won = false; S.lost = false; S.paused = false;
   S.unlockFrames = 0; S.unlockHinted = false; S.puffs = [];
   clearFx(); duckMusic(false);
