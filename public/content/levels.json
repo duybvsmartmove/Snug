@@ -1,6 +1,6 @@
 {
-  "version": 16,
-  "publishedAt": "2026-09-15T06:51:57.601Z",
+  "version": 23,
+  "publishedAt": "2026-09-15T06:55:44.975Z",
   "chapters": [
     {
       "id": "school-day",
@@ -11,53 +11,6 @@
         "coin": 40
       },
       "levels": [
-        {
-          "id": "sd-01",
-          "name": "Giờ ăn trưa",
-          "timer": 120,
-          "background": 1,
-          "container": {
-            "skin": "lunchbox",
-            "cx": 210,
-            "bottom": 384,
-            "shape": [
-              [
-                -80.5,
-                -115
-              ],
-              [
-                80.5,
-                -115
-              ],
-              [
-                80.5,
-                0
-              ],
-              [
-                -80.5,
-                0
-              ]
-            ],
-            "blocks": []
-          },
-          "mode": "fixed",
-          "items": [
-            {
-              "id": 17,
-              "x": 153,
-              "y": 515,
-              "angle": 0.18
-            }
-          ],
-          "reward": {
-            "coin": 20
-          },
-          "difficulty": {
-            "points": 3,
-            "tier": "Easy"
-          },
-          "emptyText": "Kéo đồ vào hộp cơm"
-        },
         {
           "id": "sd-02",
           "name": "Thêm chai nước",
@@ -127,6 +80,53 @@
             "points": 4,
             "tier": "Easy"
           }
+        },
+        {
+          "id": "sd-01",
+          "name": "Giờ ăn trưa",
+          "timer": 120,
+          "background": 1,
+          "container": {
+            "skin": "lunchbox",
+            "cx": 210,
+            "bottom": 384,
+            "shape": [
+              [
+                -80.5,
+                -115
+              ],
+              [
+                80.5,
+                -115
+              ],
+              [
+                80.5,
+                0
+              ],
+              [
+                -80.5,
+                0
+              ]
+            ],
+            "blocks": []
+          },
+          "mode": "fixed",
+          "items": [
+            {
+              "id": 17,
+              "x": 153,
+              "y": 515,
+              "angle": 0.18
+            }
+          ],
+          "reward": {
+            "coin": 20
+          },
+          "difficulty": {
+            "points": 3,
+            "tier": "Easy"
+          },
+          "emptyText": "Kéo đồ vào hộp cơm"
         },
         {
           "id": "sd-03",
