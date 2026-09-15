@@ -10,6 +10,7 @@
 // Editor dùng lại đúng module này, chỉ khác BASE trỏ sang địa chỉ của game.
 import { ITEM_DEFS, defById } from '../data/items.js';
 import { registerImageScene, registerBagSkin } from '../art/scene-registry.js';
+import { applyCollider } from '../data/collider.js';
 
 let BASE = './content/';
 export function setContentBase(url) { BASE = url.endsWith('/') ? url : url + '/'; }
@@ -132,16 +133,7 @@ export function applyManifest(m) {
   }
   if (m.name) def.name = m.name;
   if (m.meta) def.meta = { ...def.meta, ...m.meta };
-  if (m.collider) {
-    const c = m.collider;
-    if (c.kind === 'circle') Object.assign(def, { kind: 'circle', r: c.r, box: [-c.r, -c.r, c.r, c.r] });
-    else if (c.kind === 'rect') Object.assign(def, { kind: 'rect', w: c.w, h: c.h, chamfer: c.chamfer || 0, box: [-c.w / 2, -c.h / 2, c.w / 2, c.h / 2] });
-    else if (c.kind === 'poly') {
-      const xs = c.pts.map(p => p[0]), ys = c.pts.map(p => p[1]);
-      Object.assign(def, { kind: 'poly', pts: c.pts, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] });
-      delete def.parts; delete def.extra;
-    }
-  }
+  applyCollider(def, m.collider);
   if (m.sprite) {
     const img = loadImage(m.sprite.src);
     const sprite = { img, ppu: m.sprite.pixelsPerUnit || 3, ready: false };

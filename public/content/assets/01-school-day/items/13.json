@@ -14,5 +14,9 @@
   "sprite": {
     "src": "assets/01-school-day/items/13.png",
     "pixelsPerUnit": 4
+  },
+  "collider": {
+    "kind": "circle",
+    "r": 26.59
   }
 }

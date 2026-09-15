@@ -13,6 +13,10 @@ import { tickEntrance } from './level.js';
 
 const { Engine } = Matter;
 
+// Mở game kèm ?colliders=1 để xem vùng va chạm vẽ chồng lên ảnh —
+// cách nhanh nhất để soi ảnh và vùng va chạm có khớp nhau không.
+const HIEN_COLLIDER = new URLSearchParams(location.search).get('colliders') === '1';
+
 function strokeShape(b, grow = 1) {
   for (const p of partsOf(b)) {
     ctx.beginPath();
@@ -53,6 +57,12 @@ function drawBody(b) {
     ctx.restore();
   } else if (ok) {
     ctx.save(); ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(95,191,155,.9)'; strokeShape(b, 1); ctx.restore();
+  }
+  if (HIEN_COLLIDER) {
+    ctx.save();
+    ctx.strokeStyle = '#FF2D7A'; ctx.lineWidth = 1.4; ctx.lineJoin = 'round';
+    strokeShape(b, 0);
+    ctx.restore();
   }
   if (b.vibrating) {
     ctx.save(); ctx.strokeStyle = '#4A90D9'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';

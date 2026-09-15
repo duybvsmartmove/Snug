@@ -14,5 +14,9 @@
   "sprite": {
     "src": "assets/02-weekend-trip/items/41.png",
     "pixelsPerUnit": 4
+  },
+  "collider": {
+    "kind": "circle",
+    "r": 22.24
   }
 }
