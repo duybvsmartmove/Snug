@@ -108,12 +108,33 @@ Game chỉ nạp phần của chương đang chơi, không đụng tới ảnh c
 
 ## Deploy
 
-Đẩy lên nhánh `main` là workflow tự build và đưa lên GitHub Pages. Bật ở
-**Settings → Pages → Source: GitHub Actions**. Game ở `/`, editor ở `/editor.html`.
+Repo này deploy thẳng lên GitHub Pages, không cần dịch vụ nào khác.
 
-Bản editor chạy trên Pages là trang tĩnh nên không ghi file được; nó có nút **Tải JSON**
-để tải `levels.json` về, chép vào `public/content/` rồi commit. Chạy ở máy thì nút
-**Lưu sắp xếp** ghi thẳng, không phải làm gì thêm.
+1. **Mở repo thành công khai.** Pages trên gói Free chỉ chạy với repo công khai.
+   Settings → General → Danger Zone → Change visibility.
+2. **Bật Pages:** Settings → Pages → Source chọn **GitHub Actions**.
+3. **Đẩy lên nhánh `main`.** Workflow `.github/workflows/pages.yml` tự build và đưa lên.
+
+Xong thì có hai link chia sẻ được:
+
+| Link | Là gì |
+|---|---|
+| `https://<chủ>.github.io/<repo>/` | game |
+| `https://<chủ>.github.io/<repo>/editor.html` | Level Editor |
+
+### Editor trên web khác gì bản ở máy
+
+Trang trên Pages là trang tĩnh nên **không ghi file được**. Editor tự dò lúc khởi động và
+đổi giao diện theo:
+
+| | Chạy ở máy | Trên Pages |
+|---|---|---|
+| Nút **Lưu sắp xếp** | có, ghi thẳng `levels.json` | ẩn |
+| Nút **Tải levels.json** | có | có, và là cách duy nhất để giữ thay đổi |
+
+Người ngoài vào link editor vẫn xem và sắp xếp thoải mái, nhưng muốn thay đổi thành thật thì
+phải tải `levels.json` về, chép vào `public/content/` rồi commit. Nhờ vậy không ai sửa được
+nội dung game chỉ bằng cách mở link.
 
 ## Script dựng content
 

@@ -27,6 +27,8 @@ function contentBridge() {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url.startsWith('/__content/')) return next();
         try {
+          // Editor dò endpoint này để biết có ghi file được không
+          if (req.method === 'GET' && req.url.startsWith('/__content/ping')) return send(res, 200, { ok: true });
           if (req.method === 'POST' && req.url.startsWith('/__content/save')) {
             const { path, text, base64 } = await readBody(req);
             const full = safe(path);

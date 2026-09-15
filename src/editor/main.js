@@ -84,6 +84,14 @@ export async function publish(note = '') {
   return b.version;
 }
 
+// Trang tĩnh (GitHub Pages, vite preview) không có cầu ghi file. Dò một lần lúc khởi động.
+let canWrite = false;
+async function probeWriter() {
+  try { canWrite = (await (await fetch('/__content/ping')).json())?.ok === true; }
+  catch { canWrite = false; }
+  return canWrite;
+}
+
 $('publishBtn').addEventListener('click', async () => {
   const btn = $('publishBtn');
   btn.disabled = true;
@@ -285,5 +293,16 @@ async function boot() {
 
   await openChapter(E.mapId);
   $('liveTag').textContent = `v${E.book.version || 1}`;
+
+  await probeWriter();
+  if (!canWrite) {
+    // Trang tĩnh: ẩn nút ghi, nhắc dùng nút tải file
+    $('publishBtn').hidden = true;
+    $('downloadBtn').classList.add('publish');
+    $('downloadBtn').classList.remove('ghost');
+    $('downloadBtn').textContent = 'Tải levels.json';
+    $('downloadBtn').title = 'Bản trên web không ghi file được. Tải về rồi chép vào public/content/ và commit.';
+    status('Bản trên web chỉ xem và sắp xếp. Xong thì bấm Tải levels.json rồi chép vào repo.', '');
+  }
 }
 boot().catch(e => { console.error(e); status('Lỗi khởi động: ' + e.message, 'bad'); });
