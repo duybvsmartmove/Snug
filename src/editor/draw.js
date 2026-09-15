@@ -20,8 +20,10 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   const itemPos = it => it.inBag ? abs(it.x ?? 0, it.y ?? -30) : { x: it.x, y: it.y };
 
   // ---------- vẽ ----------
-  function drawDef(def, x, y, angle, alpha = 1) {
-    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(angle || 0); ctx.lineJoin = 'round';
+  function drawDef(def, x, y, angle, alpha = 1, scale = 1) {
+    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(angle || 0);
+    if (scale !== 1) ctx.scale(scale, scale);
+    ctx.lineJoin = 'round';
     const sp = def.sprite;
     if (sp && sp.ready) { const w = sp.img.width / sp.ppu, h = sp.img.height / sp.ppu; ctx.drawImage(sp.img, -w / 2, -h / 2, w, h); }
     else { const [x0, y0, x1, y1] = def.box; ctx.fillStyle = '#ccc'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); }
@@ -62,7 +64,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     for (const it of L.items) {
       const def = defById(it.id); if (!def) continue;
       const p = itemPos(it);
-      drawDef(it.locked ? MYSTERY : def, p.x, p.y, it.angle, it.inBag ? .9 : 1);
+      drawDef(it.locked ? MYSTERY : def, p.x, p.y, it.angle, it.inBag ? .9 : 1, Number(it.scale) || 1);
       if (it.inBag) { ctx.fillStyle = '#E2B04A'; ctx.font = '800 10px Nunito'; ctx.fillText('IN BAG', p.x - 18, p.y - 26); }
       if (sel === it) {
         const [x0, y0, x1, y1] = (it.locked ? MYSTERY : def).box;
@@ -99,7 +101,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   // ---------- events ----------
   cv.addEventListener('contextmenu', e => e.preventDefault());
   cv.addEventListener('pointerdown', e => {
-    const p = toLogical(e); cv.setPointerCapture(e.pointerId);
+    const p = toLogical(e); try { cv.setPointerCapture(e.pointerId); } catch {}
     const L = E.level;
     if (tool === 'shape') {
       const i = hitPoint(p);
@@ -206,15 +208,34 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const box = $('selBox');
     if (!sel) { box.innerHTML = '<em>Chưa chọn món</em>'; return; }
     const def = defById(sel.id), m = def.meta;
+    const pct = Math.round((Number(sel.scale) || 1) * 100);
     box.innerHTML = `<b>${def.name}</b> <span class="hint">#${def.id} · ${m.size} · ${m.physics}</span>
-      <div class="hint">angle ${((sel.angle || 0) * 180 / Math.PI).toFixed(0)}° · area ${Math.round(0)}</div>
+      <div class="hint">góc ${((sel.angle || 0) * 180 / Math.PI).toFixed(0)}°</div>
+      <div class="scale-row">
+        <span>Cỡ riêng ở level này</span>
+        <button data-s="-10" title="Nhỏ đi 10%">−</button>
+        <input id="selScale" type="number" min="25" max="300" step="5" value="${pct}">
+        <span>%</span>
+        <button data-s="10" title="To thêm 10%">+</button>
+        <button data-s="reset" class="ghost" title="Về 100%">↺</button>
+      </div>
       <div class="mech">
         <button data-m="link" class="${sel.link ? 'on' : ''}" ${m.canLink ? '' : 'disabled'}>${sel.link ? 'Buộc với #' + sel.link : 'Buộc dây…'}</button>
         <button data-m="locked" class="${sel.locked ? 'on' : ''}" ${m.canLock ? '' : 'disabled'}>Hộp bí ẩn</button>
         <button data-m="inBag" class="${sel.inBag ? 'on' : ''}">Đặt sẵn trong túi</button>
         <button data-m="del">Xoá</button>
       </div>`;
-    box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const setScale = v => {
+      const k = Math.min(300, Math.max(25, Math.round(v))) / 100;
+      if (k === 1) delete sel.scale; else sel.scale = +k.toFixed(2);
+      showSel(); onChange();
+    };
+    $('selScale').addEventListener('change', e => setScale(+e.target.value || 100));
+    box.querySelectorAll('button[data-s]').forEach(b => b.addEventListener('click', () => {
+      const d = b.dataset.s;
+      setScale(d === 'reset' ? 100 : (Number(sel.scale) || 1) * 100 + Number(d));
+    }));
+    box.querySelectorAll('button[data-m]').forEach(b => b.addEventListener('click', () => {
       const k = b.dataset.m;
       if (k === 'link') { if (sel.link) { delete sel.link; } else { linkMode = true; status('Bấm tiếp món thứ hai để buộc dây', ''); } }
       if (k === 'locked') { sel.locked = !sel.locked; if (!sel.locked) delete sel.locked; }

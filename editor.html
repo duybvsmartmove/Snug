@@ -203,6 +203,14 @@
           <label class="field">Hình dáng <select id="imShape"></select></label>
           <label class="field">Tính chất <select id="imPhys"></select></label>
           <label class="field">Điểm khó <input id="imCost" type="number" min="0" max="5"></label>
+          <div class="scale-row">
+            <span>Cỡ trong game</span>
+            <button id="imMinus" title="Nhỏ đi 10%">−</button>
+            <input id="imScale" type="number" min="25" max="300" step="5" value="100">
+            <span>%</span>
+            <button id="imPlus" title="To thêm 10%">+</button>
+            <span class="hint" id="imSize"></span>
+          </div>
           <label class="field"><input id="imLink" type="checkbox"> Buộc dây được</label>
           <label class="field"><input id="imLock" type="checkbox"> Giấu trong hộp bí ẩn được</label>
           <span class="hint" id="imInfo"></span>

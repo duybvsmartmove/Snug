@@ -28,7 +28,7 @@ npm run preview
 | Hành động | Cách làm |
 |---|---|
 | Nhặt / đặt đồ | Chạm giữ và kéo, thả ngón để đặt |
-| Xoay | Chạm vào món để chọn, biểu tượng xoay hiện ở góc món, mỗi lần bấm xoay 90° |
+| Xoay | Chạm vào món để chọn, nút hai mũi tên hiện ở góc món; giữ nút rồi kéo, món quay theo ngón |
 | Booster | Lắc túi · Thu nhỏ 20% · Bỏ đi, mỗi loại có số lượt hiện trên badge |
 | Tạm dừng / đổi level | Nút góc phải trên |
 

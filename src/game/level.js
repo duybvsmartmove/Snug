@@ -52,6 +52,9 @@ export function build(level) {
     if (x == null || y == null) { const col = i % 6, row = Math.floor(i / 6); x = 40 + col * ((W - 80) / 5); y = TABLE_Y + 30 + row * 70; }
     const b = makeItem(it.locked ? MYSTERY : def, x, y);
     b.itemId = def.id; b.label = def.slug; b.realDef = def; b.locked = !!it.locked;
+    // Cỡ riêng của món trong CHÍNH level này, không đụng tới món ở level khác
+    const k = Number(it.scale) || 1;
+    if (k !== 1) { Body.scale(b, k, k); b.artScale *= k; b.levelScale = k; }
     Body.setAngle(b, it.angle || 0);
     S.bodies.push(b);
     // Đồ ngoài túi rơi tự do xuống sàn, nằm lộn xộn tự nhiên thay vì xếp thành lưới

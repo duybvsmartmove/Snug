@@ -96,13 +96,46 @@ export function initPool({ E, status, onSaved }) {
     $('imCost').value = def.meta.cost;
     $('imLink').checked = !!def.meta.canLink;
     $('imLock').checked = !!def.meta.canLock;
-    const [x0, , x1] = def.box;
-    $('imInfo').textContent = def.sprite
-      ? `Ảnh rộng ${Math.round(x1 - x0)}px trong game. Sinh lại ảnh ở trang Sinh sprite.`
-      : 'Món này chưa có ảnh. Sinh ở trang Sinh sprite.';
+    scalePct = 100;
+    const nhieuManh = def.kind === 'compound';
+    for (const id of ['imScale', 'imMinus', 'imPlus']) $(id).disabled = nhieuManh;
+    paintScale();
+    if (nhieuManh) $('imSize').textContent = 'món nhiều mảnh, chưa đổi cỡ được';
+    $('imInfo').textContent = def.sprite ? '' : 'Món này chưa có ảnh.';
     paintThumb($('imCanvas'), def, .9);
     modal.hidden = false;
   }
+  // ---------- cỡ trong game ----------
+  // Đổi cỡ nghĩa là nhân vùng va chạm lên và chia pixelsPerUnit xuống cùng một hệ số,
+  // để hình vẽ và hình vật lý luôn khớp nhau. Áp dụng cho món này ở MỌI level.
+  let scalePct = 100;
+  const baseW = () => { const d = editing; return d ? Math.round(d.box[2] - d.box[0]) : 0; };
+  function paintScale() {
+    $('imScale').value = scalePct;
+    $('imSize').textContent = `≈ ${Math.round(baseW() * scalePct / 100)}px ngang`;
+  }
+  const bumpScale = d => { scalePct = Math.min(300, Math.max(25, scalePct + d)); paintScale(); };
+  $('imMinus').addEventListener('click', () => bumpScale(-10));
+  $('imPlus').addEventListener('click', () => bumpScale(10));
+  $('imScale').addEventListener('change', e => { scalePct = Math.min(300, Math.max(25, +e.target.value || 100)); paintScale(); });
+
+  /** Hình vật lý hiện tại của món, đổi sang dạng ghi được vào manifest */
+  function colliderOf(def) {
+    if (def.kind === 'circle') return { kind: 'circle', r: def.r };
+    if (def.kind === 'rect') return { kind: 'rect', w: def.w, h: def.h, chamfer: def.chamfer || 0 };
+    if (def.kind === 'poly') return { kind: 'poly', pts: def.pts };
+    return null;            // compound: nhiều mảnh, manifest chưa tả được
+  }
+
+  /** Nhân vùng va chạm theo hệ số */
+  function scaleCollider(c, k) {
+    if (!c) return c;
+    if (c.kind === 'circle') return { ...c, r: Math.round(c.r * k) };
+    if (c.kind === 'rect') return { ...c, w: Math.round(c.w * k), h: Math.round(c.h * k), chamfer: Math.round((c.chamfer || 0) * k) };
+    if (c.kind === 'poly') return { ...c, pts: c.pts.map(([x, y]) => [Math.round(x * k), Math.round(y * k)]) };
+    return c;
+  }
+
   const closeEditor = () => { modal.hidden = true; editing = null; };
   $('imClose').addEventListener('click', closeEditor);
   modal.addEventListener('click', e => { if (e.target === modal) closeEditor(); });
@@ -125,6 +158,15 @@ export function initPool({ E, status, onSaved }) {
         if (old.sprite) manifest.sprite = old.sprite;
         if (old.collider) manifest.collider = old.collider;
       } catch {}
+      // Đổi cỡ: phóng vùng va chạm và thu pixelsPerUnit cùng hệ số
+      const k = scalePct / 100;
+      if (k !== 1) {
+        // Vùng va chạm chưa có trong manifest thì lấy từ hình vật lý đang dùng
+        const base = manifest.collider || colliderOf(d);
+        if (!base) return status('Món nhiều mảnh chưa đổi cỡ được', 'bad');
+        manifest.collider = scaleCollider(base, k);
+        if (manifest.sprite?.pixelsPerUnit) manifest.sprite = { ...manifest.sprite, pixelsPerUnit: +(manifest.sprite.pixelsPerUnit / k).toFixed(3) };
+      }
       await saveContent(manifestPath, JSON.stringify(manifest, null, 2));
       await indexAsset('items', id, manifestPath);
 
