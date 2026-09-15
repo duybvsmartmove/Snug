@@ -6,6 +6,8 @@
 // Thêm chương mới = thêm một mục vào CHAPTERS và một mục vào LEVELS.
 import { readFileSync, writeFileSync } from 'node:fs';
 
+const BOOK = 'public/content/levels.json';
+
 // Đọc định nghĩa món: id là SỐ, slug chỉ để viết template cho dễ đọc
 const ITEMS = {}, SLUG2ID = {};
 {
@@ -149,7 +151,7 @@ const polyArea = pts => { let a = 0; for (let i = 0; i < pts.length; i++) { cons
 // Giới hạn kích thước lòng túi để vừa khung màn 420×760
 const LIMIT = CH.limit;
 
-const report = [];
+const report = [], built = [];
 for (const lv of L) {
   const bag = BAGS[lv.bag];
   const blocks = lv.blocks || [];
@@ -202,7 +204,25 @@ for (const lv of L) {
     difficulty: { points: pts, tier },
     ...(lv.hint ? { emptyText: lv.hint } : {}),
   };
-  writeFileSync(`../snug_level_editor/content/draft/maps/${MAP}/levels/${lv.id}.json`, JSON.stringify(json, null, 2));
+  built.push(json);
   report.push({ lv: lv.id, name: lv.name, bag: lv.bag, n, 'lòng túi': `${bw}×${bh}`, đáy: bottom, density: (density*100).toFixed(0)+'%', 'mục tiêu': (lv.density*100)+'%', pts, tier });
 }
+// Ghi lại vào file sắp xếp, chỉ thay phần level của chương này
+const bookData = JSON.parse(readFileSync(BOOK, 'utf8'));
+const ch = bookData.chapters.find(c => c.id === MAP);
+if (!ch) { console.error(`levels.json chưa có chương "${MAP}"`); process.exit(1); }
+ch.levels = built;
+bookData.version = (bookData.version || 0) + 1;
+bookData.publishedAt = new Date().toISOString();
+for (const c of bookData.chapters) {
+  const items = new Set(), bgs = new Set(), bags = new Set();
+  for (const lv of c.levels) {
+    for (const it of lv.items || []) items.add(Number(it.id));
+    if (lv.background != null) bgs.add(Number(lv.background));
+    if (lv.container?.skin) bags.add(lv.container.skin);
+  }
+  c.assets = { items: [...items].sort((a, b) => a - b), backgrounds: [...bgs].sort((a, b) => a - b), bags: [...bags].sort() };
+}
+writeFileSync(BOOK, JSON.stringify(bookData, null, 2));
 console.table(report);
+console.log(`đã ghi ${built.length} level của chương "${MAP}" vào ${BOOK} (bản v${bookData.version})`);

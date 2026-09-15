@@ -1,0 +1,18 @@
+{
+  "id": 28,
+  "slug": "pencil",
+  "code": "ITM_028",
+  "name": "Bút chì",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "rolling",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/28.png",
+    "pixelsPerUnit": 4
+  }
+}

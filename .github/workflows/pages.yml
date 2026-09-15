@@ -1,5 +1,6 @@
-# Đưa game lên GitHub Pages mỗi khi đẩy code lên nhánh main.
-name: Deploy game
+# Đưa game và Level Editor lên GitHub Pages mỗi khi đẩy lên nhánh main.
+# index.html là game, editor.html là editor.
+name: Deploy
 
 on:
   push:
@@ -24,11 +25,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install --no-audit --no-fund
-      - name: Build
-        # Kho nội dung nằm ở repo SnugLevelEditor
-        env:
-          VITE_CONTENT_URL: ${{ vars.CONTENT_URL || 'https://raw.githubusercontent.com/duybvsmartmove/SnugLevelEditor/main/content/' }}
-        run: npm run build
+      - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

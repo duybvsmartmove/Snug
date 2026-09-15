@@ -1,0 +1,18 @@
+{
+  "id": 29,
+  "slug": "gluestick",
+  "code": "ITM_029",
+  "name": "Keo dán",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "rolling",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/29.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Level Editor · Everything Fits</title>
+  <link rel="icon" href="./public/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="./src/editor/editor.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Level Editor</div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="build" class="on">🧩 Dựng level</button>
+      <button data-tab="library">🎨 Thư viện art</button>
+    </nav>
+    <div class="grow"></div>
+    <label class="field">Chương <select id="chapterSelect"></select></label>
+    <label class="field">Level <select id="levelSelect"></select></label>
+    <button id="mgBtn" class="ghost">Quản lý chương &amp; level</button>
+    <button id="newLevel" class="ghost">+ Level mới</button>
+    <button id="publishBtn" class="publish" title="Ghi lại file sắp xếp cho game">
+      Lưu sắp xếp <span class="live" id="liveTag">v?</span>
+    </button>
+    <button id="downloadBtn" class="ghost" title="Tải levels.json về máy">Tải JSON</button>
+    <span id="status" class="status"></span>
+  </header>
+
+  <!-- ============ DỰNG LEVEL ============ -->
+  <main class="layout tab-page" id="tab-build">
+    <!-- Cột trái: xem và chơi thử -->
+    <section class="preview">
+      <div class="panel-title">Xem thử</div>
+      <div class="phone-wrap"><iframe id="game" title="Game preview"></iframe></div>
+      <div class="preview-actions">
+        <button id="autoplayBtn" class="primary wide">▶︎ Máy chơi thử</button>
+        <button id="restartBtn" class="wide">↺ Chơi lại</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="timerToggle" checked> Đếm giờ khi xem thử</label>
+      <p class="tip">Máy sẽ tự xếp từng món để bạn biết level có giải được không. Món buộc dây máy bỏ qua.</p>
+    </section>
+
+    <!-- Cột giữa: dựng -->
+    <section class="center">
+      <!-- 1. Thông tin -->
+      <div class="card">
+        <div class="card-head"><b>1. Thông tin level</b></div>
+        <div class="row">
+          <label class="field grow2">Tên <input id="lvName" type="text"></label>
+          <label class="field">Thời gian <input id="lvTimer" type="number" min="10" max="600" step="5"> giây</label>
+          <label class="field">Thưởng <input id="lvCoin" type="number" min="0" step="5"> coin</label>
+        </div>
+        <div class="row">
+          <label class="field">Chiếc túi <select id="lvSkin"></select></label>
+          <label class="field">Bối cảnh <select id="lvBg"></select></label>
+        </div>
+      </div>
+
+      <!-- 2. Chiếc túi -->
+      <div class="card">
+        <div class="card-head"><b>2. Hình dáng túi</b><span class="hint">Kéo điểm để đổi hình, hoặc chọn mẫu có sẵn</span></div>
+        <div class="row">
+          <div class="seg" id="shapeSeg">
+            <button data-preset="rect">Chữ nhật</button>
+            <button data-preset="rounded">Bo góc</button>
+            <button data-preset="notch">Khuyết góc</button>
+            <button data-preset="L">Chữ L</button>
+            <button data-preset="wide">Rộng ngang</button>
+          </div>
+          <div class="grow"></div>
+          <button id="fitBag" title="Tự co giãn lòng túi cho khớp độ đầy mong muốn">Vừa khít <input id="fitDensity" type="number" value="80" min="40" max="98"> %</button>
+        </div>
+      </div>
+
+      <!-- 3. Sắp xếp -->
+      <div class="card">
+        <div class="card-head">
+          <b>3. Sắp xếp đồ</b>
+          <div class="seg" id="toolSeg">
+            <button data-tool="item" class="on">Đặt đồ</button>
+            <button data-tool="shape">Sửa túi</button>
+            <button data-tool="block">Vật cản</button>
+          </div>
+          <span class="hint" id="toolHint"></span>
+          <div class="grow"></div>
+          <button id="genBtn" class="ghost">🎲 Máy chọn đồ giúp…</button>
+        </div>
+        <div class="canvas-card">
+          <canvas id="edit" width="420" height="760"></canvas>
+          <div class="side">
+            <div class="sel" id="selBox"><em>Chưa chọn món</em></div>
+            <div class="palette-head">Kho đồ
+              <select id="palScope" title="Lọc theo chương">
+                <option value="chapter">Chương này</option>
+                <option value="all">Cả kho</option>
+              </select>
+              <input id="palSearch" placeholder="tìm…">
+            </div>
+            <div class="palette" id="palette"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Lưu -->
+      <div class="card">
+        <div class="card-head"><b>4. Lưu lại</b></div>
+        <div class="row">
+          <button id="saveBtn" class="primary">💾 Lưu level này</button>
+          <label class="field">hoặc đặt vào vị trí <input id="assignIdx" type="number" min="1" step="1"></label>
+          <button id="assignBtn">Đặt vào map</button>
+          <div class="grow"></div>
+          <button id="copyJson" class="ghost">Chép JSON</button>
+          <button id="pasteJson" class="ghost">Dán JSON</button>
+        </div>
+        <p class="note"><b>Lưu level này</b> ghi đè chính level đang mở. <b>Đặt vào map</b> đưa nó vào vị trí thứ N trong thứ tự chơi.</p>
+      </div>
+    </section>
+
+    <!-- Cột phải: đo đạc -->
+    <aside class="metrics">
+      <div class="panel-title">Kiểm tra</div>
+      <div class="card">
+        <div class="solv" id="solvable">—</div>
+        <div class="bar"><i id="densBar"></i></div>
+        <table class="kv" id="kv"></table>
+      </div>
+      <div class="card">
+        <div class="kvh"><span>Độ khó</span><b id="diffTotal">0 · Easy</b></div>
+        <table class="kv" id="diffRows"></table>
+      </div>
+      <div class="card warn" id="warnCard" hidden></div>
+      <div class="card faq">
+        <details><summary>Mấy con số này nghĩa là gì?</summary>
+          <p><b>Độ đầy</b> = tổng diện tích đồ chia cho diện tích lòng túi thật. Tài liệu đặt mức Easy 75%, Medium 80%, Hard 90%.</p>
+          <p><b>Độ khó</b> cộng điểm theo bảng trong tài liệu. 1–6 Easy · 7–10 Medium · 11–14 Hard · 15–17 Very Hard · 18+ Challenge.</p>
+          <p><b>Xếp được / Chặt tay</b> là ước lượng thận trọng. Máy xếp bằng khung chữ nhật và chỉ xoay 0° hoặc 90°, còn người chơi xoay mọi góc và lắc túi cho đồ lèn khít. Vì vậy "Chặt tay" vẫn chơi qua được, chỉ là không còn dư chỗ.</p>
+        </details>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ============ THƯ VIỆN ART ============ -->
+  <main class="layout-lib tab-page" id="tab-library" hidden>
+    <section class="center">
+      <div class="card">
+        <div class="card-head"><b>Thêm art mới</b><span class="hint">Ảnh món cần nền trong suốt. Ảnh nền nên đúng tỉ lệ dọc 420×760.</span></div>
+        <div class="row" style="margin-bottom:.7em">
+          <div class="seg" id="assetKind">
+            <button data-kind="item" class="on">Món đồ</button>
+            <button data-kind="bg">Bối cảnh</button>
+          </div>
+          <span class="hint" id="kindHint"></span>
+        </div>
+        <div class="drop" id="drop">Kéo ảnh vào đây, hoặc <label class="link">chọn file<input id="file" type="file" accept="image/png,image/webp,image/jpeg" hidden></label></div>
+        <div class="row assets-row">
+          <canvas id="assetCanvas" width="320" height="320"></canvas>
+
+          <!-- Biểu mẫu cho MÓN ĐỒ -->
+          <div class="col" id="itemFields">
+            <label class="field">Mã số <input id="aId" type="number" placeholder="31"></label>
+            <label class="field">Tên hiển thị <input id="aName" placeholder="Áo hoodie"></label>
+            <label class="field">Tên mã <input id="aSlug" placeholder="hoodie"></label>
+            <label class="field">Bề ngang trong game <input id="aWidth" type="number" value="80"> px</label>
+            <label class="field">Vùng va chạm <select id="aCollider"><option value="hull">Bám theo hình (tự động)</option><option value="rect">Chữ nhật</option><option value="circle">Tròn</option></select></label>
+            <label class="field">Cỡ <select id="aSize"><option>Small</option><option selected>Medium</option><option>Large</option></select></label>
+            <label class="field">Tính chất <select id="aPhys"><option value="normal">Bình thường</option><option value="rolling">Dễ lăn</option><option value="bouncy">Nảy</option></select></label>
+            <button id="aSaveItem" class="primary">Lưu món này</button>
+            <span class="hint" id="aInfo"></span>
+          </div>
+
+          <!-- Biểu mẫu cho BỐI CẢNH -->
+          <div class="col" id="bgFields" hidden>
+            <label class="field">Mã số <input id="bgId" type="number" min="10" placeholder="10"></label>
+            <label class="field">Tên hiển thị <input id="bgName" placeholder="Góc học tập · tối"></label>
+            <label class="field">Màu lót <input id="bgFill" type="color" value="#F2EAD2"></label>
+            <p class="note">Màu lót phủ phần ảnh không che kín. Hai vạch đỏ trong khung xem trước là mép sàn và sàn vật lý, hãy căn ảnh theo đó.</p>
+            <button id="aSaveBg" class="primary">Lưu bối cảnh này</button>
+            <span class="hint" id="bgInfo"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <b>Danh sách đồ</b>
+          <span class="hint">Bấm Sửa để đổi ảnh, tên và thuộc tính. Mã số không đổi được vì level đang dùng nó.</span>
+          <div class="grow"></div>
+          <input id="poolSearch" placeholder="tìm theo mã hoặc tên…">
+        </div>
+        <div class="tablewrap"><table id="poolTable"></table></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Hộp thoại: máy chọn đồ ============ -->
+  <div class="modal" id="genModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><b>🎲 Máy chọn đồ giúp</b><button id="genClose" class="ghost">Đóng</button></div>
+      <p class="note">Máy chọn bộ đồ cho vừa chiếc túi đang có, theo độ đầy và độ khó bạn muốn. Chọn xong bạn vẫn chỉnh tay được.</p>
+      <div class="row">
+        <label class="field">Muốn khó cỡ nào <select id="gTier"><option value="">Bất kỳ</option><option>Easy</option><option selected>Medium</option><option>Hard</option><option>Very Hard</option><option>Challenge</option></select></label>
+        <label class="field">Số món <input id="gCountMin" type="number" value="7"> – <input id="gCountMax" type="number" value="9"></label>
+        <label class="field">Độ đầy <input id="gDenMin" type="number" value="76">% – <input id="gDenMax" type="number" value="84">%</label>
+      </div>
+      <div class="row">
+        <label class="field">Món to <input id="gL" type="number" value="1"></label>
+        <label class="field">Món vừa <input id="gM" type="number" value="3"></label>
+        <label class="field">Cặp buộc dây <input id="gLinked" type="number" value="0"></label>
+        <label class="field">Hộp bí ẩn <input id="gLocked" type="number" value="0"></label>
+        <label class="field">Thời gian <input id="gTimer" type="number" value="90"> giây</label>
+        <label class="field">Mã số <input id="gSeed" type="number" value="1234"></label>
+      </div>
+      <details class="poolbox">
+        <summary>Giới hạn kho đồ máy được dùng</summary>
+        <div class="poolgrid" id="gPool"></div>
+      </details>
+      <div class="row modal-foot">
+        <button id="gRun" class="primary">Chọn đồ</button>
+        <button id="gReroll">Thử bộ khác</button>
+        <span class="hint" id="gInfo"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Hộp thoại: sửa một món ============ -->
+  <div class="modal" id="itemModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><b id="imTitle">Sửa món</b><button id="imClose" class="ghost">Đóng</button></div>
+      <div class="row im-body">
+        <div class="im-art">
+          <canvas id="imCanvas" width="220" height="220"></canvas>
+          <div class="drop small" id="imDrop">Kéo ảnh mới vào đây<br><label class="link">hoặc chọn file<input id="imFile" type="file" accept="image/png,image/webp" hidden></label></div>
+          <button id="imClearArt" class="ghost wide">Bỏ ảnh, quay lại hình vẽ sẵn</button>
+        </div>
+        <div class="col im-fields">
+          <label class="field">Mã số <input id="imId" type="number" disabled></label>
+          <label class="field">Tên hiển thị <input id="imName"></label>
+          <label class="field">Tên mã <input id="imSlug"></label>
+          <label class="field">Cỡ <select id="imSize"></select></label>
+          <label class="field">Hình dáng <select id="imShape"></select></label>
+          <label class="field">Tính chất <select id="imPhys"></select></label>
+          <label class="field">Điểm khó <input id="imCost" type="number" min="0" max="5"></label>
+          <label class="field"><input id="imLink" type="checkbox"> Buộc dây được</label>
+          <label class="field"><input id="imLock" type="checkbox"> Giấu trong hộp bí ẩn được</label>
+          <label class="field" id="imWidthRow">Bề ngang trong game <input id="imWidth" type="number"> px</label>
+          <span class="hint" id="imInfo"></span>
+        </div>
+      </div>
+      <div class="row modal-foot">
+        <button id="imSave" class="primary">💾 Lưu món</button>
+        <span class="hint">Lưu xong game và kho đồ cập nhật ngay.</span>
+      </div>
+    </div>
+  </div>
+
+    <!-- Quản lý chương và level -->
+    <div class="modal" id="mgModal" hidden>
+      <div class="modal-card" style="width:min(860px,100%)">
+        <div class="modal-head"><b>Chương &amp; level</b><button id="mgClose" class="ghost">Đóng</button></div>
+        <p class="tip">Mọi thay đổi ghi vào <code>content/levels.json</code>. Mở lại game là thấy ngay.</p>
+
+        <div class="mg-block">
+          <div class="mg-head"><b>Chương</b><button id="mgAddChapter" class="primary">+ Chương mới</button></div>
+          <table class="mg-table" id="mgChapters"></table>
+        </div>
+
+        <div class="mg-block">
+          <div class="mg-head"><b id="mgLevelHead">Level</b><button id="mgAddLevel" class="primary">+ Level mới</button></div>
+          <table class="mg-table" id="mgLevels"></table>
+        </div>
+      </div>
+    </div>
+
+
+
+  <script type="module" src="./src/editor/main.js"></script>
+</body>
+</html>

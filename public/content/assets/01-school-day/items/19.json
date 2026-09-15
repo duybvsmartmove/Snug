@@ -1,0 +1,18 @@
+{
+  "id": 19,
+  "slug": "milk",
+  "code": "ITM_019",
+  "name": "Hộp sữa",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/19.png",
+    "pixelsPerUnit": 4
+  }
+}

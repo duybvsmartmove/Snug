@@ -1,0 +1,11 @@
+{
+  "id": "suitcase",
+  "name": "Vali",
+  "margin": 30,
+  "pixelsPerUnit": 3,
+  "layers": {
+    "body": "assets/02-weekend-trip/bags/suitcase-body.png",
+    "lining": "assets/02-weekend-trip/bags/suitcase-lining.png",
+    "frame": "assets/02-weekend-trip/bags/suitcase-frame.png"
+  }
+}

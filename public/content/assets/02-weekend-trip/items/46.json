@@ -1,0 +1,18 @@
+{
+  "id": 46,
+  "slug": "sleepmask",
+  "code": "ITM_046",
+  "name": "Bịt mắt ngủ",
+  "meta": {
+    "size": "Small",
+    "shape": "Curved",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/46.png",
+    "pixelsPerUnit": 4
+  }
+}

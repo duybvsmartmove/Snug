@@ -1,0 +1,18 @@
+{
+  "id": -1,
+  "slug": "mystery",
+  "code": null,
+  "name": "Hộp bí ẩn",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": false,
+    "canLock": false
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/-1.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": 40,
+  "slug": "powerbank",
+  "code": "ITM_040",
+  "name": "Pin dự phòng",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/40.png",
+    "pixelsPerUnit": 4
+  }
+}

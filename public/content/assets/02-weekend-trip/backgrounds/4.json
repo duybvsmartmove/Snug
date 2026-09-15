@@ -1,0 +1,13 @@
+{
+  "id": 4,
+  "name": "Phòng ngủ · ban ngày",
+  "fill": "#F2EAD2",
+  "layers": [
+    {
+      "src": "assets/02-weekend-trip/backgrounds/bg-4.png",
+      "x": 0,
+      "y": 0,
+      "w": 420
+    }
+  ]
+}

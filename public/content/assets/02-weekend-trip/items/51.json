@@ -1,0 +1,18 @@
+{
+  "id": 51,
+  "slug": "cards",
+  "code": "ITM_051",
+  "name": "Bộ bài",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/51.png",
+    "pixelsPerUnit": 4
+  }
+}

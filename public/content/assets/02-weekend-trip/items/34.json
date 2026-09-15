@@ -1,0 +1,18 @@
+{
+  "id": 34,
+  "slug": "toothpaste",
+  "code": "ITM_034",
+  "name": "Kem đánh răng",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/34.png",
+    "pixelsPerUnit": 4
+  }
+}

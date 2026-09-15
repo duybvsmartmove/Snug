@@ -1,0 +1,18 @@
+{
+  "id": 39,
+  "slug": "camera",
+  "code": "ITM_039",
+  "name": "Máy ảnh nhỏ",
+  "meta": {
+    "size": "Medium",
+    "shape": "Irregular",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/39.png",
+    "pixelsPerUnit": 4
+  }
+}

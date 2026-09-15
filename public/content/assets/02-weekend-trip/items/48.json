@@ -1,0 +1,18 @@
+{
+  "id": 48,
+  "slug": "guidebook",
+  "code": "ITM_048",
+  "name": "Sách hướng dẫn",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/48.png",
+    "pixelsPerUnit": 4
+  }
+}

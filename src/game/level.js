@@ -7,7 +7,6 @@ import { makeItem, createWorld } from './physics.js';
 import { createTethers } from './mechanics.js';
 import { resetBoosts } from './boosters.js';
 import { renderHeader, renderList, hideWin, hideLose, hidePause } from '../ui/hud.js';
-import { loadLevel } from '../content/loader.js';
 
 const { Body, World } = Matter;
 
@@ -66,7 +65,7 @@ export function build(level) {
 /** Tải level thứ idx của map hiện tại rồi dựng */
 export async function loadAndBuild(idx) {
   S.levelIdx = Math.max(0, Math.min(idx, S.map.levels.length - 1));
-  const level = await loadLevel(S.mapId, S.map.levels[S.levelIdx], { fresh: true });
+  const level = S.map.levels[S.levelIdx];   // level nằm sẵn trong file sắp xếp
   build(level);
   return level;
 }

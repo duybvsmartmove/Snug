@@ -1,0 +1,18 @@
+{
+  "id": 33,
+  "slug": "toothbrush",
+  "code": "ITM_033",
+  "name": "Bàn chải",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/33.png",
+    "pixelsPerUnit": 4
+  }
+}

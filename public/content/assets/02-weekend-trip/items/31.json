@@ -1,0 +1,18 @@
+{
+  "id": 31,
+  "slug": "jacket",
+  "code": "ITM_031",
+  "name": "Áo khoác gấp",
+  "meta": {
+    "size": "Large",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 3,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/31.png",
+    "pixelsPerUnit": 4
+  }
+}

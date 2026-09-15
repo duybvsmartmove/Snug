@@ -1,19 +1,22 @@
-# Everything Fits — game client
+# Everything Fits
 
 Cozy packing puzzle cho mobile web, chuyển thể từ [Snug](https://cookiecrayon.itch.io/snug),
 xây theo GDD của Smartmove (bản chép trong `docs/`).
 
 Stack: **Vite + ES modules + Matter.js**, Canvas 2D, không framework UI.
 
-Repo này còn là **lõi dùng chung**: Level Editor nằm ở
-[SnugLevelEditor](https://github.com/duybvsmartmove/SnugLevelEditor) và nhập các module
-trong `src/` của repo này qua gói npm `snug`.
+Một repo, hai trang:
+
+| Trang | Là gì |
+|---|---|
+| `index.html` | game |
+| `editor.html` | Level Editor: sắp xếp chương, level, quản lý art |
 
 ## Chạy
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # game http://localhost:5173  ·  editor http://localhost:5173/editor.html
 npm run build
 npm run preview
 ```
@@ -32,32 +35,26 @@ npm run preview
 Luật theo GDD: vừa chỗ thì viền xanh, không vừa thì viền đỏ và rung, thả ra là bật ngược ra ngoài túi.
 Hết giờ là thua, có thể dùng Extra Time. Hộp bí ẩn mở bằng cách kéo chạm chìa khoá đặt sẵn trong túi.
 
-## Nội dung ở đâu
+## Nội dung
 
-Level và ảnh **không nằm trong repo này**. Chúng ở thư mục `content/` của repo
-[SnugLevelEditor](https://github.com/duybvsmartmove/SnugLevelEditor) — editor ghi vào đó,
-game chỉ đọc ra. GitHub đóng luôn vai trò server, không phải dựng backend riêng.
+Mọi thứ nằm trong `public/content` và đi kèm bản build. **Lúc chơi game không gọi mạng.**
 
 ```
-SnugLevelEditor/content/
-  draft/         editor đang sửa, người chơi chưa thấy
-  v1/ v2/ …      bản đã phát hành, chỉ JSON
-  assets/        ảnh, tên gắn hash nội dung
-  live.json      con trỏ: bản nào đang phát hành
+public/content/
+  levels.json                      sắp xếp chương và level — editor ghi ra file này
+  assets/index.json                mục lục: mã số → file mô tả
+  assets/01-school-day/items/…     ảnh món và mô tả, nằm cạnh nhau
+  assets/01-school-day/bags/…      ảnh ba lớp của từng kiểu túi
+  assets/01-school-day/backgrounds/…
+  assets/02-weekend-trip/…
 ```
 
-Game đọc nội dung từ đâu do biến `VITE_CONTENT_URL` quyết định:
+`levels.json` chứa toàn bộ chương và level trong một file, khoảng 40 KB. Bấm **Lưu sắp xếp**
+trong editor là ghi lại file đó, mở lại game là thấy ngay.
 
-| Chạy ở | Đọc từ |
-|---|---|
-| máy | `http://localhost:5174/content/` — server dev của editor |
-| GitHub Pages | `raw.githubusercontent.com/duybvsmartmove/SnugLevelEditor/main/content/` |
-
-Thử nhanh một kho khác bằng tham số trên URL: `?content=https://…/content/`.
-
-Lúc khởi động, game tải `live.json`, so với bản đang giữ ở máy, chỉ tải những file có hash
-khác. JSON lưu ở IndexedDB, ảnh ở Cache Storage, nên mở lại lần sau gần như không tốn mạng.
-Chi tiết: `docs/14-content-service.md`.
+Món dùng lại ở nhiều chương thì **không nhân bản**: file ảnh nằm ở chương đầu tiên tạo ra nó,
+chương sau chỉ ghi mã số, `assets/index.json` lo phần tìm đường. Mỗi chương tự khai báo cần
+những ảnh nào nên game chỉ nạp phần của chương đang chơi.
 
 ## Art
 
@@ -105,7 +102,7 @@ Chương đi kèm bản build nằm sẵn trong `public/content`, mở lần đ�
 Art gốc vẽ bằng canvas được giữ ở `tools/legacy-art/` để còn sinh lại ảnh ở độ phân giải khác.
 Nó **không nằm trong bản build**, chỉ trang sinh sprite bên editor mới dùng tới.
 
-Mở `http://localhost:5174/tools/gen-sprites.html` rồi bấm **Sinh toàn bộ PNG**. Trang này vẽ
+Mở `http://localhost:5173/tools/gen-sprites.html` rồi bấm **Sinh toàn bộ PNG**. Trang này vẽ
 32 món ở tỉ lệ 4×, 3 bối cảnh ở 2×, 3 chiếc túi ở 3× rồi ghi thẳng vào bản nháp kèm manifest.
 Muốn ảnh to hơn cho Unity thì sửa `ITEM_SCALE`, `BG_SCALE`, `BAG_SCALE` trong `gen-sprites.js`.
 
@@ -150,31 +147,14 @@ Muốn bỏ ảnh quay về hình vẽ code thì bấm **Dùng lại hình vẽ*
 
 Ảnh nền và ảnh túi đi theo đúng đường đó, thêm ở phần Bối cảnh trong Thư viện art.
 
-## Chạy cùng Level Editor
-
-Mở hai server cạnh nhau. Game ở cổng 5173 tự đọc nội dung từ editor ở cổng 5174:
-
-```bash
-# cửa sổ 1
-cd snug_level_editor && npm run dev     # cổng 5174, kèm kho nội dung
-
-# cửa sổ 2
-cd snug && npm run dev                  # cổng 5173
-```
-
 ## Deploy
 
-Hai repo thành hai site GitHub Pages, đẩy code lên nhánh `main` là workflow tự build:
+Đẩy lên nhánh `main` là workflow tự build và đưa lên GitHub Pages. Bật ở
+**Settings → Pages → Source: GitHub Actions**. Game ở `/`, editor ở `/editor.html`.
 
-| Repo | Site | Vai trò |
-|---|---|---|
-| Snug | `<chủ>.github.io/Snug/` | chơi game |
-| SnugLevelEditor | `<chủ>.github.io/SnugLevelEditor/` | dựng level, và chứa luôn kho nội dung |
-
-Bật ở **Settings → Pages → Source: GitHub Actions** cho cả hai repo.
-
-Repo Snug đang để private. Muốn workflow của editor tải được lõi dùng chung thì hoặc đổi Snug
-thành public, hoặc thêm secret `SNUG_CORE_TOKEN` có quyền Contents: Read trên repo Snug.
+Bản editor chạy trên Pages là trang tĩnh nên không ghi file được; nó có nút **Tải JSON**
+để tải `levels.json` về, chép vào `public/content/` rồi commit. Chạy ở máy thì nút
+**Lưu sắp xếp** ghi thẳng, không phải làm gì thêm.
 
 ## Script dựng content
 
@@ -185,6 +165,7 @@ node check_levels.mjs                 # kiểm tra density, Difficulty Point, so
 node check_levels.mjs weekend-trip
 ```
 
+Cả hai đọc và ghi `public/content/levels.json`.
 Thêm chương mới thì thêm một mục vào `CHAPTERS` và `LEVELS` trong `build_levels.mjs`.
 
 Hai chương hiện có, mỗi chương 10 level, món lấy từ sheet Level Design:
@@ -194,28 +175,29 @@ Hai chương hiện có, mỗi chương 10 level, món lấy từ sheet Level De
 | 1 · School Day | Hộp cơm, Túi tote, Ba lô | Góc học tập sáng/trưa/chiều | 30 |
 | 2 · Weekend Trip | Túi nhỏ, Ba lô, Vali | Phòng ngủ ban ngày/chiều tối | 22 mới + 8 dùng lại |
 
-Hai script này ghi vào `../snug_level_editor/content/draft/`. Phát hành thì dùng
-`node tools/publish.mjs` bên repo editor.
+
 
 ## Cấu trúc mã
 
 ```
+index.html             game
+editor.html            Level Editor
 src/
-  main.js                điểm vào game
-  content/loader.js      đọc pack / map / level / manifest
-  content/sync.js        kiểm tra bản mới, chỉ tải file có hash khác
-  content/store.js       kho ở máy: IndexedDB cho JSON, Cache Storage cho ảnh
-  data/items.js          hình vật lý + metadata từng món
-  art/                   helpers · items · scenes · scene-registry · bags
-  game/                  state · canvas · physics · rules · input · mechanics · boosters · level · render · autoplay
-  gen/                   difficulty · solver · generator
-  ui/hud.js              HUD và các overlay
-  util/geom.js           hình học + PRNG có seed
-docs/                    bản chép GDD từ Notion + kế hoạch
+  main.js              điểm vào game
+  content/loader.js    đọc levels.json và art; hàm ghi cho editor
+  data/items.js        hình vật lý + metadata từng món
+  art/                 helpers · items(sprite) · scenes · scene-registry · bags
+  game/                state · canvas · physics · rules · input · mechanics · boosters · level · render · autoplay
+  gen/                 difficulty · solver · generator
+  ui/hud.js            HUD và các overlay
+  util/geom.js         hình học + PRNG có seed
+  editor/              main · draw · manage · generate · pool · assets · editor.css
+tools/
+  gen-sprites.html     trang sinh sprite PNG
+  legacy-art/          art canvas gốc, chỉ dùng để sinh lại ảnh, không vào bản build
+public/content/        levels.json + assets
+docs/                  bản chép GDD từ Notion + kế hoạch
 ```
-
-Phần Level Editor dùng lại: `data/` · `art/` · `content/` · `gen/` · `util/` · `game/state.js` · `game/physics.js`.
-Sửa những chỗ này là ảnh hưởng cả hai bên.
 
 ## Tài liệu
 

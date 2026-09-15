@@ -1,0 +1,18 @@
+{
+  "id": 45,
+  "slug": "wallet",
+  "code": "ITM_045",
+  "name": "Ví tiền",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/45.png",
+    "pixelsPerUnit": 4
+  }
+}

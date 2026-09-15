@@ -6,16 +6,10 @@ import { bindBoosters } from './game/boosters.js';
 import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level.js';
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
-import { initContent, useDraft, loadPack, loadMap, loadChapterAssets, prefetchChapter, whenSpriteReady } from './content/loader.js';
+import { loadBook, chapters, chapterById, loadChapterAssets, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
 
 const params = new URLSearchParams(location.search);
-
-// Kho nội dung nằm ở repo SnugLevelEditor — editor ghi vào đó, game chỉ đọc.
-// Chạy ở máy thì đọc từ server dev của editor; deploy thì đọc thẳng file trong repo.
-const CONTENT_URL = params.get('content')
-  || import.meta.env.VITE_CONTENT_URL
-  || 'http://localhost:5174/content/';
 
 function extraTime() { // booster Extra Time (GDD): +60s sau khi hết giờ lần 1
   S.timeLeft = 60000; S.lost = false; S.shownSec = -1; hideLose(); toast('+60 giây!');
@@ -30,25 +24,16 @@ async function boot() {
 
   whenSpriteReady(() => { if (S.LEVEL) renderList(); });
 
-  // Trong khung xem thử của editor thì đọc thẳng bản nháp, để sửa xong thấy ngay.
-  // Chơi thật thì đọc bản đã phát hành, có kiểm tra bản mới và có kho ở máy.
   S.preview = params.get('preview') === '1';
-  if (S.preview) {
-    useDraft(CONTENT_URL);
-  } else {
-    const sync = await initContent(CONTENT_URL);
-    if (sync.changed.length) console.info(`content v${sync.version}: cập nhật ${sync.changed.length} file`);
-    if (sync.offline) console.info(`content v${sync.version}: không kết nối được, dùng bản đã lưu`);
-  }
 
-  const pack = await loadPack({ fresh: true });
-  S.mapId = params.get('map') || pack.maps[0];
-  S.map = await loadMap(S.mapId, { fresh: true });
+  // Toàn bộ nội dung nằm trong bản build: một file sắp xếp và thư mục ảnh. Không gọi mạng.
+  await loadBook({ fresh: S.preview });
+  const ch = chapterById(params.get('map') || chapters()[0]?.id);
+  S.mapId = ch.id;
+  S.map = ch;
 
-  // Chỉ nạp ảnh của chương đang chơi. Chương khác để dành, lúc máy rảnh mới tải trước.
-  await loadChapterAssets(S.map);
-  const next = pack.maps[pack.maps.indexOf(S.mapId) + 1];
-  if (next) prefetchChapter(next);
+  // Chỉ nạp ảnh của chương đang chơi
+  await loadChapterAssets(ch);
 
   // Live preview từ editor: level gửi qua postMessage, không tải từ content
   window.addEventListener('message', e => {
@@ -61,14 +46,14 @@ async function boot() {
     if (m.type === 'restart') { stopAutoplay(); restart(); }
     if (m.type === 'autoplay') autoplay();
     if (m.type === 'assets') { // editor vừa thêm/sửa art → nạp lại rồi dựng lại level
-      loadChapterAssets(S.map).then(() => { if (S.LEVEL) build(S.LEVEL); });
+      loadBook({ fresh: true }).then(() => loadChapterAssets(S.map)).then(() => { if (S.LEVEL) build(S.LEVEL); });
     }
     if (m.type === 'timer') { S.timerOn = !!m.on; }
   });
   if (S.preview) { window.parent.postMessage({ type: 'ready' }, '*'); return; }
 
   const byId = params.get('level');
-  const idx = byId ? Math.max(0, S.map.levels.indexOf(byId)) : Number(params.get('i') || 0);
+  const idx = byId ? Math.max(0, S.map.levels.findIndex(l => l.id === byId)) : Number(params.get('i') || 0);
   await loadAndBuild(idx);
 }
 

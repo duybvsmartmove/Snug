@@ -1,0 +1,18 @@
+{
+  "id": 47,
+  "slug": "neckpillow",
+  "code": "ITM_047",
+  "name": "Gối cổ",
+  "meta": {
+    "size": "Large",
+    "shape": "U-shape",
+    "physics": "normal",
+    "cost": 3,
+    "canLink": true,
+    "canLock": false
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/47.png",
+    "pixelsPerUnit": 4
+  }
+}

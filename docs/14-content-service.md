@@ -1,5 +1,9 @@
 # Đưa thay đổi từ Level Editor sang game
 
+> **Lưu ý:** tài liệu này mô tả phương án tách hai repo và đồng bộ qua CDN.
+> Dự án đã chọn hướng đơn giản hơn: **một repo, một file sắp xếp**, xem README.
+> Giữ lại đây vì phần phân tích cache và phát hành nguyên tử vẫn dùng được khi nào cần mở rộng.
+
 Trả lời cho câu hỏi: editor sửa xong, bấm Publish, làm sao bên game nhận được — cả trên web
 lẫn sau này khi đóng gói thành app mobile.
 

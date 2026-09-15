@@ -1,13 +1,14 @@
 // Kiểm tra level của một chương: solver, density, difficulty.
 // Chạy: node check_levels.mjs [mã chương]     mặc định school-day
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { solve } from './src/gen/solver.js';
 
 const map = process.argv[2] || 'school-day';
-const dir = `../snug_level_editor/content/draft/maps/${map}/levels`;
+const book = JSON.parse(readFileSync('public/content/levels.json', 'utf8'));
+const ch = book.chapters.find(c => c.id === map);
+if (!ch) { console.error(`Chưa có chương "${map}". Có: ${book.chapters.map(c => c.id).join(', ')}`); process.exit(1); }
 const rows = [];
-for (const f of readdirSync(dir).sort()) {
-  const lv = JSON.parse(readFileSync(`${dir}/${f}`, 'utf8'));
+for (const lv of ch.levels) {
   const s = solve(lv, { tries: 150 });
   rows.push({
     level: lv.id, tên: lv.name,

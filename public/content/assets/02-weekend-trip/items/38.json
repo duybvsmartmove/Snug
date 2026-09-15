@@ -1,0 +1,18 @@
+{
+  "id": 38,
+  "slug": "smartphone",
+  "code": "ITM_038",
+  "name": "Điện thoại",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "vibrating",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/38.png",
+    "pixelsPerUnit": 4
+  }
+}

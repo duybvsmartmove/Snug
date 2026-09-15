@@ -1,0 +1,18 @@
+{
+  "id": 5,
+  "slug": "raincoat",
+  "code": "ITM_005",
+  "name": "Áo mưa gấp",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/5.png",
+    "pixelsPerUnit": 4
+  }
+}

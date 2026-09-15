@@ -1,0 +1,18 @@
+{
+  "id": 50,
+  "slug": "ticket",
+  "code": "ITM_050",
+  "name": "Vé tàu xe",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/50.png",
+    "pixelsPerUnit": 4
+  }
+}

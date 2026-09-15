@@ -1,0 +1,18 @@
+{
+  "id": 44,
+  "slug": "sunglasses",
+  "code": "ITM_044",
+  "name": "Kính râm",
+  "meta": {
+    "size": "Small",
+    "shape": "Irregular",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": false
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/44.png",
+    "pixelsPerUnit": 4
+  }
+}

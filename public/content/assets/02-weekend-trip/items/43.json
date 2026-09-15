@@ -1,0 +1,18 @@
+{
+  "id": 43,
+  "slug": "juice",
+  "code": "ITM_043",
+  "name": "Hộp nước ép",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/43.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": 49,
+  "slug": "map",
+  "code": "ITM_049",
+  "name": "Bản đồ gấp",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/49.png",
+    "pixelsPerUnit": 4
+  }
+}
