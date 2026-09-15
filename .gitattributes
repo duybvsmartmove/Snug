@@ -1,0 +1,4 @@
+# File sắp xếp do editor ghi ra. Sửa ở web và sửa ở máy rất dễ đụng nhau,
+# mà nội dung lại luôn là cả file, nên không hợp để git trộn từng dòng.
+# union giữ cả hai phía sẽ hỏng JSON, nên để git báo xung đột và ta chọn tay.
+public/content/levels.json -merge
