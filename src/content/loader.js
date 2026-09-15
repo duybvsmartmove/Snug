@@ -75,18 +75,51 @@ export function prefetchChapter(mapId) {
 }
 
 /**
+ * Mục lục art: mã số → đường dẫn file mô tả.
+ * Nhờ nó, ảnh xếp theo thư mục chương nào cũng được, và chương sau dùng lại món cũ
+ * chỉ trỏ vào đúng file đó chứ không nhân bản.
+ */
+let assetIndex = null;
+export async function loadAssetIndex(force) {
+  if (assetIndex && !force) return assetIndex;
+  cache.delete('assets/index.json');
+  try { assetIndex = await getJSON('assets/index.json', { fresh: true }); }
+  catch { assetIndex = { items: {}, backgrounds: {}, bags: {} }; }
+  for (const k of ['items', 'backgrounds', 'bags']) assetIndex[k] = assetIndex[k] || {};
+  return assetIndex;
+}
+
+/** Thư mục chương mà art MỚI sẽ được đặt vào. Editor đặt lại mỗi khi đổi chương. */
+let assetChapter = '01-school-day';
+export function setAssetChapter(folder) { if (folder) assetChapter = folder; }
+
+/** Art này đang nằm ở file nào. Chưa có thì trả chỗ mặc định trong thư mục chương hiện tại. */
+export async function assetHome(kind, id) {
+  const index = await loadAssetIndex();
+  return index[kind]?.[id] || `assets/${assetChapter}/${kind}/${id}.json`;
+}
+
+/** Ghi một mục vào mục lục art rồi lưu lại */
+export async function indexAsset(kind, id, path) {
+  const index = await loadAssetIndex(true);
+  index[kind][id] = path;
+  await saveContent('assets/index.json', JSON.stringify(index, null, 2));
+  assetIndex = index;
+  return index;
+}
+
+/**
  * Nạp manifest món. Truyền danh sách id thì chỉ nạp bấy nhiêu — dùng cho game, mỗi chương
  * chỉ cần ảnh của chương đó. Bỏ trống thì nạp cả kho — dùng cho editor.
  */
 export async function loadItemManifests(ids) {
-  let list = ids;
-  if (!list) {
-    cache.delete('assets/items/index.json');
-    try { list = (await getJSON('assets/items/index.json', { fresh: true })).items || []; } catch { return; }
-  }
+  const index = await loadAssetIndex();
+  const list = ids || Object.keys(index.items).map(Number);
   await Promise.all(list.map(async id => {
+    const path = index.items[id];
+    if (!path) return;
     try {
-      const m = await getJSON(`assets/items/${id}.json`, { fresh: true });
+      const m = await getJSON(path, { fresh: true });
       const def = applyManifest(m);
       if (def.sprite) await def.sprite.whenReady;
     } catch (e) { console.warn('manifest lỗi', id, e); }
@@ -95,14 +128,13 @@ export async function loadItemManifests(ids) {
 
 /** Nạp nền dạng ảnh. Truyền danh sách id thì chỉ nạp bấy nhiêu. */
 export async function loadBackgrounds(only) {
-  let ids = only;
-  if (!ids) {
-    cache.delete('assets/backgrounds/index.json');
-    try { ids = (await getJSON('assets/backgrounds/index.json', { fresh: true })).backgrounds || []; } catch { return []; }
-  }
+  const index = await loadAssetIndex();
+  const ids = only || Object.keys(index.backgrounds).map(Number);
   await Promise.all(ids.map(async id => {
+    const path = index.backgrounds[id];
+    if (!path) return;
     try {
-      const m = await getJSON(`assets/backgrounds/${id}.json`, { fresh: true });
+      const m = await getJSON(path, { fresh: true });
       const layers = (m.layers || []).map(l => {
         const img = new Image(); img.src = assetPath(l.src);
         return { ...l, img };
@@ -116,10 +148,13 @@ export async function loadBackgrounds(only) {
 
 /** Nạp ảnh ba lớp của từng kiểu túi. Truyền danh sách id thì chỉ nạp bấy nhiêu. */
 export async function loadBags(only) {
-  let index;
-  cache.delete('assets/bags/index.json');
-  try { index = await getJSON('assets/bags/index.json', { fresh: true }); } catch { return []; }
-  const list = (index.bags || []).filter(b => !only || only.includes(b.id));
+  const index = await loadAssetIndex();
+  const kinds = only || Object.keys(index.bags);
+  const list = (await Promise.all(kinds.map(async k => {
+    const path = index.bags[k];
+    if (!path) return null;
+    try { return await getJSON(path, { fresh: true }); } catch { return null; }
+  }))).filter(Boolean);
   await Promise.all(list.map(async def => {
     const img = {};
     await Promise.all(Object.entries(def.layers || {}).map(([k, src]) => new Promise(res => {

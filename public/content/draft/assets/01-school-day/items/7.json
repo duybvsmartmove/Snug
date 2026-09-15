@@ -1,0 +1,18 @@
+{
+  "id": 7,
+  "slug": "sanitizer",
+  "code": "ITM_007",
+  "name": "Nước rửa tay",
+  "meta": {
+    "size": "Small",
+    "shape": "Rounded rect",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/7.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": 26,
+  "slug": "textbook",
+  "code": "ITM_026",
+  "name": "Sách giáo khoa",
+  "meta": {
+    "size": "Large",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 3,
+    "canLink": false,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/26.png",
+    "pixelsPerUnit": 4
+  }
+}

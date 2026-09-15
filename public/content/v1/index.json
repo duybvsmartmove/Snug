@@ -1,159 +1,171 @@
 {
   "version": 1,
-  "publishedAt": "2026-09-15T02:09:21.715Z",
-  "note": "chỉ dùng PNG, mỗi chương khai báo ảnh riêng",
+  "publishedAt": "2026-09-15T02:21:39.914Z",
+  "note": "xếp art theo thư mục chương",
   "files": {
-    "assets/backgrounds/1.json": {
+    "assets/01-school-day/backgrounds/1.json": {
       "hash": "b443b7f9",
       "size": 129
     },
-    "assets/backgrounds/2.json": {
+    "assets/01-school-day/backgrounds/2.json": {
       "hash": "67d25d8c",
       "size": 129
     },
-    "assets/backgrounds/3.json": {
+    "assets/01-school-day/backgrounds/3.json": {
       "hash": "12c924be",
       "size": 131
     },
-    "assets/backgrounds/index.json": {
-      "hash": "13e8d2e7",
-      "size": 23
+    "assets/01-school-day/bags/backpack.json": {
+      "hash": "9838809d",
+      "size": 235
     },
-    "assets/bags/index.json": {
-      "hash": "a6aa81f5",
-      "size": 709
+    "assets/01-school-day/bags/lunchbox.json": {
+      "hash": "187c31ae",
+      "size": 239
     },
-    "assets/items/-1.json": {
+    "assets/01-school-day/bags/tote.json": {
+      "hash": "91eac7b7",
+      "size": 222
+    },
+    "assets/01-school-day/items/-1.json": {
       "hash": "6e020fbc",
       "size": 230
     },
-    "assets/items/0.json": {
+    "assets/01-school-day/items/0.json": {
       "hash": "3e794139",
       "size": 220
     },
-    "assets/items/1.json": {
+    "assets/01-school-day/items/1.json": {
       "hash": "8ad4700c",
       "size": 232
     },
-    "assets/items/10.json": {
+    "assets/01-school-day/items/10.json": {
       "hash": "db7e6045",
       "size": 231
     },
-    "assets/items/11.json": {
+    "assets/01-school-day/items/11.json": {
       "hash": "c1f16584",
       "size": 235
     },
-    "assets/items/12.json": {
+    "assets/01-school-day/items/12.json": {
       "hash": "3024e25b",
       "size": 241
     },
-    "assets/items/13.json": {
+    "assets/01-school-day/items/13.json": {
       "hash": "64291de6",
       "size": 228
     },
-    "assets/items/14.json": {
+    "assets/01-school-day/items/14.json": {
       "hash": "db29cd95",
       "size": 228
     },
-    "assets/items/15.json": {
+    "assets/01-school-day/items/15.json": {
       "hash": "09d6df0c",
       "size": 232
     },
-    "assets/items/16.json": {
+    "assets/01-school-day/items/16.json": {
       "hash": "c920fa3e",
       "size": 240
     },
-    "assets/items/17.json": {
+    "assets/01-school-day/items/17.json": {
       "hash": "4dafef6a",
       "size": 225
     },
-    "assets/items/18.json": {
+    "assets/01-school-day/items/18.json": {
       "hash": "eee08720",
       "size": 229
     },
-    "assets/items/19.json": {
+    "assets/01-school-day/items/19.json": {
       "hash": "bcd46fa6",
       "size": 226
     },
-    "assets/items/2.json": {
+    "assets/01-school-day/items/2.json": {
       "hash": "c04134de",
       "size": 234
     },
-    "assets/items/20.json": {
+    "assets/01-school-day/items/20.json": {
       "hash": "ddd0575b",
       "size": 234
     },
-    "assets/items/21.json": {
+    "assets/01-school-day/items/21.json": {
       "hash": "8c5327ca",
       "size": 232
     },
-    "assets/items/22.json": {
+    "assets/01-school-day/items/22.json": {
       "hash": "54c1d04a",
       "size": 224
     },
-    "assets/items/23.json": {
+    "assets/01-school-day/items/23.json": {
       "hash": "b03fb3d1",
       "size": 235
     },
-    "assets/items/24.json": {
+    "assets/01-school-day/items/24.json": {
       "hash": "09682b9e",
       "size": 238
     },
-    "assets/items/25.json": {
+    "assets/01-school-day/items/25.json": {
       "hash": "76cd58e1",
       "size": 228
     },
-    "assets/items/26.json": {
+    "assets/01-school-day/items/26.json": {
       "hash": "fbe0fbf1",
       "size": 236
     },
-    "assets/items/27.json": {
+    "assets/01-school-day/items/27.json": {
       "hash": "71d5d21a",
       "size": 224
     },
-    "assets/items/28.json": {
+    "assets/01-school-day/items/28.json": {
       "hash": "61aa3383",
       "size": 222
     },
-    "assets/items/29.json": {
+    "assets/01-school-day/items/29.json": {
       "hash": "09b7d086",
       "size": 224
     },
-    "assets/items/3.json": {
+    "assets/01-school-day/items/3.json": {
       "hash": "47b2f17d",
       "size": 222
     },
-    "assets/items/30.json": {
+    "assets/01-school-day/items/30.json": {
       "hash": "9c46a34c",
       "size": 238
     },
-    "assets/items/4.json": {
+    "assets/01-school-day/items/4.json": {
       "hash": "5fca6b98",
       "size": 232
     },
-    "assets/items/5.json": {
+    "assets/01-school-day/items/5.json": {
       "hash": "86dfb25d",
       "size": 232
     },
-    "assets/items/6.json": {
+    "assets/01-school-day/items/6.json": {
       "hash": "b670cb28",
       "size": 230
     },
-    "assets/items/7.json": {
+    "assets/01-school-day/items/7.json": {
       "hash": "f37fc8d2",
       "size": 238
     },
-    "assets/items/8.json": {
+    "assets/01-school-day/items/8.json": {
       "hash": "c4b7fe06",
       "size": 227
     },
-    "assets/items/9.json": {
+    "assets/01-school-day/items/9.json": {
       "hash": "4e710497",
       "size": 229
     },
+    "assets/backgrounds/index.json": {
+      "hash": "cca02b6b",
+      "size": 18
+    },
+    "assets/index.json": {
+      "hash": "b0aa50ad",
+      "size": 1649
+    },
     "assets/items/index.json": {
-      "hash": "2bbeae37",
-      "size": 97
+      "hash": "eef46741",
+      "size": 12
     },
     "maps/school-day/levels/sd-01.json": {
       "hash": "32c9608f",

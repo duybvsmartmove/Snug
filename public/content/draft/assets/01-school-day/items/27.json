@@ -1,0 +1,18 @@
+{
+  "id": 27,
+  "slug": "ruler",
+  "code": "ITM_027",
+  "name": "Thước kẻ",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/27.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -71,6 +71,26 @@ món, bối cảnh và túi đều là ảnh nạp từ content pack. Nhờ vậ
 
 Art là **PNG**, dùng chung được cho cả web lẫn Unity. Tổng 44 ảnh, khoảng 4,5 MB.
 
+### Art xếp theo chương
+
+```
+public/content/draft/assets/
+  index.json                  mục lục: mã số → đường dẫn file mô tả
+  01-school-day/
+    items/        17.png + 17.json           ảnh và mô tả nằm cạnh nhau
+    backgrounds/  bg-1.png + 1.json
+    bags/         lunchbox-body.png + lunchbox.json
+  02-<chương sau>/
+    …
+```
+
+Chương sau thêm thư mục của nó. Món **dùng lại** ở nhiều chương thì **không nhân bản**:
+file cứ nằm ở chương đầu tiên tạo ra nó, chương sau chỉ cần mã số, `index.json` lo phần
+tìm đường. Theo bảng Level Design thì việc này xảy ra nhiều, ví dụ Water Bottle có mặt ở 6 chương.
+
+Thư mục chương là cách xếp cho **người** nhìn. Lúc phát hành, ảnh được đổi tên theo hash nội dung
+và gom về một chỗ phẳng, nên hai chương dùng chung một ảnh chỉ tốn một file.
+
 ### Chương nào tải ảnh của chương đó
 
 Mỗi chương tự khai báo cần những ảnh nào. Danh sách do `tools/publish.mjs` quét các level
@@ -84,7 +104,6 @@ Game chỉ nạp phần của chương đang chơi, rồi lúc máy rảnh mới
 (`prefetchChapter`). Nhờ vậy thêm chương mới **không phải tải lại ảnh của chương cũ**.
 
 Chương đi kèm bản build nằm sẵn trong `public/content`, mở lần đầu không cần mạng.
-Chỉ chương phát hành sau mới phải tải về.
 
 ### Sinh lại sprite
 
