@@ -129,7 +129,7 @@ Trang trên Pages là trang tĩnh nên không ghi file được. Editor tự dò
 
 | | Chạy ở máy | Trên Pages |
 |---|---|---|
-| Lưu sắp xếp | ghi thẳng `public/content/levels.json` | commit file đó lên GitHub |
+| Bấm Lưu | ghi thẳng `public/content/levels.json` | commit file đó lên GitHub |
 | Cần token | không | có, dán một lần cho mỗi trình duyệt |
 | Người chơi thấy sau | mở lại game | khoảng 40 giây, workflow tự deploy lại |
 

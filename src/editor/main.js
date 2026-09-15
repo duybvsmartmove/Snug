@@ -110,11 +110,15 @@ async function probeWriter() {
   return canWrite;
 }
 
-$('publishBtn').addEventListener('click', async () => {
+/** Một nút Lưu duy nhất: chép level đang sửa về chương rồi ghi cả file sắp xếp */
+async function saveAll() {
   const btn = $('publishBtn');
+  if (btn.disabled) return;
   btn.disabled = true;
   try {
     const v = await publish();
+    indexChapter();
+    refreshLevelSelect();
     $('liveTag').textContent = `v${v}`;
     markDirty();
     status(canWrite ? `Đã lưu sắp xếp · bản v${v}`
@@ -122,6 +126,12 @@ $('publishBtn').addEventListener('click', async () => {
     frame.contentWindow.postMessage({ type: 'assets' }, '*');
   } catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
   finally { btn.disabled = false; }
+}
+
+$('publishBtn').addEventListener('click', saveAll);
+// Cmd/Ctrl + S lưu như mọi công cụ khác
+window.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveAll(); }
 });
 
 // Tải file JSON về máy, dùng khi editor chạy trên web và không ghi thẳng được
@@ -264,8 +274,6 @@ function refreshLevelSelect() {
   const sel = $('levelSelect');
   sel.innerHTML = E.map.levels.map((lv, i) => `<option value="${lv.id}">Level ${i + 1} — ${lv.name || lv.id}</option>`).join('');
   if (E.level) sel.value = E.level.id;
-  const n = E.map.levels.findIndex(l => l.id === E.level?.id);
-  $('assignIdx').value = Math.max(1, n + 1 || E.map.levels.length + 1);
 }
 
 /** Mở một chương, kèm level chỉ định hoặc level đầu tiên */
@@ -293,7 +301,7 @@ $('levelSelect').addEventListener('change', e => openLevel(e.target.value));
 $('newLevel').addEventListener('click', () => {
   const id = nextLevelId(E.mapId, E.map.levels.map(l => l.id));
   const lv = blankLevel(id); if (E.level) lv.container = clone(E.level.container);
-  setLevel(lv); $('assignIdx').value = E.map.levels.length + 1;
+  setLevel(lv);
   status('Level mới, chưa lưu. Bấm Lưu để thêm vào chương.', '');
 });
 
@@ -309,27 +317,7 @@ export function syncLevelIntoChapter() {
   else E.map.levels.push(clone(E.level));
 }
 
-async function saveLevel() {
-  syncLevelIntoChapter();
-  indexChapter();
-  await publish();
-  refreshLevelSelect();
-  markDirty();
-}
-$('saveBtn').addEventListener('click', async () => {
-  try { await saveLevel(); status(`Đã lưu "${E.level.name}"`, 'ok'); frame.contentWindow.postMessage({ type: 'assets' }, '*'); }
-  catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
-});
-$('assignBtn').addEventListener('click', async () => {
-  const n = Math.max(1, Math.min(+$('assignIdx').value || 1, E.map.levels.length));
-  try {
-    const cur = E.map.levels.findIndex(l => l.id === E.level.id);
-    if (cur < 0) { E.map.levels.splice(n - 1, 0, clone(E.level)); }
-    else { const [x] = E.map.levels.splice(cur, 1); E.map.levels.splice(n - 1, 0, clone(E.level)); }
-    indexChapter(); await publish(); refreshLevelSelect(); onChange(); markDirty();
-    status(`Đã đặt vào vị trí ${n}`, 'ok');
-  } catch (e) { status('Lỗi: ' + e.message, 'bad'); }
-});
+
 $('copyJson').addEventListener('click', async () => { await navigator.clipboard.writeText(JSON.stringify(E.level, null, 2)); status('Đã chép JSON', 'ok'); });
 $('pasteJson').addEventListener('click', async () => {
   try {

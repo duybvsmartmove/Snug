@@ -20,8 +20,8 @@
     <label class="field">Level <select id="levelSelect"></select></label>
     <button id="mgBtn" class="ghost">Quản lý chương &amp; level</button>
     <button id="newLevel" class="ghost">+ Level mới</button>
-    <button id="publishBtn" class="publish" title="Ghi lại file sắp xếp cho game">
-      <span class="dot" id="dirtyDot" hidden></span>Lưu sắp xếp <span class="live" id="liveTag">v?</span>
+    <button id="publishBtn" class="publish" title="Ghi level đang sửa vào game (Cmd/Ctrl + S)">
+      <span class="dot" id="dirtyDot" hidden></span>Lưu <span class="live" id="liveTag">v?</span>
     </button>
     <button id="downloadBtn" class="ghost" title="Tải levels.json về máy">Tải JSON</button>
     <button id="ghBtn" class="ghost" title="Nối với GitHub để lưu thẳng" hidden>🔑 <b id="ghTag">chưa nối</b></button>
@@ -105,16 +105,13 @@
 
       <!-- 4. Lưu -->
       <div class="card">
-        <div class="card-head"><b>4. Lưu lại</b></div>
+        <div class="card-head"><b>4. Sao chép</b><span class="hint">Chép level này sang chỗ khác, hoặc dán level từ nơi khác vào</span></div>
         <div class="row">
-          <button id="saveBtn" class="primary">💾 Lưu level này</button>
-          <label class="field">hoặc đặt vào vị trí <input id="assignIdx" type="number" min="1" step="1"></label>
-          <button id="assignBtn">Đặt vào map</button>
-          <div class="grow"></div>
           <button id="copyJson" class="ghost">Chép JSON</button>
           <button id="pasteJson" class="ghost">Dán JSON</button>
+          <div class="grow"></div>
+          <span class="note">Lưu bằng nút <b>Lưu</b> ở thanh trên. Đổi thứ tự level ở <b>Quản lý chương &amp; level</b>.</span>
         </div>
-        <p class="note"><b>Lưu level này</b> ghi đè chính level đang mở. <b>Đặt vào map</b> đưa nó vào vị trí thứ N trong thứ tự chơi.</p>
       </div>
     </section>
 
