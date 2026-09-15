@@ -11,6 +11,12 @@ import { autoplay, stopAutoplay } from './game/autoplay.js';
 
 const params = new URLSearchParams(location.search);
 
+// Kho nội dung nằm ở repo SnugLevelEditor — editor ghi vào đó, game chỉ đọc.
+// Chạy ở máy thì đọc từ server dev của editor; deploy thì đọc thẳng file trong repo.
+const CONTENT_URL = params.get('content')
+  || import.meta.env.VITE_CONTENT_URL
+  || 'http://localhost:5174/content/';
+
 function extraTime() { // booster Extra Time (GDD): +60s sau khi hết giờ lần 1
   S.timeLeft = 60000; S.lost = false; S.shownSec = -1; hideLose(); toast('+60 giây!');
 }
@@ -28,9 +34,9 @@ async function boot() {
   // Chơi thật thì đọc bản đã phát hành, có kiểm tra bản mới và có kho ở máy.
   S.preview = params.get('preview') === '1';
   if (S.preview) {
-    useDraft('./content/');
+    useDraft(CONTENT_URL);
   } else {
-    const sync = await initContent('./content/');
+    const sync = await initContent(CONTENT_URL);
     if (sync.changed.length) console.info(`content v${sync.version}: cập nhật ${sync.changed.length} file`);
     if (sync.offline) console.info(`content v${sync.version}: không kết nối được, dùng bản đã lưu`);
   }

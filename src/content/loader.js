@@ -17,7 +17,7 @@ export const contentBase = () => BASE;
 export const contentVersion = () => VERSION;
 
 /** Editor: đọc thẳng bản nháp trên đĩa, không đụng tới kho đã cache */
-export function useDraft(root = './content/') { BASE = root + 'draft/'; useStore = false; VERSION = 0; }
+export function useDraft(root = './content/') { setContentBase(root + 'draft/'); useStore = false; VERSION = 0; }
 
 /**
  * Game: đồng bộ với server rồi trỏ vào bản đang phát hành.
@@ -209,19 +209,35 @@ export function applyManifest(m) {
 const onSpriteReady = [];
 export function whenSpriteReady(fn) { onSpriteReady.push(fn); }
 
-/** Ghi file vào content (chỉ chạy ở dev, qua Vite plugin) */
+/**
+ * Nơi ghi nội dung. Mặc định là cầu ghi file của server dev; bản editor deploy lên web
+ * thay bằng driver ghi thẳng lên GitHub. Game không bao giờ ghi, chỉ editor dùng phần này.
+ */
+const devWriter = {
+  async saveText(path, text) {
+    const res = await fetch('/__content/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, text }) });
+    if (!res.ok) throw new Error((await res.json()).error || 'save failed');
+    return res.json();
+  },
+  async saveBinary(path, base64) {
+    const res = await fetch('/__content/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, base64 }) });
+    if (!res.ok) throw new Error((await res.json()).error || 'save failed');
+    return res.json();
+  },
+  async list(dir) {
+    const res = await fetch(`/__content/list?dir=${encodeURIComponent(dir)}`);
+    return res.ok ? (await res.json()).files : [];
+  },
+};
+
+let writer = devWriter;
+export function setContentWriter(w) { writer = w || devWriter; }
+export const contentWriter = () => writer;
+
 export async function saveContent(path, text) {
-  const res = await fetch('/__content/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, text }) });
-  if (!res.ok) throw new Error((await res.json()).error || 'save failed');
+  const r = await writer.saveText(path, text);
   cache.delete(path);
-  return res.json();
+  return r;
 }
-export async function saveBinary(path, base64) {
-  const res = await fetch('/__content/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, base64 }) });
-  if (!res.ok) throw new Error((await res.json()).error || 'save failed');
-  return res.json();
-}
-export async function listContent(dir) {
-  const res = await fetch(`/__content/list?dir=${encodeURIComponent(dir)}`);
-  return res.ok ? (await res.json()).files : [];
-}
+export const saveBinary = (path, base64) => writer.saveBinary(path, base64);
+export const listContent = dir => writer.list(dir);

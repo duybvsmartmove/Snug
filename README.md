@@ -32,37 +32,32 @@ npm run preview
 Luật theo GDD: vừa chỗ thì viền xanh, không vừa thì viền đỏ và rung, thả ra là bật ngược ra ngoài túi.
 Hết giờ là thua, có thể dùng Extra Time. Hộp bí ẩn mở bằng cách kéo chạm chìa khoá đặt sẵn trong túi.
 
-## Content pack
+## Nội dung ở đâu
 
-Level và art là dữ liệu, không phải code. Thư mục content có ba tầng:
+Level và ảnh **không nằm trong repo này**. Chúng ở thư mục `content/` của repo
+[SnugLevelEditor](https://github.com/duybvsmartmove/SnugLevelEditor) — editor ghi vào đó,
+game chỉ đọc ra. GitHub đóng luôn vai trò server, không phải dựng backend riêng.
 
 ```
-public/content/
-  draft/                           ← editor ghi vào đây, người chơi chưa thấy
-    pack.json                      version + danh sách chương
-    maps/school-day/map.json       thứ tự level trong chương
-    maps/school-day/levels/*.json  từng level
-    assets/items/<id>.json         manifest: sprite + collider + metadata
-  v1/ v2/ v3/                      bản đã phát hành, chỉ JSON, không sửa lại
-  assets/                          ảnh, tên gắn hash nội dung, dùng chung mọi bản
-  live.json                        con trỏ: bản nào đang phát hành
+SnugLevelEditor/content/
+  draft/         editor đang sửa, người chơi chưa thấy
+  v1/ v2/ …      bản đã phát hành, chỉ JSON
+  assets/        ảnh, tên gắn hash nội dung
+  live.json      con trỏ: bản nào đang phát hành
 ```
 
-Sửa level xong là ghi vào `draft/`, người chơi chưa thấy gì. **Phát hành** mới đóng gói
-`draft/` thành `v<N>/` rồi đổi `live.json`. Bước đổi con trỏ là bước cuối cùng nên người chơi
-không bao giờ gặp trạng thái nửa cũ nửa mới.
+Game đọc nội dung từ đâu do biến `VITE_CONTENT_URL` quyết định:
 
-```bash
-node tools/publish.mjs status              # xem bản đang phát hành
-node tools/publish.mjs publish "ghi chú"   # phát hành bản mới
-node tools/publish.mjs rollback 2          # quay lui, đổi một con số là xong
-```
+| Chạy ở | Đọc từ |
+|---|---|
+| máy | `http://localhost:5174/content/` — server dev của editor |
+| GitHub Pages | `raw.githubusercontent.com/duybvsmartmove/SnugLevelEditor/main/content/` |
 
-Editor có nút **Phát hành** ở thanh trên làm đúng việc này.
+Thử nhanh một kho khác bằng tham số trên URL: `?content=https://…/content/`.
 
 Lúc khởi động, game tải `live.json`, so với bản đang giữ ở máy, chỉ tải những file có hash
-khác. JSON lưu ở IndexedDB, ảnh ở Cache Storage, nên mất mạng vẫn chơi được bản đã tải.
-Chi tiết và kế hoạch đưa lên dịch vụ thật: `docs/14-content-service.md`.
+khác. JSON lưu ở IndexedDB, ảnh ở Cache Storage, nên mở lại lần sau gần như không tốn mạng.
+Chi tiết: `docs/14-content-service.md`.
 
 ## Art
 
@@ -157,27 +152,39 @@ Muốn bỏ ảnh quay về hình vẽ code thì bấm **Dùng lại hình vẽ*
 
 ## Chạy cùng Level Editor
 
-Mở hai server cạnh nhau, editor sẽ đọc và ghi thẳng vào `public/content` của repo này:
+Mở hai server cạnh nhau. Game ở cổng 5173 tự đọc nội dung từ editor ở cổng 5174:
 
 ```bash
 # cửa sổ 1
-cd snug && npm run dev                  # cổng 5173
+cd snug_level_editor && npm run dev     # cổng 5174, kèm kho nội dung
 
 # cửa sổ 2
-cd snug_level_editor && npm run dev     # cổng 5174
+cd snug && npm run dev                  # cổng 5173
 ```
 
-Editor tự tìm `../snug/public/content`. Đặt khác thì dùng biến `SNUG_CONTENT_DIR`.
+## Deploy
+
+Hai repo thành hai site GitHub Pages, đẩy code lên nhánh `main` là workflow tự build:
+
+| Repo | Site | Vai trò |
+|---|---|---|
+| Snug | `<chủ>.github.io/Snug/` | chơi game |
+| SnugLevelEditor | `<chủ>.github.io/SnugLevelEditor/` | dựng level, và chứa luôn kho nội dung |
+
+Bật ở **Settings → Pages → Source: GitHub Actions** cho cả hai repo.
+
+Repo Snug đang để private. Muốn workflow của editor tải được lõi dùng chung thì hoặc đổi Snug
+thành public, hoặc thêm secret `SNUG_CORE_TOKEN` có quyền Contents: Read trên repo Snug.
 
 ## Script dựng content
 
 ```bash
 node build_levels.mjs     # dựng lại 10 level chương School Day từ template
 node check_levels.mjs     # kiểm tra density, Difficulty Point, solver của cả chương
-node tools/publish.mjs    # phát hành bản nháp hiện tại
 ```
 
-`build_levels.mjs` và `check_levels.mjs` làm việc trên `public/content/draft/`.
+Hai script này ghi vào `../snug_level_editor/content/draft/`. Phát hành thì dùng
+`node tools/publish.mjs` bên repo editor.
 
 ## Cấu trúc mã
 
