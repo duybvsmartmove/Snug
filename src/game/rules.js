@@ -102,20 +102,48 @@ export function checkEject() {
 
 const fmt = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 
+// Số khung hình liên tiếp cần có trước khi đổi kết luận "món đã nằm gọn trong túi".
+// Khoảng 60 khung một giây, nên đây là chừng 0,07 giây để vào và 0,3 giây để bị loại.
+const VAO_TUI = 4, RA_KHOI = 18;
+
+// Quãng lặng đầu màn. Vừa vào màn, đồ còn đang rơi từ trên xuống và những món đặt sẵn
+// trong túi vừa chạm đáy — không phải người chơi xếp được nên không có gì để reo.
+const LANG_DAU_MAN = 1000;
+
 /** Cập nhật packing list + điều kiện thắng */
 export function updateChecked() {
   let changed = false;
+  const now = performance.now();
   for (const b of S.bodies) {
     if (b.itemId === KEY_ID) continue;
-    const ok = bagZone(b).fullyInside && !b.locked && (b.speed < .9 || b.isStatic) && !isHeld(b);
-    if (ok !== S.checked.has(b.itemId)) {
+    const was = S.checked.has(b.itemId);
+    const roiTay = isHeld(b) || b.locked;
+    const inside = !roiTay && bagZone(b).fullyInside;
+
+    // Chống rung. Trong túi chật, món bị hàng xóm xô nên đỉnh của nó chớp ra chớp vào
+    // mép lòng túi liên tục; nếu tin ngay kết quả từng khung hình thì món bị loại ra
+    // rồi tính vào lại hàng chục lần, mỗi lần vào lại là một tiếng chuông.
+    // Muốn VÀO danh sách: phải nằm gọn vài khung liền và đã đi chậm lại.
+    // Muốn BỊ LOẠI: phải ra khỏi lòng túi liên tục một quãng, chứ chớp một cái thì bỏ qua.
+    // Riêng cầm lên tay hay bị khoá lại là hành động rõ ràng, loại ngay.
+    if (roiTay) { b.inN = 0; b.outN = RA_KHOI; }
+    else { b.inN = inside ? (b.inN || 0) + 1 : 0; b.outN = inside ? 0 : (b.outN || 0) + 1; }
+
+    const ok = was ? b.outN < RA_KHOI
+                   : inside && b.inN >= VAO_TUI && (b.speed < .9 || b.isStatic);
+    if (ok !== was) {
       if (ok) {
         S.checked.add(b.itemId);
-        // vừa khít: tiếng chuông cao dần theo số món đã xếp, kèm vòng sáng và tia
-        const n = S.checked.size;
-        sfx('fit', { rate: 1 + Math.min(6, n - 1) * .045 });
-        ring(b.position.x, b.position.y, { color: '#5FBF9B', r1: 46 });
-        sparkle(b.position.x, b.position.y, { n: 10, color: '#8FE0C1', life: 520 });
+        // vừa khít: tiếng chuông cao dần theo số món đã xếp, kèm vòng sáng và tia.
+        // Chặn thêm một nhịp nghỉ phòng khi món nằm đúng sát mép dung sai của lòng túi
+        // và trạng thái "nằm gọn" tự chớp tắt.
+        if (!(b.fitAt > now - 900) && now - S.startTime > LANG_DAU_MAN) {
+          b.fitAt = now;
+          const n = S.checked.size;
+          sfx('fit', { rate: 1 + Math.min(6, n - 1) * .045 });
+          ring(b.position.x, b.position.y, { color: '#5FBF9B', r1: 46 });
+          sparkle(b.position.x, b.position.y, { n: 10, color: '#8FE0C1', life: 520 });
+        }
       } else S.checked.delete(b.itemId);
       changed = true;
     }
