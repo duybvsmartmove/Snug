@@ -1,5 +1,9 @@
 # Map 1 "Pack & Go" (10 level đầu) + Level Editor
 
+> **Lưu ý:** map "Pack & Go" trong tài liệu này đã bị thay bằng chương School Day và Weekend Trip.
+> Cách dựng level hiện tại xem README và `build_levels.mjs`.
+
+
 ## 1. Nguyên tắc: level là DATA, không phải code
 Mỗi level là một file JSON trong `src/data/levels/`. Game chỉ đọc JSON. Editor ghi JSON. Không ai phải sửa `.js` để đổi level.
 

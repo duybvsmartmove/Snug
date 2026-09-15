@@ -179,11 +179,13 @@ thành public, hoặc thêm secret `SNUG_CORE_TOKEN` có quyền Contents: Read 
 ## Script dựng content
 
 ```bash
-node build_levels.mjs        # dựng lại 10 level chương 1 · School Day
-node check_levels.mjs        # kiểm tra density, Difficulty Point, solver chương 1
-node build_wt_levels.mjs     # dựng lại 10 level chương 2 · Weekend Trip
-node check_wt_levels.mjs     # kiểm tra chương 2
+node build_levels.mjs                 # dựng lại level chương 1 · School Day
+node build_levels.mjs weekend-trip    # dựng lại level chương 2
+node check_levels.mjs                 # kiểm tra density, Difficulty Point, solver
+node check_levels.mjs weekend-trip
 ```
+
+Thêm chương mới thì thêm một mục vào `CHAPTERS` và `LEVELS` trong `build_levels.mjs`.
 
 Hai chương hiện có, mỗi chương 10 level, món lấy từ sheet Level Design:
 

@@ -13,8 +13,6 @@ let VERSION = 0;
 let useStore = false;
 
 export function setContentBase(url) { BASE = url.endsWith('/') ? url : url + '/'; }
-export const contentBase = () => BASE;
-export const contentVersion = () => VERSION;
 
 /** Editor: đọc thẳng bản nháp trên đĩa, không đụng tới kho đã cache */
 export function useDraft(root = './content/') { setContentBase(root + 'draft/'); useStore = false; VERSION = 0; }
@@ -224,10 +222,6 @@ const devWriter = {
     if (!res.ok) throw new Error((await res.json()).error || 'save failed');
     return res.json();
   },
-  async list(dir) {
-    const res = await fetch(`/__content/list?dir=${encodeURIComponent(dir)}`);
-    return res.ok ? (await res.json()).files : [];
-  },
   async remove(path) {
     const res = await fetch('/__content/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) });
     if (!res.ok) throw new Error((await res.json()).error || 'delete failed');
@@ -237,7 +231,6 @@ const devWriter = {
 
 let writer = devWriter;
 export function setContentWriter(w) { writer = w || devWriter; }
-export const contentWriter = () => writer;
 
 export async function saveContent(path, text) {
   const r = await writer.saveText(path, text);
@@ -245,7 +238,6 @@ export async function saveContent(path, text) {
   return r;
 }
 export const saveBinary = (path, base64) => writer.saveBinary(path, base64);
-export const listContent = dir => writer.list(dir);
 export async function deleteContent(path) {
   const r = await writer.remove(path);
   cache.delete(path);

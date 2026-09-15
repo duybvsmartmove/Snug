@@ -1,8 +1,10 @@
-// Kiểm tra 10 level: solver, density, difficulty. Chạy: node check_levels.mjs
+// Kiểm tra level của một chương: solver, density, difficulty.
+// Chạy: node check_levels.mjs [mã chương]     mặc định school-day
 import { readFileSync, readdirSync } from 'node:fs';
 import { solve } from './src/gen/solver.js';
 
-const dir = '../snug_level_editor/content/draft/maps/school-day/levels';
+const map = process.argv[2] || 'school-day';
+const dir = `../snug_level_editor/content/draft/maps/${map}/levels`;
 const rows = [];
 for (const f of readdirSync(dir).sort()) {
   const lv = JSON.parse(readFileSync(`${dir}/${f}`, 'utf8'));

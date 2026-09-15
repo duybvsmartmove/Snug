@@ -1,5 +1,9 @@
 # Content pipeline: Editor sinh art + level → Game nhận
 
+> **Lưu ý:** bản thiết kế ban đầu. Cách làm thực tế đã khác: kho nội dung nằm ở repo
+> SnugLevelEditor, phát hành qua GitHub Actions. Xem `14-content-service.md`.
+
+
 ## 1. Hợp đồng chung: Content Pack
 Editor và game không nói chuyện trực tiếp. Cả hai đọc/ghi cùng một cấu trúc thư mục gọi là **content pack**:
 

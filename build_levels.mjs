@@ -1,6 +1,9 @@
-// Dựng lại 10 level chương School Day từ template. Chạy: node build_levels.mjs
-
-// Sinh 10 level School Day: đặt túi, chọn món theo chủ đề, rải đồ, tính density + difficulty + solver.
+// Dựng lại 10 level của một chương.
+// Chạy: node build_levels.mjs [mã chương]     mặc định school-day
+//
+// Công thức chung: ba giai đoạn theo túi từ nhỏ tới lớn, mỗi level mở đúng một thứ mới,
+// density tăng dần. Món lấy từ sheet Level Design.
+// Thêm chương mới = thêm một mục vào CHAPTERS và một mục vào LEVELS.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 // Đọc định nghĩa món: id là SỐ, slug chỉ để viết template cho dễ đọc
@@ -17,15 +20,38 @@ const ITEMS = {}, SLUG2ID = {};
 }
 // hệ số diện tích thực so với khung, theo hình dáng
 const FILL = { socks: .79, apple: .72, earbuds: .79, sandwich: .5, banana: .6, sneaker: .62,
-  cap: .6, keyring: .55, pencil: .85, milk: .82, waterbottle: .7, umbrella: .72, sanitizer: .78 };
+  cap: .6, keyring: .55, pencil: .85, milk: .82, waterbottle: .7, umbrella: .72, sanitizer: .78,
+  // chương 2
+  hairbrush: .66, camera: .74, cable: .6, sunglasses: .42, sleepmask: .7, neckpillow: .52,
+  travelmug: .78, toothbrush: .58, toothpaste: .8, juice: .86, map: .88, ticket: .9 };
 const area = id => ITEMS[id].area * (FILL[id] ?? .95);
 
-// ---------- túi ----------
-const BAGS = {
+// ---------- khai báo riêng của từng chương ----------
+const CHAPTERS = {
+  'school-day': {
+    bags: {
   lunchbox: { skin: 'lunchbox', cx: 210, bottom: 392, w: 196, h: 140 },
   tote:     { skin: 'tote',     cx: 210, bottom: 400, w: 238, h: 196 },
   backpack: { skin: 'backpack', cx: 210, bottom: 404, w: 254, h: 236 },
+    },
+    limit: { lunchbox: { w:[150,210], h:[110,150] }, tote: { w:[180,250], h:[150,196] }, backpack: { w:[200,268], h:[170,214] } },
+    bg: lv => lv.bag === 'lunchbox' ? 1 : lv.bag === 'tote' ? 2 : 3,   // 1 sáng · 2 trưa · 3 chiều
+  },
+  'weekend-trip': {
+    bags: {
+  pouch:    { skin: 'pouch',    cx: 210, bottom: 392, w: 184, h: 132 },
+  backpack: { skin: 'backpack', cx: 210, bottom: 404, w: 250, h: 216 },
+  suitcase: { skin: 'suitcase', cx: 210, bottom: 408, w: 268, h: 224 },
+    },
+    limit: { pouch: { w:[146,200], h:[104,142] }, backpack: { w:[200,262], h:[168,212] }, suitcase: { w:[210,284], h:[172,222] } },
+    bg: lv => lv.bag === 'suitcase' ? 5 : 4,                           // 4 phòng ngủ · 5 chiều tối
+  },
 };
+
+const MAP = process.argv[2] || 'school-day';
+const CH = CHAPTERS[MAP];
+if (!CH) { console.error(`Chưa có chương "${MAP}". Có: ${Object.keys(CHAPTERS).join(', ')}`); process.exit(1); }
+const BAGS = CH.bags;
 function shapeRect(w, h) { return [[-w/2, -h], [w/2, -h], [w/2, 0], [-w/2, 0]]; }
 function shapeNotch(w, h) {            // khuyết một góc dưới phải
   const nx = Math.round(w * .3), ny = Math.round(h * .34);
@@ -56,8 +82,9 @@ function layout(ids, seed) {
   });
 }
 
-// ---------- 10 level ----------
-const L = [
+// ---------- 10 level mỗi chương ----------
+const LEVELS = {
+  'school-day': [
   { id:'sd-01', density:0.46, name:'Giờ ăn trưa',        bag:'lunchbox', shape:'rect',  timer:120, coin:20,
     items:['apple','milk','granola','banana'], hint:'Kéo đồ vào hộp cơm' },
   { id:'sd-02', density:0.54, name:'Thêm chai nước',      bag:'lunchbox', shape:'rect',  timer:110, coin:20,
@@ -84,13 +111,43 @@ const L = [
     items:['tablet','textbook','sneaker','cap','waterbottle','umbrella','socks','lipbalm','pencil','granola'],
     link:['socks','lipbalm'], locked:'cap',
     blocks:[{ x:-52, y:-238, w:104, h:24 }] },
-];
+  ],
+  'weekend-trip': [
+  { id:'wt-01', density:0.46, name:'Đồ vệ sinh cá nhân', bag:'pouch',    shape:'rect',  timer:120, coin:20,
+    items:['toothbrush','toothpaste','shampoo','deodorant'], hint:'Xếp đồ vào túi nhỏ' },
+  { id:'wt-02', density:0.54, name:'Thêm cái lược',      bag:'pouch',    shape:'rect',  timer:110, coin:20,
+    items:['toothbrush','toothpaste','shampoo','deodorant','hairbrush'] },
+  { id:'wt-03', density:0.6,  name:'Túi đồ chật',        bag:'pouch',    shape:'notch', timer:100, coin:25,
+    items:['toothbrush','toothpaste','shampoo','deodorant','hairbrush','wallet'] },
+  { id:'wt-04', density:0.64, name:'Xếp quần áo',        bag:'backpack', shape:'rect',  timer:100, coin:30,
+    items:['jacket','pajamas','tshirt','shorts','socks','wallet','ticket'] },
+  { id:'wt-05', density:0.68, name:'Đôi tất đi kèm',     bag:'backpack', shape:'rect',  timer:95,  coin:30,
+    items:['jacket','pajamas','tshirt','socks','sneaker','map','ticket','crackers'],
+    link:['socks','sneaker'] },
+  { id:'wt-06', density:0.72, name:'Ngăn balo hẹp',      bag:'backpack', shape:'notch', timer:90,  coin:35,
+    items:['jacket','pajamas','guidebook','map','waterbottle','cable','powerbank','crackers','juice'] },
+  { id:'wt-07', density:0.76, name:'Máy ảnh giấu kín',   bag:'suitcase', shape:'rect',  timer:90,  coin:40,
+    items:['camera','jacket','pajamas','tshirt','shorts','smartphone','powerbank','wallet','map','granola'],
+    locked:'camera' },
+  { id:'wt-08', density:0.79, name:'Ngăn khoá vali',     bag:'suitcase', shape:'rect',  timer:85,  coin:45,
+    items:['neckpillow','jacket','pajamas','tshirt','sneaker','travelmug','cable','sunglasses','ticket','crackers','juice'],
+    blocks:[{ x:-48, y:-222, w:96, h:26 }] },
+  { id:'wt-09', density:0.83, name:'Chuyến bay đêm',     bag:'suitcase', shape:'rect',  timer:80,  coin:50,
+    items:['neckpillow','sleepmask','jacket','guidebook','travelmug','smartphone','cable','sunglasses','wallet','cards'],
+    link:['sleepmask','cards'], locked:'guidebook' },
+  { id:'wt-10', density:0.87, name:'Vali cuối tuần',     bag:'suitcase', shape:'notch', timer:80,  coin:60,
+    items:['neckpillow','jacket','camera','travelmug','umbrella','sneaker','sunglasses','toothbrush','map','juice'],
+    link:['sunglasses','toothbrush'], locked:'camera',
+    blocks:[{ x:-54, y:-224, w:108, h:24 }] }
+  ],
+};
+const L = LEVELS[MAP];
 
 const SHAPES = { rect: shapeRect, notch: shapeNotch, trap: shapeTrapezoid, two: shapeTwoCells };
 const polyArea = pts => { let a = 0; for (let i = 0; i < pts.length; i++) { const [x1,y1]=pts[i], [x2,y2]=pts[(i+1)%pts.length]; a += x1*y2 - x2*y1; } return Math.abs(a)/2; };
 
 // Giới hạn kích thước lòng túi để vừa khung màn 420×760
-const LIMIT = { lunchbox: { w:[150,210], h:[110,150] }, tote: { w:[180,250], h:[150,196] }, backpack: { w:[200,268], h:[170,214] } };
+const LIMIT = CH.limit;
 
 const report = [];
 for (const lv of L) {
@@ -138,14 +195,14 @@ for (const lv of L) {
 
   const json = {
     id: lv.id, name: lv.name, timer: lv.timer,
-    background: lv.bag === 'lunchbox' ? 1 : lv.bag === 'tote' ? 2 : 3,   // 1 sáng · 2 trưa · 3 chiều
+    background: CH.bg(lv),
     container: { skin: bag.skin, cx: bag.cx, bottom, shape, blocks },
     mode: 'fixed', items,
     reward: { coin: lv.coin },
     difficulty: { points: pts, tier },
     ...(lv.hint ? { emptyText: lv.hint } : {}),
   };
-  writeFileSync(`../snug_level_editor/content/draft/maps/school-day/levels/${lv.id}.json`, JSON.stringify(json, null, 2));
+  writeFileSync(`../snug_level_editor/content/draft/maps/${MAP}/levels/${lv.id}.json`, JSON.stringify(json, null, 2));
   report.push({ lv: lv.id, name: lv.name, bag: lv.bag, n, 'lòng túi': `${bw}×${bh}`, đáy: bottom, density: (density*100).toFixed(0)+'%', 'mục tiêu': (lv.density*100)+'%', pts, tier });
 }
 console.table(report);
