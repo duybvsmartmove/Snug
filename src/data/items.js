@@ -93,6 +93,71 @@ export const ITEM_DEFS = [
   { id: 30, slug: 'paintbox', code: 'ITM_030', name: 'Hộp màu nước', kind: 'rect', w: 96, h: 54, chamfer: 6, box: [-48, -27, 48, 27],
     meta: M('Medium', 'Rectangle', 'normal', 2) },
 
+  // ================= Chương 2 · Weekend Trip =================
+  // ---------- Clothing ----------
+  { id: 31, slug: 'jacket', code: 'ITM_031', name: 'Áo khoác gấp', kind: 'rect', w: 108, h: 80, chamfer: 8, box: [-54, -40, 54, 40],
+    meta: M('Large', 'Rectangle', 'normal', 3) },
+  { id: 32, slug: 'pajamas', code: 'ITM_032', name: 'Bộ ngủ gấp', kind: 'rect', w: 82, h: 60, chamfer: 8, box: [-41, -30, 41, 30],
+    meta: M('Medium', 'Rectangle', 'normal', 1) },
+
+  // ---------- Personal Care ----------
+  { id: 33, slug: 'toothbrush', code: 'ITM_033', name: 'Bàn chải', kind: 'rect', w: 16, h: 76, chamfer: 6, box: [-11, -38, 11, 38],
+    meta: M('Small', 'Long', 'normal', 1) },
+  { id: 34, slug: 'toothpaste', code: 'ITM_034', name: 'Kem đánh răng', kind: 'rect', w: 22, h: 66, chamfer: 7, box: [-11, -33, 11, 33],
+    meta: M('Small', 'Long', 'normal', 1) },
+  { id: 35, slug: 'shampoo', code: 'ITM_035', name: 'Chai dầu gội', kind: 'rect', w: 34, h: 64, chamfer: 12, box: [-17, -32, 17, 32],
+    meta: M('Small', 'Rounded rect', 'normal', 1) },
+  { id: 36, slug: 'hairbrush', code: 'ITM_036', name: 'Lược chải', kind: 'poly',
+    pts: [[-14, -34], [14, -34], [18, -10], [14, 14], [6, 34], [-6, 34], [-14, 14], [-18, -10]], box: [-18, -34, 18, 34],
+    meta: M('Medium', 'Irregular', 'normal', 2) },
+  { id: 37, slug: 'deodorant', code: 'ITM_037', name: 'Lăn khử mùi', kind: 'rect', w: 30, h: 58, chamfer: 12, box: [-15, -29, 15, 29],
+    meta: M('Small', 'Rounded rect', 'normal', 1) },
+
+  // ---------- Electronics ----------
+  { id: 38, slug: 'smartphone', code: 'ITM_038', name: 'Điện thoại', kind: 'rect', w: 38, h: 72, chamfer: 8, box: [-19, -36, 19, 36],
+    meta: M('Small', 'Rectangle', 'vibrating', 2) },
+  { id: 39, slug: 'camera', code: 'ITM_039', name: 'Máy ảnh nhỏ', kind: 'poly',
+    pts: [[-34, -12], [-20, -24], [16, -24], [34, -12], [34, 20], [-34, 20]], box: [-34, -30, 34, 20],
+    meta: M('Medium', 'Irregular', 'normal', 2) },
+  { id: 40, slug: 'powerbank', code: 'ITM_040', name: 'Pin dự phòng', kind: 'rect', w: 44, h: 52, chamfer: 7, box: [-22, -26, 22, 26],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+  { id: 41, slug: 'cable', code: 'ITM_041', name: 'Dây sạc cuộn', kind: 'circle', r: 24, box: [-24, -24, 24, 24],
+    meta: M('Small', 'Circle', 'rolling', 1) },
+
+  // ---------- Food & Drink ----------
+  { id: 42, slug: 'crackers', code: 'ITM_042', name: 'Gói bánh quy', kind: 'rect', w: 60, h: 40, chamfer: 6, box: [-30, -20, 30, 20],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+  { id: 43, slug: 'juice', code: 'ITM_043', name: 'Hộp nước ép', kind: 'rect', w: 36, h: 62, chamfer: 4, box: [-18, -31, 18, 36],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+
+  // ---------- Accessories ----------
+  { id: 44, slug: 'sunglasses', code: 'ITM_044', name: 'Kính râm', kind: 'poly',
+    pts: [[-38, -12], [38, -12], [38, 2], [22, 14], [8, 4], [-8, 4], [-22, 14], [-38, 2]], box: [-38, -14, 38, 14],
+    meta: M('Small', 'Irregular', 'normal', 2, true, false) },
+  { id: 45, slug: 'wallet', code: 'ITM_045', name: 'Ví tiền', kind: 'rect', w: 58, h: 42, chamfer: 6, box: [-29, -21, 29, 21],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+  { id: 46, slug: 'sleepmask', code: 'ITM_046', name: 'Bịt mắt ngủ', kind: 'poly',
+    pts: [[-34, -12], [-14, -18], [14, -18], [34, -12], [34, 8], [14, 16], [-14, 16], [-34, 8]], box: [-34, -18, 34, 16],
+    meta: M('Small', 'Curved', 'normal', 1) },
+  { id: 47, slug: 'neckpillow', code: 'ITM_047', name: 'Gối cổ', kind: 'compound',
+    parts: [{ kind: 'rect', w: 26, h: 62, dx: -30, dy: 4, chamfer: 12 },
+            { kind: 'rect', w: 26, h: 62, dx: 30, dy: 4, chamfer: 12 },
+            { kind: 'rect', w: 86, h: 30, dx: 0, dy: -20, chamfer: 14 }], box: [-43, -35, 43, 35],
+    meta: M('Large', 'U-shape', 'normal', 3, true, false) },
+
+  // ---------- Context Gear ----------
+  { id: 48, slug: 'guidebook', code: 'ITM_048', name: 'Sách hướng dẫn', kind: 'rect', w: 64, h: 86, chamfer: 4, box: [-32, -43, 32, 43],
+    meta: M('Medium', 'Rectangle', 'normal', 2) },
+  { id: 49, slug: 'map', code: 'ITM_049', name: 'Bản đồ gấp', kind: 'rect', w: 62, h: 44, chamfer: 3, box: [-31, -22, 31, 22],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+  { id: 50, slug: 'ticket', code: 'ITM_050', name: 'Vé tàu xe', kind: 'rect', w: 56, h: 30, chamfer: 3, box: [-28, -15, 28, 15],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+  { id: 51, slug: 'cards', code: 'ITM_051', name: 'Bộ bài', kind: 'rect', w: 40, h: 56, chamfer: 4, box: [-20, -28, 20, 28],
+    meta: M('Small', 'Rectangle', 'normal', 1) },
+  { id: 52, slug: 'travelmug', code: 'ITM_052', name: 'Cốc giữ nhiệt', kind: 'poly',
+    pts: [[-20, -36], [20, -36], [24, 0], [20, 36], [-20, 36], [-24, 0]], box: [-30, -36, 30, 36],
+    meta: M('Medium', 'Irregular', 'normal', 2) },
+
   // ---------- Công cụ (không nằm trong sheet) ----------
   { id: 0, slug: 'key', code: null, name: 'Chìa khóa', kind: 'compound',
     parts: [{ kind: 'circle', r: 11, dx: -16, dy: 0 }, { kind: 'rect', w: 34, h: 8, dx: 8, dy: 0, chamfer: 3 }], box: [-29, -13, 27, 13],

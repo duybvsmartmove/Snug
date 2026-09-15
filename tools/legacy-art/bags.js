@@ -9,6 +9,9 @@ const SKIN = {
   lunchbox: { body: '#E8434F', dark: '#B92A38', light: '#F4737C', lining: '#F7E9D6', trim: '#F6D34B', label: 'LUNCH' },
   tote:     { body: '#3FB8AF', dark: '#2A8B84', light: '#6FD3CB', lining: '#EAD9BE', trim: '#F2A33C', label: 'SCHOOL' },
   backpack: { body: '#4A63C8', dark: '#33489C', light: '#7387DE', lining: '#2A3468', trim: '#F6D34B', label: 'READY' },
+  // Chương 2 · Weekend Trip
+  suitcase: { body: '#C4703C', dark: '#94512A', light: '#DC9560', lining: '#F0E0C6', trim: '#4A5568', label: 'TRAVEL' },
+  pouch:    { body: '#8E6FC4', dark: '#6A4E9C', light: '#AF95DA', lining: '#EBDFF7', trim: '#F6D34B', label: 'POUCH' },
 };
 const skin = () => SKIN[BAG.kind] || SKIN.backpack;
 
@@ -25,6 +28,18 @@ function bagSilhouette(c) {
   }
   if (BAG.kind === 'lunchbox') {                     // hộp chữ nhật bo góc to
     c.roundRect(BL - 4, BT - 2, BR - BL + 8, BB - BT + 4, 18); return;
+  }
+  if (BAG.kind === 'suitcase') {                     // vali cứng, góc bo vừa
+    c.roundRect(BL - 6, BT - 4, BR - BL + 12, BB - BT + 8, 14); return;
+  }
+  if (BAG.kind === 'pouch') {                        // túi mềm, miệng hơi tóp
+    c.moveTo(BL + 6, BT);
+    c.quadraticCurveTo(BL - 8, BT + 14, BL - 8, BB - 20);
+    c.quadraticCurveTo(BL - 8, BB + 2, BL + 16, BB + 2);
+    c.lineTo(BR - 16, BB + 2);
+    c.quadraticCurveTo(BR + 8, BB + 2, BR + 8, BB - 20);
+    c.quadraticCurveTo(BR + 8, BT + 14, BR - 6, BT);
+    c.closePath(); return;
   }
   // backpack: đỉnh bo tròn
   c.moveTo(BL - 4, BB - 26);
@@ -164,6 +179,32 @@ function paintTrim() {
     ctx.strokeStyle = s.trim; ctx.lineWidth = 8; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(BAG.cx - 26, BT - 6); ctx.quadraticCurveTo(BAG.cx, BT - 26, BAG.cx + 26, BT - 6); ctx.stroke();
     ctx.lineWidth = 2.6; ctx.strokeStyle = theme.ink; ctx.stroke();
+  } else if (BAG.kind === 'suitcase') {
+    // quai xách trên + hai khoá gài + dải đai ngang
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(BAG.cx - 26, BT - 2);
+    ctx.quadraticCurveTo(BAG.cx, BT - 34, BAG.cx + 26, BT - 2);
+    ctx.lineWidth = 13; ctx.strokeStyle = theme.ink; ctx.stroke();
+    ctx.lineWidth = 9; ctx.strokeStyle = s.trim; ctx.stroke();
+    ctx.restore();
+    for (const x of [BL + 16, BR - 36]) {
+      rrect(ctx, x, BT + 6, 20, 14, 4); ctx.fillStyle = s.trim; ctx.fill();
+      ctx.lineWidth = 2.4; ctx.strokeStyle = theme.ink; ctx.stroke();
+    }
+    // đai da chạy dọc hai mép vỏ, không cắt ngang miệng vali
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.fillRect(BL - 6, BT + 30, 14, BB - BT - 30);
+    ctx.fillRect(BR - 8, BT + 30, 14, BB - BT - 30);
+    ctx.restore();
+  } else if (BAG.kind === 'pouch') {
+    // khoá kéo chạy ngang miệng túi
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(BL + 2, BT + 2); ctx.lineTo(BR - 2, BT + 2);
+    ctx.lineWidth = 9; ctx.strokeStyle = s.dark; ctx.stroke();
+    ctx.lineWidth = 3.4; ctx.strokeStyle = s.trim; ctx.setLineDash([5, 5]); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    rrect(ctx, BR - 24, BT - 5, 16, 15, 4); ctx.fillStyle = s.trim; ctx.fill();
+    ctx.lineWidth = 2.4; ctx.strokeStyle = theme.ink; ctx.stroke();
   } else if (BAG.kind === 'tote') {
     // hai quai vải vòng lên
     ctx.save(); ctx.lineCap = 'round';

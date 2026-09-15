@@ -36,4 +36,6 @@ export const BAG_KINDS = [
   { id: 'lunchbox', name: 'Hộp cơm' },
   { id: 'tote', name: 'Túi tote' },
   { id: 'backpack', name: 'Ba lô' },
+  { id: 'suitcase', name: 'Vali' },
+  { id: 'pouch', name: 'Túi du lịch nhỏ' },
 ];

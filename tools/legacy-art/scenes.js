@@ -142,6 +142,47 @@ function drawClassroom(when = 'morning') {
   }
 }
 
+/** Chương 2: góc phòng ngủ, cửa sổ nhìn ra phố, giường phía sau */
+function drawBedroom(when = 'day') {
+  const T = when === 'evening'
+    ? { wall: ['#F3E3E8', '#E6CFD8'], sky: ['#F7C98F', '#EC9B86'], floor: ['#C08A5E', '#9C6A42'], lamp: 'rgba(255,190,120,.22)' }
+    : { wall: ['#EFF1E4', '#DFE3D2'], sky: ['#BFE8F5', '#E7F5DA'], floor: ['#D8A46E', '#B57C48'], lamp: null };
+
+  const g = ctx.createLinearGradient(0, 0, 0, TABLE_Y);
+  g.addColorStop(0, T.wall[0]); g.addColorStop(1, T.wall[1]);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, TABLE_Y);
+
+  // giấy dán tường kẻ sọc dọc
+  ctx.strokeStyle = 'rgba(120,130,110,.14)'; ctx.lineWidth = 2;
+  for (let x = 14; x < W; x += 26) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, TABLE_Y); ctx.stroke(); }
+
+  drawWindow(W - 132, 96, 108, 128, T);
+
+  // đầu giường bên trái
+  rrect(ctx, -30, 168, 150, 120, 16); ctx.fillStyle = '#B98A6A'; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(70,50,40,.5)'; ctx.stroke();
+  rrect(ctx, -20, 196, 120, 44, 12); ctx.fillStyle = '#FDFBF4'; ctx.fill();
+  ctx.lineWidth = 2.4; ctx.strokeStyle = 'rgba(70,50,40,.35)'; ctx.stroke();
+
+  // đèn ngủ trên tủ đầu giường
+  rrect(ctx, 128, 232, 56, 56, 8); ctx.fillStyle = '#C9A275'; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(70,50,40,.45)'; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(142, 232); ctx.lineTo(150, 198); ctx.lineTo(178, 198); ctx.lineTo(186, 232); ctx.closePath();
+  ctx.fillStyle = '#F2C85C'; ctx.fill(); ctx.lineWidth = 2.6; ctx.strokeStyle = 'rgba(70,50,40,.5)'; ctx.stroke();
+  if (T.lamp) { ctx.fillStyle = T.lamp; ctx.beginPath(); ctx.arc(164, 236, 90, 0, Math.PI * 2); ctx.fill(); }
+
+  // sàn gỗ
+  const fg = ctx.createLinearGradient(0, TABLE_Y, 0, H);
+  fg.addColorStop(0, T.floor[0]); fg.addColorStop(1, T.floor[1]);
+  ctx.fillStyle = fg; ctx.fillRect(0, TABLE_Y, W, H - TABLE_Y);
+  ctx.strokeStyle = 'rgba(90,60,35,.18)'; ctx.lineWidth = 2;
+  for (let y = TABLE_Y + 26; y < H; y += 34) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.bezierCurveTo(W * .3, y + 4, W * .7, y - 4, W, y); ctx.stroke();
+  }
+}
+
 registerScene(1, 'Góc học tập · sáng',  () => drawClassroom('morning'));
 registerScene(2, 'Góc học tập · trưa',  () => drawClassroom('noon'));
 registerScene(3, 'Góc học tập · chiều', () => drawClassroom('dusk'));
+registerScene(4, 'Phòng ngủ · ban ngày', () => drawBedroom('day'));
+registerScene(5, 'Phòng ngủ · chiều tối', () => drawBedroom('evening'));

@@ -179,9 +179,18 @@ thành public, hoặc thêm secret `SNUG_CORE_TOKEN` có quyền Contents: Read 
 ## Script dựng content
 
 ```bash
-node build_levels.mjs     # dựng lại 10 level chương School Day từ template
-node check_levels.mjs     # kiểm tra density, Difficulty Point, solver của cả chương
+node build_levels.mjs        # dựng lại 10 level chương 1 · School Day
+node check_levels.mjs        # kiểm tra density, Difficulty Point, solver chương 1
+node build_wt_levels.mjs     # dựng lại 10 level chương 2 · Weekend Trip
+node check_wt_levels.mjs     # kiểm tra chương 2
 ```
+
+Hai chương hiện có, mỗi chương 10 level, món lấy từ sheet Level Design:
+
+| Chương | Túi | Bối cảnh | Món riêng |
+|---|---|---|---|
+| 1 · School Day | Hộp cơm, Túi tote, Ba lô | Góc học tập sáng/trưa/chiều | 30 |
+| 2 · Weekend Trip | Túi nhỏ, Ba lô, Vali | Phòng ngủ ban ngày/chiều tối | 22 mới + 8 dùng lại |
 
 Hai script này ghi vào `../snug_level_editor/content/draft/`. Phát hành thì dùng
 `node tools/publish.mjs` bên repo editor.
