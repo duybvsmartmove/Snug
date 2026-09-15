@@ -1,5 +1,11 @@
 // Tạo body Matter.js từ định nghĩa món, và dựng thế giới vật lý (tường, thành túi theo polygon, block).
 import Matter from 'matter-js';
+import * as decompNS from 'poly-decomp';
+
+// Matter chỉ dựng được hình LỒI. Không có thư viện này thì hình lõm (mặt trăng khuyết,
+// chữ U, chữ L) bị bọc thành bao lồi, phần khuyết bị lấp kín và món chiếm chỗ nhiều hơn
+// trông thấy. Đăng ký decomp thì Matter tự cắt hình lõm thành nhiều mảnh lồi ghép lại.
+Matter.Common.setDecomp(decompNS.default ?? decompNS);
 import { S, BAG, W, H, FLOOR_Y, PAD } from './state.js';
 import { polygonArea } from '../util/geom.js';
 

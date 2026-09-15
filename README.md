@@ -84,6 +84,18 @@ việc này xảy ra nhiều, ví dụ Water Bottle có mặt ở 6 chương.
 File mô tả đi kèm (`17.json`) khai báo `pixelsPerUnit`, tức ảnh lớn gấp mấy lần kích thước
 thật trong game, và `collider` là vùng va chạm. Đổi ảnh mà giữ đúng tỉ lệ thì không phải sửa gì.
 
+### Vùng va chạm bám sát hình
+
+Matter.js chỉ dựng được hình **lồi**. Không có thư viện tách hình thì mọi đa giác lõm
+bị bọc thành bao lồi: trăng khuyết, chữ C, chữ U đều bị lấp kín phần khuyết và chiếm chỗ
+nhiều hơn trông thấy.
+
+`poly-decomp` được đăng ký ngay trong `src/game/physics.js`, Matter tự cắt hình lõm thành
+nhiều mảnh lồi ghép lại. Đo bằng hình trăng khuyết: tách 16 mảnh, diện tích va chạm bằng
+đúng diện tích hình; nếu dùng khung vuông thì chiếm gấp 2,15 lần.
+
+Trong hai chương hiện có, giày thể thao là món lõm duy nhất, giờ tách thành 2 mảnh.
+
 ### Túi có ba lớp
 
 Túi không thể là một ảnh phẳng vì lòng túi đổi hình theo từng level. Mỗi kiểu túi có ba ảnh:
