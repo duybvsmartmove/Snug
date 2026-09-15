@@ -17,9 +17,10 @@ export function setContentBase(url) { BASE = url.endsWith('/') ? url : url + '/'
 const cache = new Map();
 const assetPath = src => (/^(https?:)?\/\//.test(src) ? src : BASE + src);
 
-async function getJSON(path, { fresh = false } = {}) {
-  if (!fresh && cache.has(path)) return cache.get(path);
-  const res = await fetch(BASE + path + (fresh ? `?t=${Date.now()}` : ''));
+async function getJSON(path, { fresh = false, noStore = false } = {}) {
+  if (!fresh && !noStore && cache.has(path)) return cache.get(path);
+  const res = await fetch(BASE + path + (fresh || noStore ? `?t=${Date.now()}` : ''),
+    noStore ? { cache: 'no-store' } : undefined);
   if (!res.ok) throw new Error(`Không tải được ${path} (${res.status})`);
   const data = await res.json();
   cache.set(path, data);
@@ -29,9 +30,13 @@ async function getJSON(path, { fresh = false } = {}) {
 // ---------- sắp xếp chương và level ----------
 let BOOK = null;
 
-/** Nạp file sắp xếp. Gọi một lần lúc khởi động. */
+/**
+ * Nạp file sắp xếp. LUÔN bỏ qua cache của trình duyệt: đây là file duy nhất thay đổi
+ * mỗi lần sửa level, mà GitHub Pages lại đặt max-age 600 giây nên không ép thì mười phút
+ * sau người chơi mới thấy. File chỉ khoảng 40 KB nên tải lại không đáng kể.
+ */
 export async function loadBook(opts) {
-  BOOK = await getJSON('levels.json', opts);
+  BOOK = await getJSON('levels.json', { ...opts, noStore: true });
   return BOOK;
 }
 export const book = () => BOOK;

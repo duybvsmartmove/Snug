@@ -133,6 +133,9 @@ Trang trên Pages là trang tĩnh nên không ghi file được. Editor tự dò
 | Cần token | không | có, dán một lần cho mỗi trình duyệt |
 | Người chơi thấy sau | mở lại game | khoảng 40 giây, workflow tự deploy lại |
 
+`levels.json` luôn được tải với `cache: no-store`. GitHub Pages đặt `max-age=600` cho file tĩnh,
+không ép thì mười phút sau người chơi mới thấy sắp xếp mới. File chỉ khoảng 40 KB nên không đáng kể.
+
 Trên web, nút **🔑** ở thanh trên mở hộp thoại dán token. Tạo ở **GitHub → Settings →
 Developer settings → Fine-grained tokens**, chọn đúng repo này, cấp **Contents: Read and write**.
 Token nằm trong `localStorage` của trình duyệt người dùng, chỉ gửi tới `api.github.com`,
