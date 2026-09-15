@@ -228,6 +228,11 @@ const devWriter = {
     const res = await fetch(`/__content/list?dir=${encodeURIComponent(dir)}`);
     return res.ok ? (await res.json()).files : [];
   },
+  async remove(path) {
+    const res = await fetch('/__content/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) });
+    if (!res.ok) throw new Error((await res.json()).error || 'delete failed');
+    return res.json();
+  },
 };
 
 let writer = devWriter;
@@ -241,3 +246,8 @@ export async function saveContent(path, text) {
 }
 export const saveBinary = (path, base64) => writer.saveBinary(path, base64);
 export const listContent = dir => writer.list(dir);
+export async function deleteContent(path) {
+  const r = await writer.remove(path);
+  cache.delete(path);
+  return r;
+}
