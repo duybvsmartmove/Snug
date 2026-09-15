@@ -249,6 +249,13 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
       b.append(c, s); pal.appendChild(b);
       b.addEventListener('click', () => addItem(def));
     }
+    // Lọc không ra món nào thì nói rõ, chứ để trắng trơn là tưởng hỏng
+    if (!pal.children.length) {
+      const p = document.createElement('p');
+      p.className = 'pal-empty';
+      p.textContent = q ? `Không có món nào khớp "${q}"` : 'Chương này chưa có món nào';
+      pal.appendChild(p);
+    }
   }
   $('palSearch').addEventListener('input', refreshPalette);
   $('palScope').addEventListener('change', refreshPalette);

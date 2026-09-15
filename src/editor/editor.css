@@ -201,3 +201,4 @@ button.mini.danger:hover{background:#FBEFEE}
 .publish .dot{width:8px;height:8px;border-radius:50%;background:#FFD34B;box-shadow:0 0 0 2px rgba(0,0,0,.18)}
 .publish.dirty{background:#D9822B;box-shadow:0 2px 0 #A9631C}
 .publish.dirty:hover{background:#E8913A}
+.pal-empty{grid-column:1/-1;margin:.8em .2em;color:var(--soft);font-size:.9em;line-height:1.5}

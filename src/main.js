@@ -1,12 +1,13 @@
 // Điểm vào của game. Tải content pack, dựng level, chạy loop. Nghe postMessage từ Level Editor để live preview.
 import { S } from './game/state.js';
+import { defById } from './data/items.js';
 import { resize } from './game/canvas.js';
 import { bindInput } from './game/input.js';
 import { bindBoosters } from './game/boosters.js';
 import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level.js';
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
-import { loadBook, chapters, chapterById, loadChapterAssets, whenSpriteReady } from './content/loader.js';
+import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady } from './content/loader.js';
 import { autoplay, stopAutoplay } from './game/autoplay.js';
 
 const params = new URLSearchParams(location.search);
@@ -41,7 +42,9 @@ async function boot() {
     if (m.type === 'level' && m.level) {
       S.levelIdx = m.index ?? S.levelIdx;
       if (m.chapter) S.map = { ...(S.map || {}), no: m.chapter.no, name: m.chapter.name, levels: S.map?.levels || [] };
-      build(m.level);
+      // Editor có thể vừa thêm món chưa nằm trong danh sách ảnh của chương.
+      // Không nạp ảnh trước thì món có hình vật lý mà không có gì để vẽ: chiếm chỗ mà vô hình.
+      buildWithArt(m.level);
     }
     if (m.type === 'restart') { stopAutoplay(); restart(); }
     if (m.type === 'autoplay') autoplay();
@@ -55,6 +58,14 @@ async function boot() {
   const byId = params.get('level');
   const idx = byId ? Math.max(0, S.map.levels.findIndex(l => l.id === byId)) : Number(params.get('i') || 0);
   await loadAndBuild(idx);
+}
+
+/** Dựng level trong khung xem thử, nạp trước ảnh của những món chưa có */
+async function buildWithArt(level) {
+  const missing = [...new Set((level.items || []).map(it => Number(it.id)))]
+    .filter(id => { const d = defById(id); return !d || !d.sprite; });
+  if (missing.length) await loadItemManifests(missing);
+  build(level);
 }
 
 // Hook debug ở chế độ dev: mở console gõ __game.S để xem trạng thái, __game.drag(id, x, y) để thử kéo.
