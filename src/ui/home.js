@@ -14,7 +14,31 @@ const ICON = {
   lock:   '<svg viewBox="0 0 24 24"><path d="M7 10V7.5a5 5 0 0 1 10 0V10h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zm2 0h6V7.5a3 3 0 0 0-6 0z"/></svg>',
 };
 
-let CHAPTERS = [], onPlay = () => {}, bagArt = null;
+let CHAPTERS = [], onPlay = () => {};
+
+// ---------- tra ảnh trong kho art ----------
+let INDEX = null;
+const manCache = new Map();
+
+async function assetIndex() {
+  if (!INDEX) INDEX = await (await fetch('./content/assets/index.json')).json();
+  return INDEX;
+}
+async function manifest(kind, id) {
+  const key = kind + ':' + id;
+  if (manCache.has(key)) return manCache.get(key);
+  const p = (await assetIndex())[kind]?.[id];
+  const m = p ? await (await fetch('./content/' + p)).json() : null;
+  manCache.set(key, m);
+  return m;
+}
+/** Ảnh nền của một bối cảnh; mỗi bối cảnh là một PNG phủ kín màn */
+async function bgUrl(id) {
+  try {
+    const src = (await manifest('backgrounds', id))?.layers?.[0]?.src;
+    return src ? './content/' + src : null;
+  } catch { return null; }
+}
 
 // ---------- chuyển màn ----------
 const shown = new Set();
@@ -54,6 +78,15 @@ function drawHome() {
 
   $('playLabel').textContent = done === 0 && index === 0 ? 'Bắt đầu' : 'Chơi tiếp';
   setArt(ch);
+  setCardBg(ch);
+}
+
+/** Nền thẻ chương: lấy đúng bối cảnh của chương, phủ nửa trên rồi tan dần vào nền trắng */
+async function setCardBg(ch) {
+  const el = $('homeBg');
+  const id = ch.assets?.backgrounds?.[0] ?? ch.levels?.[0]?.background;
+  const url = id == null ? null : await bgUrl(id);
+  el.style.backgroundImage = url ? `url("${url}")` : '';
 }
 
 /**
@@ -64,13 +97,8 @@ function drawHome() {
 async function setArt(ch) {
   const back = $('homeArt'), front = $('homeArt2');
   const clear = () => { back.removeAttribute('src'); front.removeAttribute('src'); };
-  const kind = ch.assets?.bags?.[0];
-  if (!kind) return clear();
   try {
-    if (!bagArt) bagArt = (await (await fetch('./content/assets/index.json')).json()).bags || {};
-    const path = bagArt[kind]; if (!path) return clear();
-    const man = await (await fetch('./content/' + path)).json();
-    const L = man.layers || {};
+    const L = await bagLayers(ch);
     if (L.body) back.src = './content/' + L.body; else back.removeAttribute('src');
     if (L.frame) front.src = './content/' + L.frame; else front.removeAttribute('src');
     if (!L.body && !L.frame) clear();
@@ -89,17 +117,23 @@ function drawMap() {
     const block = document.createElement('section');
     block.className = 'chblock' + (open ? '' : ' locked');
     block.style.animationDelay = (ci * .07) + 's';
+    // Dải ảnh đầu mỗi chương: chính bối cảnh của chương đó, chữ nằm trên lớp phủ tối
     block.innerHTML = `
-      <div class="chblock-head">
-        <span class="chblock-no">CHƯƠNG ${ch.no || ci + 1}</span>
+      <div class="chbanner">
+        <div class="chbanner-img"></div>
+        <div class="chbanner-txt">
+          <span class="chblock-no">CHƯƠNG ${ch.no || ci + 1}</span>
+          <h3>${esc(ch.name || '')}</h3>
+        </div>
         <span class="done">${done}/${total}</span>
-      </div>
-      <h3>${esc(ch.name || '')}</h3>`;
+      </div>`;
+    paintBanner(block.querySelector('.chbanner-img'), ch);
 
+    const body = document.createElement('div');
+    body.className = 'chbody';
     if (!open) {
       const prev = CHAPTERS[ci - 1];
-      block.insertAdjacentHTML('beforeend',
-        `<div class="lockmsg">${ICON.lock}Xong Chương ${prev?.no || ci} để mở</div>`);
+      body.innerHTML = `<div class="lockmsg">${ICON.lock}Xong Chương ${prev?.no || ci} để mở</div>`;
     } else {
       const grid = document.createElement('div');
       grid.className = 'lvgrid';
@@ -114,10 +148,30 @@ function drawMap() {
         else b.addEventListener('click', () => { sfx('tapBig'); play(ch, i); });
         grid.appendChild(b);
       });
-      block.appendChild(grid);
+      body.appendChild(grid);
     }
+    block.appendChild(body);
     list.appendChild(block);
   });
+}
+
+/** Ảnh dải đầu chương */
+async function paintBanner(el, ch) {
+  const id = ch.assets?.backgrounds?.[0] ?? ch.levels?.[0]?.background;
+  const url = id == null ? null : await bgUrl(id);
+  if (url) el.style.backgroundImage = `url("${url}")`;
+}
+
+/**
+ * Ba lớp ảnh của chiếc túi mà chương dùng. Lấy theo MÀN ĐẦU chương chứ không lấy
+ * assets.bags[0]: danh sách đó xếp theo mục lục art nên cả hai chương đều ra ba lô,
+ * trong khi túi thật của màn đầu là hộp cơm và túi rút.
+ * Lớp thân chỉ là cái bóng trơn, phải chồng thêm lớp khung mới ra hình túi hoàn chỉnh.
+ */
+async function bagLayers(ch) {
+  const kind = ch.levels?.[0]?.container?.skin || ch.assets?.bags?.[0];
+  if (!kind) return {};
+  return (await manifest('bags', kind))?.layers || {};
 }
 
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

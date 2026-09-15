@@ -182,11 +182,20 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 
 /* thẻ chương: cho biết đang ở chương nào, đã qua bao nhiêu màn */
 .chcard{
-  position:relative;width:100%;background:var(--card);border-radius:1.5em;
+  position:relative;width:100%;background:var(--card);border-radius:1.5em;overflow:hidden;
   padding:1em 1.15em 1.05em;text-align:center;
   box-shadow:0 6px 0 rgba(59,42,74,.10), 0 16px 34px rgba(59,42,74,.18);
   animation:floaty 5s ease-in-out infinite;
 }
+/* Ảnh bối cảnh của chương phủ nửa trên thẻ rồi tan dần vào nền trắng,
+   để phần chữ bên dưới vẫn đọc rõ mà thẻ không còn trắng trơn. */
+.chcard-bg{
+  position:absolute;left:0;right:0;top:0;height:68%;
+  background-size:cover;background-position:center 17%;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 100%);
+}
+.chcard > :not(.chcard-bg){position:relative;z-index:1}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-.4em)}}
 /* Ô ảnh cao cố định, ảnh luôn co vừa bên trong: sprite gốc cả nghìn pixel,
    để tự do là nó tràn xuống đè mất tên chương. */
@@ -197,7 +206,8 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @keyframes bobArt{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-.35em) rotate(1.5deg)}}
 .chcard-art img:not([src]),.chcard-art img[src=""]{display:none}
 .chcard-no{font:800 .6em "Nunito";letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
-.chcard-name{font-family:"Fredoka";font-weight:700;font-size:1.5em;line-height:1.15;color:var(--ink);margin:.05em 0 .5em}
+.chcard-name{font-family:"Fredoka";font-weight:700;font-size:1.5em;line-height:1.15;color:var(--ink);margin:.05em 0 .5em;
+  text-shadow:0 2px 0 rgba(255,255,255,.7)}
 .bar{height:.62em;border-radius:999px;background:#EDE2E8;overflow:hidden;box-shadow:inset 0 2px 3px rgba(59,42,74,.12)}
 .bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--rose));
   transition:width .7s cubic-bezier(.2,.9,.3,1)}
@@ -246,36 +256,54 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .mlist::-webkit-scrollbar{width:.4em}
 .mlist::-webkit-scrollbar-thumb{background:rgba(59,42,74,.18);border-radius:999px}
 
-.chblock{background:var(--card);border-radius:1.25em;padding:.9em 1em 1em;
+.chblock{background:var(--card);border-radius:1.25em;overflow:hidden;
   box-shadow:0 4px 0 rgba(59,42,74,.07), 0 10px 22px rgba(59,42,74,.10);
   animation:riseIn .42s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes riseIn{from{opacity:0;transform:translateY(1.2em)}to{opacity:1;transform:none}}
-.chblock.locked{opacity:.62}
-.chblock-head{display:flex;align-items:baseline;gap:.5em;margin-bottom:.1em}
-.chblock-no{font:800 .6em "Nunito";letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft)}
-.chblock-head .done{margin-left:auto;font:800 .7em "Nunito";color:var(--mint)}
-.chblock h3{margin:0 0 .55em;font-family:"Fredoka";font-weight:700;font-size:1.22em;color:var(--ink)}
+.chblock.locked{opacity:.72}
+.chblock.locked .chbanner-img{filter:grayscale(.88) brightness(.92)}
+.chbody{padding:.8em 1em 1em}
+
+/* Dải ảnh đầu mỗi chương: ảnh bối cảnh thật, chữ trắng nằm trên lớp phủ tối
+   để đọc được dù ảnh sáng hay tối. */
+.chbanner{position:relative;height:6.4em;display:flex;align-items:flex-end;padding:.7em .9em;isolation:isolate}
+/* Cắt đúng dải có cửa sổ và đồng hồ; thấp hơn nữa là chỉ còn tường trống. */
+.chbanner-img{position:absolute;inset:0;background:#E7DACB center 14%/cover no-repeat}
+.chbanner::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(35,24,44,.04) 0%,rgba(35,24,44,.14) 38%,rgba(35,24,44,.70) 100%)}
+.chbanner-txt{position:relative;z-index:2;max-width:82%}
+.chbanner .chblock-no{color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.chbanner h3{margin:0;font-family:"Fredoka";font-weight:700;font-size:1.3em;color:#fff;
+  text-shadow:0 2px 6px rgba(0,0,0,.5);line-height:1.15}
+.chbanner .done{position:absolute;z-index:2;top:.65em;left:.9em;
+  font:800 .68em "Nunito";color:#fff;background:rgba(35,24,44,.46);backdrop-filter:blur(4px);
+  border-radius:999px;padding:.2em .7em}
+.chblock-no{font:800 .6em "Nunito";letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);display:block}
 .chblock .lockmsg{font:800 .72em "Nunito";color:var(--ink-soft);display:flex;align-items:center;gap:.35em}
 .chblock .lockmsg svg{width:1em;height:1em;fill:currentColor}
 
 .lvgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:.5em}
 .lv{
-  position:relative;aspect-ratio:1;border:0;border-radius:.8em;cursor:pointer;
+  position:relative;aspect-ratio:1;border:0;border-radius:.8em;cursor:pointer;overflow:hidden;
   font:800 1.05em "Fredoka";display:grid;place-items:center;-webkit-tap-highlight-color:transparent;
   background:#F1E7DC;color:var(--ink-soft);box-shadow:0 3px 0 rgba(59,42,74,.10);
   animation:popIn .3s cubic-bezier(.2,.9,.3,1.5) both;
 }
+/* Vệt sáng mỏng ở mép trên cho ô có khối, không phẳng lì */
+.lv::before{content:"";position:absolute;left:0;right:0;top:0;height:42%;
+  background:linear-gradient(180deg,rgba(255,255,255,.28),transparent);pointer-events:none}
+.lv > span{position:relative;z-index:1}
 @keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 .lv:active{transform:translateY(3px);box-shadow:none}
 .lv.open{background:var(--card);color:var(--ink);box-shadow:0 3px 0 rgba(59,42,74,.14)}
 .lv.done{background:var(--mint);color:#fff;box-shadow:0 3px 0 #3F9077}
-.lv.done::after{content:"";position:absolute;right:.2em;top:.16em;width:.5em;height:.5em;border-radius:50%;
+.lv.done::after{content:"";position:absolute;z-index:2;right:.2em;top:.16em;width:.5em;height:.5em;border-radius:50%;
   background:#fff;box-shadow:0 0 0 .1em rgba(63,144,119,.35)}
 .lv.now{background:var(--rose);color:#fff;box-shadow:0 3px 0 #B94B64;animation:popIn .3s cubic-bezier(.2,.9,.3,1.5) both, nowPulse 1.6s ease-in-out infinite .35s}
 @keyframes nowPulse{0%,100%{box-shadow:0 3px 0 #B94B64, 0 0 0 0 rgba(226,99,127,.5)}50%{box-shadow:0 3px 0 #B94B64, 0 0 0 .55em rgba(226,99,127,0)}}
 .lv.lock{color:#C4B5AE;cursor:not-allowed}
 .lv.lock span{display:none}
-.lv.lock::before{content:"";width:.95em;height:.95em;background:currentColor;
+.lv.lock::after{content:"";position:relative;z-index:1;width:.95em;height:.95em;background:currentColor;
   -webkit-mask:var(--lockmask) center/contain no-repeat;mask:var(--lockmask) center/contain no-repeat}
 .lv:disabled:active{transform:none;box-shadow:0 3px 0 rgba(59,42,74,.10)}
 :root{--lockmask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10V7.5a5 5 0 0 1 10 0V10h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zm2 0h6V7.5a3 3 0 0 0-6 0z'/></svg>")}
