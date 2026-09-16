@@ -63,6 +63,7 @@ async function boot() {
     const ch = chapterById(params.get('map') || chapters()[0]?.id);
     S.mapId = ch.id; S.map = ch;
     await loadChapterAssets(ch);
+    donNutKhongDungCho();
     window.parent.postMessage({ type: 'ready' }, '*');
     return;
   }
@@ -90,6 +91,19 @@ async function startLevel(ch, idx) {
   await initAudio();
   startMusic();
   await loadAndBuild(idx);
+}
+
+/**
+ * Khung xem thử trong editor chỉ có MỘT level: cái đang sửa, do editor gửi sang.
+ * Những nút đưa người chơi đi chỗ khác không có chỗ ở đây — "Về trang chủ" mở ra một
+ * màn Home rỗng vì danh sách chương chưa bao giờ được dựng, còn "Level tiếp" thì nhảy
+ * sang một level đã lưu, người dựng mất luôn thứ đang làm dở.
+ */
+function donNutKhongDungCho() {
+  for (const id of ['homeBtn', 'winHome', 'loseHome', 'next']) {
+    const el = document.getElementById(id); if (el) el.hidden = true;
+  }
+  document.querySelectorAll('.lvnav').forEach(el => { el.hidden = true; });
 }
 
 /** Về trang chủ: dừng ván đang chơi lại, không tính là thua */
