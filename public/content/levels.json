@@ -1,6 +1,6 @@
 {
-  "version": 30,
-  "publishedAt": "2026-09-16T09:42:26.748Z",
+  "version": 31,
+  "publishedAt": "2026-09-16T09:43:27.964Z",
   "chapters": [
     {
       "id": "school-day",
@@ -172,14 +172,6 @@
               ],
               [
                 99.5,
-                -48
-              ],
-              [
-                39.5,
-                -48
-              ],
-              [
-                39.5,
                 0
               ],
               [
@@ -229,7 +221,7 @@
             }
           ],
           "reward": {
-            "coin": 25
+            "coin": 20
           },
           "difficulty": {
             "points": 6,
