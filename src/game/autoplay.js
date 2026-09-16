@@ -12,8 +12,13 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 let running = false;
 export const isAutoplaying = () => running;
 
+// Nhịp của máy tự chơi, tính bằng mili giây.
+// "nghi" là quãng chờ cho món vừa thả lắng xuống trước khi đặt món tiếp: rút quá tay
+// thì món sau đè lên món trước lúc nó còn đang xê dịch, máy xếp được ít đi.
+const NHIP = { moDau: 300, bay: 210, nghi: 110, ketThuc: 420 };
+
 /** Đưa món từ chỗ hiện tại tới đích theo đường cong, trong lúc đó món không va chạm với ai */
-async function moveTo(body, tx, ty, targetAngle, ms = 320) {
+async function moveTo(body, tx, ty, targetAngle, ms = NHIP.bay) {
   const sx = body.position.x, sy = body.position.y, sa = body.angle;
   const t0 = performance.now();
   for (;;) {
@@ -37,12 +42,12 @@ export async function autoplay() {
   // máy nhấc đi đặt, mà nó chưa được vẽ nên nhìn như biến mất. Cho vào sân hết trước đã.
   for (const b of S.bodies) if (b.chuaVao) { b.chuaVao = false; World.add(S.world, b); }
 
-  const sol = solve(S.LEVEL, { tries: 200 });
+  const sol = solve(S.LEVEL, { tries: 300 });   // chỉ ~50ms, đáng để lấy cách xếp gọn nhất
   const plan = sol.plan || [];
   if (!plan.length) { running = false; return toast('Không tìm được cách xếp nào', 2500); }
 
   toast(sol.solvable ? 'Tự chơi: máy xếp được hết' : `Tự chơi: máy chỉ xếp được ${sol.placedCount}/${sol.needCount}`, 2600);
-  await wait(500);
+  await wait(NHIP.moDau);
 
   for (const step of plan) {
     if (!running) break;
@@ -57,13 +62,13 @@ export async function autoplay() {
 
     World.remove(S.world, body);                       // nhấc lên: tạm rời khỏi thế giới vật lý
     Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
-    await moveTo(body, step.x, step.y, step.rotated ? Math.PI / 2 : 0);
+    await moveTo(body, step.x, step.y, step.angle || 0);
     World.add(S.world, body);                          // thả xuống
     Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
-    await wait(170);                                   // chờ đồ ổn định trước khi xếp món tiếp
+    await wait(NHIP.nghi);                             // chờ đồ ổn định trước khi xếp món tiếp
   }
 
-  await wait(600);
+  await wait(NHIP.ketThuc);
   if (running) {
     const left = S.ITEMS.filter(d => !S.checked.has(d.id)).length;
     toast(left ? `Tự chơi xong · còn ${left} món chưa vào túi` : 'Tự chơi xong · vừa khít!', 3000);

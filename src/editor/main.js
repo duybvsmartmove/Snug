@@ -192,7 +192,9 @@ $('ghForget').addEventListener('click', () => {
 function metrics() {
   const L = E.level; if (!L) return;
   const d = difficulty(L, areaOf);
-  const sol = L.items.length ? solve(L, { tries: 40 }) : { solvable: true, tries: 0, needCount: 0 };
+  // 150 lần thử tốn chừng 25ms, để bảng Kiểm tra trong editor ra đúng kết luận
+  // như công cụ check_levels chứ không phải một con số dễ dãi hơn.
+  const sol = L.items.length ? solve(L, { tries: 150 }) : { solvable: true, tries: 0, needCount: 0 };
   const sv = $('solvable');
   if (!L.items.length) { sv.textContent = 'Chưa có món'; sv.className = 'solv'; }
   else if (sol.solvable) { sv.textContent = `Xếp được · ${sol.needCount}/${sol.needCount} món, sau ${sol.tries} lần thử`; sv.className = 'solv ok'; }
