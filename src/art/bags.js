@@ -23,11 +23,29 @@ function drawLayer(img, m) {
   return true;
 }
 
+// Bóng túi đổ xuống sàn. Trước đây là một hình bầu dục đặc bôi qua ctx.filter='blur(6px)';
+// bộ lọc canvas bắt trình duyệt dựng riêng một lớp rồi làm mờ thật, lại làm mỗi khung
+// hình, và trên máy Android tầm trung một mình nó đã ăn vài mili giây mỗi frame. Vệt
+// chuyển màu cho ra đúng mảng mờ ấy mà không tốn gì; bảng màu tạo một lần rồi dùng lại.
+let bagShadow = null, bagShadowR = 0;
+function drawBagShadow() {
+  const rx = (BAG.BR - BAG.BL) / 2 + 14;
+  if (!bagShadow || bagShadowR !== rx) {
+    bagShadow = ctx.createRadialGradient(0, 0, rx * .45, 0, 0, rx);
+    bagShadow.addColorStop(0, 'rgba(60,45,35,.30)');
+    bagShadow.addColorStop(1, 'rgba(60,45,35,0)');
+    bagShadowR = rx;
+  }
+  ctx.save();
+  ctx.translate(BAG.cx + 3, BAG.BB + 10); ctx.scale(1, 19 / rx);
+  ctx.fillStyle = bagShadow;
+  ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
 export function drawBag() {
   const s = bagSkin(); if (!s) return;
-  // bóng đổ xuống sàn
-  ctx.save(); ctx.filter = 'blur(6px)'; ctx.fillStyle = 'rgba(60,45,35,.3)';
-  ctx.beginPath(); ctx.ellipse(BAG.cx + 3, BAG.BB + 10, (BAG.BR - BAG.BL) / 2 + 8, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  drawBagShadow();
 
   drawLayer(s.img?.body, s.margin);
 
@@ -74,7 +92,7 @@ function drawEmptyLabel() {
   if (anyInside) return;
   ctx.save();
   ctx.globalAlpha = .55; ctx.fillStyle = BAG.kind === 'backpack' ? '#C9D2F5' : '#8A7358';
-  ctx.font = '600 15px Fredoka, Nunito, sans-serif';
+  ctx.font = '600 15px "Baloo 2", Nunito, sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(S.LEVEL.emptyText || 'Xếp đồ vào đây nào!', BAG.cx, (BAG.top + BAG.bottom) / 2);
   ctx.restore();

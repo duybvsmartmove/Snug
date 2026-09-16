@@ -46,6 +46,7 @@ export function pickUp(body, p) {
   S.luuTui = null;          // bỏ ảnh chụp của lần thả trước, sắp có lần thả mới
   const group = groupOf(body);
   for (const b of group) {
+    b.giuToi = 0;                    // đang giữ góc mà được nhấc lên thì thôi giữ
     if (b.isStatic) Body.setStatic(b, false);
     Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
     World.remove(S.world, b);
@@ -76,14 +77,28 @@ function syncGroup(d) {
   }
 }
 
-// Khi kéo, món được nhấc lên cao hơn điểm chạm để ngón tay không che mất nó.
-// Mức nhấc tính theo chính món chứ không dùng một con số cố định: lòng túi chỉ cao
-// hơn trăm đơn vị, một mức cố định lớn sẽ hất món văng khỏi miệng túi ngay khi vừa chạm,
-// trong khi cũng mức đó ở khay dưới lại trông bình thường vì chỗ trống rộng.
-const LIFT_MIN = 12, LIFT_MAX = 34;
+// Khi kéo, món được nhấc hẳn LÊN TRÊN ngón tay. Món này phải xếp khít vào từng khe hở
+// trong túi, nên lúc ướm người chơi cần nhìn thấy trọn cả món lẫn chỗ trống quanh nó;
+// che mất một góc là mất luôn thứ duy nhất giúp ngắm.
+//
+// Mốc đo là ĐÁY món, không phải tâm món. Trước đây mức nhấc tính theo phần trăm chiều
+// cao rồi cộng vào tâm, mà tâm cách đáy đúng nửa chiều cao — nhấc 0.55 chiều cao thì đáy
+// món chỉ nhích khỏi ngón có 5% chiều cao, tức là vẫn nằm trong vệt ngón tay. Món càng
+// to lỗi càng nặng, mà món to lại đúng là món khó ướm nhất.
+//
+// Mức nhấc KHÔNG phụ thuộc món đang xoay thế nào. Đo bằng bounds của Matter thì tiện,
+// nhưng bounds ôm theo góc xoay hiện thời: cùng một món, nằm ngay ngắn dưới sàn thì bề
+// cao là một đằng, đã xoay ngang trong túi lại là một nẻo, và người chơi thấy món lúc
+// nhấc cao lúc nhấc thấp không theo lý gì cả. Lấy nửa CẠNH DÀI của khung món: con số
+// này không đổi dù món quay kiểu gì, nên một món luôn nhấc đúng một mức, và xoay ngang
+// rồi thì món vẫn nằm trọn trên ngón.
+const HO_NGON_TAY = 46;   // khoảng hở từ chỗ ngón chạm lên tới mép dưới món
+const LIFT_MAX = 150;     // chặn trên, phòng món quá khổ bị nhấc vọt khỏi màn hình
 function liftOf(b) {
-  const box = b.def?.box; if (!box) return LIFT_MIN;
-  return Math.max(LIFT_MIN, Math.min(LIFT_MAX, (box[3] - box[1]) * (b.artScale || 1) * .45));
+  const box = b.def?.box;
+  const r = box ? Math.max(box[2] - box[0], box[3] - box[1]) * (b.artScale || 1) / 2
+                : (b.bounds?.max.y ?? b.position.y) - b.position.y;
+  return Math.min(LIFT_MAX, r + HO_NGON_TAY);
 }
 
 /** Gọi mỗi frame trước Engine.update */
@@ -92,9 +107,14 @@ export function moveHeld(dt = 16) {
   const b = d.body;
   d.lift += (d.liftTo - d.lift) * .25;          // dâng dần, món theo ngón lên chứ không nhảy cóc
   if (b.pop != null && b.pop < 1) b.pop = Math.min(1, b.pop + dt / 220);
+  // Món đặt ĐÚNG chỗ ngón tay, không đuổi theo sau.
+  // Trước đây mỗi khung hình chỉ đi 55% quãng đường còn lại. Đứng yên thì không ai thấy,
+  // nhưng kéo nhanh là món tụt lại một khoảng tỉ lệ với tốc độ — càng vung tay nhanh càng
+  // xa ngón, dừng lại nó mới bò về. Món đang cầm đã bị gỡ khỏi thế giới vật lý rồi, không
+  // có gì để nó phải đi từ từ: đặt thẳng vào vị trí ngón là hết trượt.
   const want = Vector.sub(d.target, Vector.rotate(d.offsetLocal, b.angle));
   want.y -= d.lift;
-  Body.setPosition(b, { x: b.position.x + (want.x - b.position.x) * .55, y: b.position.y + (want.y - b.position.y) * .55 });
+  Body.setPosition(b, want);
   syncGroup(d);
   d.ghost = d.group.some(x => computeGhost(x, d.group));
   if (!d.ghost) d.lastValid = { x: b.position.x, y: b.position.y, angle: b.angle };
@@ -146,6 +166,39 @@ export function drop() {
 // giống cách xoay ảnh trong các app dựng video. Thả ngón là dừng ở đúng góc đó.
 let spin = null;   // { body, id, startAngle, startPointer, moved }
 
+// Xoay xong buông tay thì món ĐỨNG IM một nhịp, giữ nguyên góc vừa canh.
+//
+// Không có nhịp này thì vật lý nhận lại món ngay khi ngón rời màn, và món có đáy cong —
+// quả chuối là ví dụ rõ nhất — lăn về thế nằm của nó trong chớp mắt. Người chơi xoay
+// xong, chưa kịp đặt ngón xuống để kéo đi thì góc vừa canh đã mất, phải xoay lại từ đầu.
+// Một giây đủ để với tay tới món, mà chưa đủ lâu để thành ra món treo lơ lửng.
+const GIU_SAU_XOAY = 1000;
+
+function giuGocSauXoay(b) {
+  if (b.isStatic) return;          // món vốn đã đứng yên sẵn thì không có gì để giữ
+  Body.setVelocity(b, { x: 0, y: 0 });
+  Body.setAngularVelocity(b, 0);
+  Body.setStatic(b, true);
+  b.giuToi = performance.now() + GIU_SAU_XOAY;
+}
+
+/** Hết nhịp giữ thì trả món lại cho vật lý */
+function thaGocDaGiu() {
+  const now = performance.now();
+  for (const b of S.bodies) {
+    if (!b.giuToi) continue;
+    // Luật đẩy-ra-khỏi-túi đếm số khung hình món nằm im mà vẫn chòi mép túi. Món đang bị
+    // đóng băng thì khung nào cũng "nằm im", để nguyên là xoay hơi lâu một chút đã bị
+    // hất ra khay. Mấy khung này không tính.
+    b.stuck = 0;
+    if (now < b.giuToi) continue;
+    b.giuToi = 0;
+    Body.setStatic(b, false);
+    Body.setVelocity(b, { x: 0, y: 0 });
+    Body.setAngularVelocity(b, 0);
+  }
+}
+
 function beginSpin(body, p, pointerId) {
   spin = {
     body, id: pointerId, moved: false,
@@ -169,10 +222,10 @@ function moveSpin(p) {
 
 export const isSpinning = () => !!spin;
 
-/** Giữ món đang xoay đứng yên, không để vật lý quay tiếp */
+/** Giữ món đang xoay đứng yên, và trả lại cho vật lý những món đã hết nhịp giữ */
 export function tickRotation() {
-  if (!spin) return;
-  Body.setAngularVelocity(spin.body, 0);
+  if (spin) Body.setAngularVelocity(spin.body, 0);
+  thaGocDaGiu();
 }
 
 function hitRotateButton(p) {
@@ -220,7 +273,8 @@ function onMove(e) {
 
 function onUp(e) {
   if (spin && e.pointerId === spin.id) {
-    if (!spin.moved && !hitRotateButton(toLogical(e))) S.selected = null;   // chạm chỗ trống, không kéo → bỏ chọn
+    if (spin.moved) giuGocSauXoay(spin.body);                               // giữ nguyên góc vừa canh một nhịp
+    else if (!hitRotateButton(toLogical(e))) S.selected = null;             // chạm chỗ trống, không kéo → bỏ chọn
     spin = null;
     return;
   }

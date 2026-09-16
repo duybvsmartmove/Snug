@@ -1,7 +1,7 @@
 // Vòng lặp game: cập nhật vật lý + cơ chế + timer, rồi vẽ bối cảnh → túi → đồ → dây → khung túi → hiệu ứng.
 import Matter from 'matter-js';
-import { S, BAG, W, H, partsOf, isHeld } from './state.js';
-import { ctx } from './canvas.js';
+import { S, BAG, partsOf, isHeld } from './state.js';
+import { ctx, VIEW } from './canvas.js';
 import { drawScene } from '../art/scenes.js';
 import { drawBag, drawBagFront } from '../art/bags.js';
 import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js';
@@ -16,6 +16,12 @@ const { Engine } = Matter;
 // Mở game kèm ?colliders=1 để xem vùng va chạm vẽ chồng lên ảnh —
 // cách nhanh nhất để soi ảnh và vùng va chạm có khớp nhau không.
 const HIEN_COLLIDER = new URLSearchParams(location.search).get('colliders') === '1';
+
+/** Nền trơn cho lúc chưa có gì để vẽ, cùng tông với trang chủ */
+export function xoaNen() {
+  ctx.fillStyle = '#EADFD6';
+  ctx.fillRect(VIEW.x0, VIEW.y0, VIEW.x1 - VIEW.x0, VIEW.y1 - VIEW.y0);
+}
 
 function strokeShape(b, grow = 1) {
   for (const p of partsOf(b)) {
@@ -40,7 +46,7 @@ function drawBody(b) {
   const shake = ghost ? (Math.random() - .5) * 2.5 : 0;   // GDD: không vừa → rung nhẹ
   ctx.save();
   if (ghost) ctx.globalAlpha = .6;
-  else if (held) { ctx.shadowColor = 'rgba(59,42,74,.4)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 10; }
+  else if (held) { ctx.shadowColor = 'rgba(59,42,74,.4)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 8; }
   ctx.translate(b.position.x + shake, b.position.y); ctx.rotate(b.angle);
   // vừa nhấc lên thì phồng ra một nhịp rồi về cỡ cũ, cho cảm giác món rời khỏi mặt bàn
   const pop = held && b.pop != null && b.pop < 1 ? 1 + Math.sin(b.pop * Math.PI) * .09 : 1;
@@ -52,7 +58,10 @@ function drawBody(b) {
   if (held) { // GDD: vừa → viền xanh sáng, không vừa → đỏ
     ctx.save(); ctx.lineJoin = 'round';
     if (ghost) { ctx.strokeStyle = '#E5484D'; ctx.lineWidth = 3.5; ctx.setLineDash([7, 5]); }
-    else { ctx.strokeStyle = '#3DDC84'; ctx.lineWidth = 3.5; ctx.shadowColor = '#3DDC84'; ctx.shadowBlur = 14; }
+    // Viền xanh trước đây có thêm quầng sáng bằng shadowBlur. Đó là lần làm mờ THỨ HAI
+    // trong cùng một khung hình, trên một đường viền nhiều đỉnh, và nó chỉ chạy đúng lúc
+    // người chơi đang kéo — tức đúng lúc cần mượt nhất. Viền dày và đậm hơn nói cùng một điều.
+    else { ctx.strokeStyle = '#3DDC84'; ctx.lineWidth = 4.5; }
     strokeShape(b, 2);
     ctx.restore();
   } else if (ok) {
@@ -136,15 +145,19 @@ function frame(now) {
   const dt = Math.min(now - last, 33); last = now;
   const active = !S.won && !S.lost && !S.paused && S.engine;
 
-  if (S.engine) {
+  // Chưa có level thì canvas vẫn phải có màu. Ngữ cảnh dựng với alpha:false nên canvas
+  // chưa vẽ gì là một mảng ĐEN đặc, không phải trong suốt — đó chính là màn đen chớp lên
+  // lúc mở app và mỗi lần về trang chủ.
+  if (!S.engine) { xoaNen(); requestAnimationFrame(frame); return; }
+
+  {
     if (active) moveHeld(dt);
     if (active) { tickEntrance(); tickPhone(dt); tickRotation(dt); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt); }
     checkEject();
     updateChecked();
     updateClock();
 
-    ctx.clearRect(0, 0, W, H);
-    drawScene();
+    drawScene();          // phủ kín canvas, không cần xoá trước
 
     // Lắc túi: chỉ hình chiếc túi rung, đồ bên trong nhảy theo lực vật lý
     const jig = active ? jiggleOffset(dt) : null;
