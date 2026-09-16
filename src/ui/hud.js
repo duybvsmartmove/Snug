@@ -77,28 +77,75 @@ function renderStars(sao) {
 }
 
 /**
- * Bảng điểm màn thắng. Mỗi dòng là một thứ người chơi tác động được, để lần sau
- * biết mình thua ở đâu mà sửa: xếp chưa gọn, hay chỉ là chậm giờ.
+ * Thứ hạng so với "người chơi khác".
+ *
+ * ĐỌC KỸ TRƯỚC KHI SỬA: con số này KHÔNG phải số liệu thật. Game chạy trọn trên máy,
+ * không có máy chủ nào thu điểm của ai, nên không có phân bố điểm nào để so. Đây là một
+ * con số dựng ra từ chính ván vừa chơi, đặt theo yêu cầu thiết kế, để người chơi thấy
+ * ván của mình có giá. Đừng đem nó đi làm thống kê, báo cáo hay quảng cáo.
+ *
+ * Dựng từ hai thứ người chơi vừa làm: điểm (nặng hơn) và thời gian còn dư. Hàm luỹ thừa
+ * .8 làm khúc trên thoải ra, nên muốn chạm 99% phải gần như hoàn hảo chứ không phải thắng
+ * là được. Không có ngẫu nhiên: cùng một ván thì luôn ra cùng một số, chơi lại y hệt mà
+ * số nhảy lung tung thì lộ ngay là bịa.
+ *
+ * Muốn thành số thật: gửi { màn, điểm, thời gian } lên máy chủ, đọc về phân vị thật của
+ * màn đó, rồi thay nguyên hàm này.
+ */
+const PCT_MIN = 60, PCT_MAX = 99;
+const BAO_HOA = .85;   // mức pha điểm+thời gian coi như đã kịch trần
+function thuHang(d) {
+  const kep = (v, a, b) => Math.max(a, Math.min(b, v));
+  const diem = kep((d.diem || 0) / 100, 0, 1);
+  const nhanh = d.tongGiay > 0 ? kep(1 - d.dungGiay / d.tongGiay, 0, 1) : .5;
+  // Chia cho BAO_HOA: trọn 100 điểm mà vẫn dùng hết giờ thì phần pha mới chỉ tới .8,
+  // không chia thì 99% thành con số không ai với tới và cả thang dồn hết vào khúc 90.
+  const t = kep((diem * .8 + nhanh * .2) / BAO_HOA, 0, 1);
+  // Nhích nhẹ theo từng màn cho dãy số đỡ lặp đúng một mẫu. Nhân (1 - t) để ván gần
+  // hoàn hảo không bị cái nhích này kéo tụt khỏi mốc 99.
+  const nhich = ((S.LEVEL?.id || '').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 97, 7) % 5) - 2;
+  const pct = PCT_MIN + Math.pow(t, 1.2) * (PCT_MAX - PCT_MIN) + nhich * (1 - t);
+  return kep(Math.round(pct), PCT_MIN, PCT_MAX);
+}
+
+/**
+ * Danh hiệu của ván vừa thắng.
+ *
+ * Khác với con số phần trăm ở trên, danh hiệu dựa trên số liệu THẬT: d.tiLeGon là mức
+ * khít của người chơi so với cách xếp tốt nhất máy tìm được cho chính màn này (score.js
+ * đo sẵn). Mỗi màn có một trần khít riêng — bộ đồ càng tròn thì trần càng thấp — nên
+ * danh hiệu phản ánh đúng cái khó của màn vừa chơi.
+ */
+function danhGia(d) {
+  const p = Math.round((d.tiLeGon || 0) * 100);
+  const hang = p >= 99 ? 'Hoàn hảo!'
+    : p >= 93 ? 'Khít như in!'
+    : p >= 84 ? 'Cực gọn!'
+    : p >= 72 ? 'Gọn gàng!'
+    : 'Vừa khít!';
+  return { hang, khoe: `Bạn vừa vượt <b>${thuHang(d)}%</b> người chơi ở màn này` };
+}
+
+/**
+ * Bảng thắng. Trước đây là bốn thanh tiến độ, một dòng tổng điểm và một dòng mô tả —
+ * sáu con số cho cùng một câu hỏi duy nhất "mình xếp có khéo không". Người chơi vừa ăn
+ * mừng xong thì không ngồi đọc bảng thống kê. Giữ một câu nói rõ vừa làm được gì, ba
+ * con số phụ thu thành ba ô nhỏ bên dưới.
  */
 function renderScore(d) {
   const el = $('winScore'); if (!el || !d) return;
-  const dong = (ten, tiLe, chu, am) =>
-    `<div class="srow"><span>${ten}</span><span class="bar"><i class="${am ? 'warm' : ''}" data-w="${Math.round(tiLe * 100)}"></i></span><b>${chu}</b></div>`;
-  el.innerHTML =
-    `<div class="tong">Điểm <b>${d.diem}</b> / 100</div>` +
-    // Hiện mức so với cách xếp tốt nhất của màn này, không hiện con số đã quy đổi ra điểm:
-    // "xếp gọn 88%" nghĩa là gần bằng mức khít nhất màn này cho phép, dễ hiểu hơn nhiều.
-    dong('Xếp gọn', d.tiLeGon, `${Math.round(d.tiLeGon * 100)}%`) +
-    dong('Chỗ trống thừa', d.trong, `${Math.round(d.trong * 100)}%`, true) +
-    dong('Thời gian', d.thoiGian, giay(d.tongGiay - d.dungGiay)) +
-    dong('Booster', d.tietKiem, `${d.dungBooster}/${d.tongBooster}`);
-  // đặt trễ một nhịp để các thanh chạy từ trái sang thay vì hiện sẵn
-  requestAnimationFrame(() => el.querySelectorAll('.bar i').forEach(i => { i.style.width = i.dataset.w + '%'; }));
-
+  const o = (so, ten) => `<div class="chip"><b>${so}</b><span>${ten}</span></div>`;
+  el.innerHTML = o(d.diem, 'điểm') + o(giay(d.dungGiay), 'thời gian') + o(`${d.dungBooster}/${d.tongBooster}`, 'booster');
   renderStars(d.sao);
 }
 
-export function showWin(text, diem) { $('winText').textContent = text; renderScore(diem); show('win'); }
+export function showWin(diem) {
+  const { hang, khoe } = danhGia(diem || {});
+  $('winRank').textContent = hang;
+  $('winText').innerHTML = khoe;
+  renderScore(diem);
+  show('win');
+}
 export function hideWin() { hide('win'); }
 export function showLose() {
   const left = S.ITEMS.length - S.checked.size;

@@ -224,8 +224,6 @@ export function bindImpacts() {
   });
 }
 
-const fmt = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
-
 // Số khung hình liên tiếp cần có trước khi đổi kết luận "món đã nằm gọn trong túi".
 // Khoảng 60 khung một giây, nên đây là chừng 0,07 giây để vào và 0,3 giây để bị loại.
 const VAO_TUI = 4, RA_KHOI = 18;
@@ -278,7 +276,6 @@ export function updateChecked() {
   if (S.checked.size === S.ITEMS.length && !S.drag && !S.lost) {
     if (++S.winFrames > 45 && !S.won) {
       S.won = true;
-      const used = (S.LEVEL.timer || 0) - Math.ceil(S.timeLeft / 1000);
       if (S.map) {
         const lanDau = markDone(S.map.id, S.levelIdx);
         setSpot(S.map.id, Math.min(S.levelIdx + 1, S.map.levels.length - 1));
@@ -289,10 +286,9 @@ export function updateChecked() {
       floatText(210, 300, 'Vừa khít!', { color: '#5FBF9B', size: 26, life: 1200 });
       // Bảng thắng có lớp mờ phủ kín màn: hiện ngay thì che mất pháo giấy vừa bắn.
       // Chờ một nhịp cho người chơi nhìn thấy ăn mừng rồi bảng mới trượt vào.
-      const txt = `Cả ${S.ITEMS.length} món đã nằm gọn trong túi · ${fmt(Math.max(0, used))}`;
       const diem = chamDiem();
       sfxSeq('star', Math.max(1, Math.round(diem.sao)), { step: .14, rate: .95, up: .1 });
-      setTimeout(() => { if (S.won) showWin(txt, diem); }, 700);
+      setTimeout(() => { if (S.won) showWin(diem); }, 700);
     }
   } else S.winFrames = 0;
 }
