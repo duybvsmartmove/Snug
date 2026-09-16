@@ -15,15 +15,37 @@ import * as RULES from './game/rules.js';
 import * as SCORE from './game/score.js';
 import { initHome, showHome, hideHome } from './ui/home.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
+import { chuyenMan, moMan } from './ui/veil.js';
 
 const params = new URLSearchParams(location.search);
 
-function extraTime() { // booster Extra Time (GDD): +60s sau khi hết giờ lần 1
-  S.timeLeft = 60000; S.lost = false; S.shownSec = -1; hideLose(); toast('+60 giây!');
+/**
+ * Mở tấm màn lần đầu, khi giao diện đã sẵn sàng thật.
+ *
+ * "Sẵn sàng" ở đây là hai điều kiện, thiếu điều nào cũng lộ ra cái xấu cũ:
+ *   - chữ đã dựng xong   → không còn cảnh chữ hiện bằng font hệ thống rồi nhảy sang font thật
+ *   - ảnh trang chủ đã về → không còn thẻ chương trắng trơn rồi ảnh mới đắp vào
+ *
+ * Kèm hạn chót 6 giây: một tấm ảnh hỏng đường dẫn không được phép giữ người chơi
+ * ngồi nhìn tấm màn mãi.
+ */
+async function moManLanDau() {
+  const anh = [...document.querySelectorAll('#home img')]
+    .filter(n => n.src && !n.complete)
+    .map(n => new Promise(r => { n.addEventListener('load', r, { once: true }); n.addEventListener('error', r, { once: true }); }));
+  const hetGio = new Promise(r => setTimeout(r, 6000));
+  await Promise.race([Promise.all([document.fonts?.ready, ...anh]), hetGio]);
+  await moMan();
 }
 
 async function boot() {
-  bindOverlayButtons({ onAgain: restart, onNext: nextLevel, onPrev: prevLevel, onExtraTime: extraTime, onHome: goHome });
+  bindOverlayButtons({
+    onAgain: restart,                              // chơi lại cùng màn: dựng tức thì, che màn chỉ tổ chậm tay
+    onNext: () => chuyenMan(nextLevel),
+    onPrev: () => chuyenMan(prevLevel),
+    onExtraTime: extraTime,
+    onHome: goHome,
+  });
   bindInput();
   bindBoosters();
   bindImpacts();
@@ -65,6 +87,7 @@ async function boot() {
     await loadChapterAssets(ch);
     donNutKhongDungCho();
     window.parent.postMessage({ type: 'ready' }, '*');
+    moMan();
     return;
   }
 
@@ -79,18 +102,25 @@ async function boot() {
   } else {
     showHome();
   }
+  await moManLanDau();
 }
 
-/** Vào chơi một level: đổi chương thì nạp thêm art của chương đó trước */
+/**
+ * Vào chơi một level: đổi chương thì nạp thêm art của chương đó trước.
+ * Cả quãng ấy nằm sau tấm màn — nạp ảnh của một chương mới mất vài trăm mili giây, để
+ * hở là người chơi thấy sân trống rồi đồ đạc lần lượt mọc lên.
+ */
 async function startLevel(ch, idx) {
-  if (!S.map || S.mapId !== ch.id) {
-    S.mapId = ch.id; S.map = ch;
-    await loadChapterAssets(ch);
-  }
-  hideHome();
-  await initAudio();
-  startMusic();
-  await loadAndBuild(idx);
+  await chuyenMan(async () => {
+    if (!S.map || S.mapId !== ch.id) {
+      S.mapId = ch.id; S.map = ch;
+      await loadChapterAssets(ch);
+    }
+    hideHome();
+    await initAudio();
+    startMusic();
+    await loadAndBuild(idx);
+  });
 }
 
 /**
@@ -108,9 +138,11 @@ function donNutKhongDungCho() {
 
 /** Về trang chủ: dừng ván đang chơi lại, không tính là thua */
 function goHome() {
-  S.paused = true; S.drag = null; S.selected = null;
-  duckMusic(false);
-  showHome();
+  return chuyenMan(async () => {
+    S.paused = true; S.drag = null; S.selected = null;
+    duckMusic(false);
+    showHome();
+  });
 }
 
 /** Dựng level trong khung xem thử, nạp trước ảnh của những món chưa có */
@@ -142,4 +174,8 @@ if (import.meta.env?.DEV) {
   };
 }
 
-boot().catch(err => { console.error(err); toast('Lỗi tải level: ' + err.message, 5000); });
+boot().catch(err => {
+  console.error(err);
+  moMan();                          // hỏng thì cũng phải cho người chơi thấy màn hình
+  toast('Lỗi tải level: ' + err.message, 5000);
+});

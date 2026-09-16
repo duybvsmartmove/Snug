@@ -8,11 +8,38 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Everything Fits</title>
   <link rel="icon" href="./public/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="./src/styles/main.css">
+  <style>
+    /* Tấm màn chuyển cảnh. Viết thẳng ở đây, không để trong file CSS ngoài: lúc mở app
+       nó phải có mặt ngay khung hình đầu tiên, tức là trước khi file CSS kia kịp về.
+       Cùng một tấm này lo cả ba việc — che lúc khởi động, che lúc vào màn chơi, che lúc
+       về trang chủ — nên không bao giờ gỡ khỏi trang, chỉ mờ đi.
+       Hai tốc độ khác nhau là cố ý: KÉO VÀO nhanh cho dứt khoát, MỞ RA chậm hơn cho êm. */
+    #veil{
+      position:fixed;inset:0;z-index:99;display:grid;place-items:center;
+      background:radial-gradient(120% 70% at 50% 0%, #FFF6EA 0%, #F3E3D2 46%, #E7CDB6 100%);
+      opacity:1;transition:opacity .19s ease;
+    }
+    #veil.off{opacity:0;pointer-events:none;transition:opacity .3s ease}
+    /* Chữ hiệu chỉ hiện lần mở app. Nhá nó ra mỗi lần đổi màn thì thành phiền.
+       Hiệu ứng nhấp nháy phải nằm TRONG nhánh .boot, không để ở nhánh chung: keyframe
+       đè lên mọi khai báo opacity thường, nên để ngoài là chữ vẫn hiện rõ ở mọi lần
+       chuyển màn dù đã ghi opacity:0 ngay bên cạnh. */
+    #veil .mark{
+      font:700 34px system-ui,sans-serif;color:#3B2A4A;letter-spacing:-.01em;
+      text-align:center;line-height:.98;opacity:0;
+    }
+    #veil.boot .mark{opacity:.92;animation:bootPulse 1.5s ease-in-out infinite alternate}
+    #veil .mark em{font-style:normal;color:#E2637F;display:block}
+    @keyframes bootPulse{from{opacity:.55;transform:scale(.99)}to{opacity:.95;transform:none}}
+    @media (prefers-reduced-motion: reduce){
+      #veil .mark{animation:none}
+      #veil,#veil.off{transition:none}
+    }
+  </style>
 </head>
 <body>
+  <div id="veil" class="boot"><div class="mark">Everything<em>Fits</em></div></div>
   <div id="phone">
     <canvas id="game"></canvas>
 
@@ -155,7 +182,7 @@
     <div class="overlay" id="win">
       <div class="card">
         <div class="stars" id="winStars"></div>
-        <h2>Vừa khít!</h2>
+        <h2 id="winRank">Vừa khít!</h2>
         <p id="winText"></p>
         <div class="score" id="winScore"></div>
         <div class="actions"><button class="cta ghost" id="again">Chơi lại</button><button class="cta" id="next">Level tiếp →</button></div>
