@@ -71,7 +71,9 @@ const frame = $('game');
  */
 const napKhungXemThu = () => {
   E.previewReady = false;
-  frame.src = './index.html?preview=1' + ($('colliderToggle')?.checked ? '&colliders=1' : '');
+  const them = ($('colliderToggle')?.checked ? '&colliders=1' : '')
+             + ($('audioToggle')?.checked ? '&audio=1' : '');
+  frame.src = './index.html?preview=1' + them;
 };
 napKhungXemThu();
 let pushT = null;
@@ -379,7 +381,9 @@ async function boot() {
   await Promise.all([loadItemManifests(), loadBackgrounds(), loadBags()]);
   refreshPickers();
 
-  $('colliderToggle')?.addEventListener('change', napKhungXemThu);   // nạp lại khung xem thử với công tắc mới
+  // hai công tắc này đổi cách khung xem thử khởi động nên phải nạp lại nó
+  $('colliderToggle')?.addEventListener('change', napKhungXemThu);
+  $('audioToggle')?.addEventListener('change', napKhungXemThu);
 
   draw = initDraw({ E, onChange, status, areaOf });
   whenSpriteReady(() => { clearAreaCache(); draw.refreshPalette(); onChange(); });

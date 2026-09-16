@@ -33,8 +33,11 @@ async function boot() {
   whenSpriteReady(() => { if (S.LEVEL) renderList(); });
 
   S.preview = params.get('preview') === '1';
-  setSilent(S.preview);            // khung xem thử trong editor thì im lặng
-  if (!S.preview) unlockOnFirstGesture();
+  // Khung xem thử trong editor mặc định im lặng cho đỡ ồn lúc dựng level;
+  // bật công tắc "Bật tiếng khi xem thử" thì mới kêu. Tiếng chỉ mở được sau khi
+  // người dùng chạm vào chính khung đó, nên cứ chạm vào là nghe.
+  setSilent(S.preview && params.get('audio') !== '1');
+  unlockOnFirstGesture();
 
   // Toàn bộ nội dung nằm trong bản build: một file sắp xếp và thư mục ảnh. Không gọi mạng.
   await loadBook({ fresh: S.preview });
