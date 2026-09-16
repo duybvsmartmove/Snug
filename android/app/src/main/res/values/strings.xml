@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Everything Fits</string>
+    <string name="title_activity_main">Everything Fits</string>
+    <string name="package_name">everything.fits.snug.bag.puzzle</string>
+    <string name="custom_url_scheme">everything.fits.snug.bag.puzzle</string>
+</resources>
