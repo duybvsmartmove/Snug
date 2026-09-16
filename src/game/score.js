@@ -118,7 +118,8 @@ export function chamDiem() {
 
   // Xếp gọn nặng nhất: đó mới là kỹ năng chính của trò này.
   const diem = Math.round(gon * 55 + thoiGian * 30 + tietKiem * 15);
-  const sao = diem >= 80 ? 3 : diem >= 55 ? 2 : 1;
+  // Năm sao, bước nửa sao. Thắng rồi thì ít nhất cũng được một sao, không để trắng tay.
+  const sao = Math.max(1, Math.round(diem / 100 * 5 * 2) / 2);
 
   return { gon, gonThuc, chuan, tiLeDung, tiLeGon: chuan ? kep(gonThuc / chuan) : 0, trong, thoiGian, tietKiem, diem, sao,
            dungGiay, tongGiay, dungBooster, tongBooster };

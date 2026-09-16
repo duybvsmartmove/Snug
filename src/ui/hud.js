@@ -55,6 +55,27 @@ const show = id => $(id).classList.add('show');
 const hide = id => $(id).classList.remove('show');
 const giay = s => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
 
+const HINH_SAO = '<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></svg>';
+
+/**
+ * Năm ngôi sao, sáng theo điểm tới từng nửa sao.
+ * Mỗi ngôi là một sao xám, đè lên trên là đúng ngôi đó màu vàng nhưng bị cắt bớt bề
+ * ngang — cắt 50% thì ra nửa sao. Làm bằng cách này nên nửa sao trông đúng là một ngôi
+ * sao bị lấp một nửa, chứ không phải một hình sao méo.
+ */
+function renderStars(sao) {
+  const el = $('winStars'); if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const day = Math.max(0, Math.min(1, sao - i));
+    const o = document.createElement('span');
+    o.className = 'star';
+    o.style.animationDelay = (.1 + i * .11) + 's';
+    o.innerHTML = HINH_SAO + `<span class="fill" style="width:${day * 100}%">${HINH_SAO}</span>`;
+    el.appendChild(o);
+  }
+}
+
 /**
  * Bảng điểm màn thắng. Mỗi dòng là một thứ người chơi tác động được, để lần sau
  * biết mình thua ở đâu mà sửa: xếp chưa gọn, hay chỉ là chậm giờ.
@@ -74,8 +95,7 @@ function renderScore(d) {
   // đặt trễ một nhịp để các thanh chạy từ trái sang thay vì hiện sẵn
   requestAnimationFrame(() => el.querySelectorAll('.bar i').forEach(i => { i.style.width = i.dataset.w + '%'; }));
 
-  // sao sáng theo điểm, sao chưa đạt thì để mờ
-  $('win').querySelectorAll('.stars svg').forEach((sv, i) => sv.classList.toggle('mo', i >= d.sao));
+  renderStars(d.sao);
 }
 
 export function showWin(text, diem) { $('winText').textContent = text; renderScore(diem); show('win'); }

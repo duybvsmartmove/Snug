@@ -291,7 +291,7 @@ export function updateChecked() {
       // Chờ một nhịp cho người chơi nhìn thấy ăn mừng rồi bảng mới trượt vào.
       const txt = `Cả ${S.ITEMS.length} món đã nằm gọn trong túi · ${fmt(Math.max(0, used))}`;
       const diem = chamDiem();
-      sfxSeq('star', diem.sao, { step: .16, rate: 1, up: .14 });
+      sfxSeq('star', Math.max(1, Math.round(diem.sao)), { step: .14, rate: .95, up: .1 });
       setTimeout(() => { if (S.won) showWin(txt, diem); }, 700);
     }
   } else S.winFrames = 0;
