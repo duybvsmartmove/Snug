@@ -8,6 +8,7 @@ import { sfx, sfxSeq, duckMusic } from '../ui/sfx.js';
 import { sparkle, ring, confetti, shake, floatText, dust } from './fx.js';
 import { onImpact } from './physics.js';
 import { markDone, setSpot } from './progress.js';
+import { chamDiem } from './score.js';
 
 const { Body, Bounds, Collision } = Matter;
 
@@ -284,12 +285,14 @@ export function updateChecked() {
         // lần đầu qua được và còn level phía sau → báo có màn mới mở
         if (lanDau && S.levelIdx + 1 < S.map.levels.length) sfx('unlockLv', { delay: 1.15, gain: .9 });
       }
-      confetti(90); sfx('win'); sfxSeq('star', 3, { step: .16, rate: 1, up: .14 }); duckMusic(true);
+      confetti(90); sfx('win'); duckMusic(true);
       floatText(210, 300, 'Vừa khít!', { color: '#5FBF9B', size: 26, life: 1200 });
       // Bảng thắng có lớp mờ phủ kín màn: hiện ngay thì che mất pháo giấy vừa bắn.
       // Chờ một nhịp cho người chơi nhìn thấy ăn mừng rồi bảng mới trượt vào.
       const txt = `Cả ${S.ITEMS.length} món đã nằm gọn trong túi · ${fmt(Math.max(0, used))}`;
-      setTimeout(() => { if (S.won) showWin(txt); }, 700);
+      const diem = chamDiem();
+      sfxSeq('star', diem.sao, { step: .16, rate: 1, up: .14 });
+      setTimeout(() => { if (S.won) showWin(txt, diem); }, 700);
     }
   } else S.winFrames = 0;
 }

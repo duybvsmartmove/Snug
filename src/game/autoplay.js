@@ -33,6 +33,10 @@ export async function autoplay() {
   running = true;
   S.selected = null; S.drag = null;
 
+  // Đầu màn đồ vào sân lần lượt. Bấm tự chơi ngay lúc đó thì món chưa tới lượt vẫn bị
+  // máy nhấc đi đặt, mà nó chưa được vẽ nên nhìn như biến mất. Cho vào sân hết trước đã.
+  for (const b of S.bodies) if (b.chuaVao) { b.chuaVao = false; World.add(S.world, b); }
+
   const sol = solve(S.LEVEL, { tries: 200 });
   const plan = sol.plan || [];
   if (!plan.length) { running = false; return toast('Không tìm được cách xếp nào', 2500); }

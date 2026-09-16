@@ -349,3 +349,20 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   {animation:none !important}
   .screen{transition:opacity .15s}
 }
+
+/* ---- bảng điểm màn thắng ---- */
+.score{margin:-.7em 0 1.1em;text-align:left}
+.score .tong{
+  display:flex;align-items:baseline;justify-content:center;gap:.4em;margin-bottom:.7em;
+  font:800 .72em "Nunito";color:var(--ink-soft);text-transform:uppercase;letter-spacing:.09em;
+}
+.score .tong b{font:700 1.9em "Fredoka";color:var(--ink);letter-spacing:0;text-transform:none}
+.score .srow{display:flex;align-items:center;gap:.55em;margin-bottom:.45em;font:800 .78em "Nunito"}
+.score .srow > span:first-child{color:var(--ink-soft);flex:none;width:8.4em}
+.score .srow .bar{flex:1;height:.5em;border-radius:999px;background:#EDE2E8;overflow:hidden}
+.score .srow .bar i{display:block;height:100%;width:0;border-radius:999px;background:var(--mint);
+  transition:width .8s cubic-bezier(.2,.9,.3,1)}
+.score .srow .bar i.warm{background:linear-gradient(90deg,var(--gold),var(--rose))}
+.score .srow > b{flex:none;width:3.9em;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.stars svg.mo{fill:#DDD2CE;filter:none;opacity:.85}
+@media (prefers-reduced-motion: reduce){ .score .srow .bar i{transition:none} }

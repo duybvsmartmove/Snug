@@ -107,10 +107,15 @@ export function solve(level, { tries = 60, seed = 1 } = {}) {
   const g = rasterize(level.container);
   const bb = bbox(level.container.shape);
 
+  // Cỡ riêng của món trong level này. Không nhân vào thì máy xếp đo món theo cỡ gốc
+  // trong khi người chơi gặp món đã phóng to, nên nó báo xếp được cả những level không xếp nổi.
+  const coRieng = it => Number(it.scale) || 1;
+
   // Món có sẵn trong túi: đánh dấu ô đã bận, không tính vào danh sách cần xếp
   for (const it of level.items) {
     if (!it.inBag) continue;
-    const box = itemBox(it.id); if (!box) continue;
+    const goc = itemBox(it.id); if (!goc) continue;
+    const k = coRieng(it), box = { w: goc.w * k, h: goc.h * k };
     const c0 = Math.floor(((it.x ?? 0) - box.w / 2 - bb.minX) / CELL);
     const r0 = Math.floor(((it.y ?? 0) - box.h / 2 - bb.minY) / CELL);
     const cw = Math.ceil(box.w / CELL), ch = Math.ceil(box.h / CELL);
@@ -121,8 +126,9 @@ export function solve(level, { tries = 60, seed = 1 } = {}) {
 
   const boxes = level.items
     .filter(it => !it.inBag && it.id !== 0)
-    .map(it => ({ id: it.id, ...itemBox(it.id) }))
-    .filter(b => b.w);
+    .map(it => { const b = itemBox(it.id); if (!b) return null;
+      const k = coRieng(it); return { id: it.id, w: b.w * k, h: b.h * k }; })
+    .filter(b => b && b.w);
   const needCount = boxes.length;
   if (!needCount) return { solvable: true, tries: 0, placedCount: 0, needCount: 0 };
 

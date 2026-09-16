@@ -12,6 +12,7 @@ import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, 
 import { autoplay, stopAutoplay } from './game/autoplay.js';
 import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
+import * as SCORE from './game/score.js';
 import { initHome, showHome, hideHome } from './ui/home.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
 
@@ -106,7 +107,7 @@ async function buildWithArt(level) {
 // Hook debug ở chế độ dev: mở console gõ __game.S để xem trạng thái, __game.drag(id, x, y) để thử kéo.
 if (import.meta.env?.DEV) {
   window.__game = {
-    S, BAG, FX, RULES, restart, nextLevel, prevLevel, autoplay, stopAutoplay,
+    S, BAG, FX, RULES, SCORE, restart, nextLevel, prevLevel, autoplay, stopAutoplay,
     body: id => S.bodies.find(b => b.label === id),
     async drag(id, tx, ty, steps = 10) {
       const cv = document.getElementById('game'), r = cv.getBoundingClientRect();

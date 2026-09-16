@@ -53,7 +53,30 @@ export function updateClock() {
 // ---------- overlay ----------
 const show = id => $(id).classList.add('show');
 const hide = id => $(id).classList.remove('show');
-export function showWin(text) { $('winText').textContent = text; show('win'); }
+const giay = s => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
+
+/**
+ * Bảng điểm màn thắng. Mỗi dòng là một thứ người chơi tác động được, để lần sau
+ * biết mình thua ở đâu mà sửa: xếp chưa gọn, hay chỉ là chậm giờ.
+ */
+function renderScore(d) {
+  const el = $('winScore'); if (!el || !d) return;
+  const dong = (ten, tiLe, chu, am) =>
+    `<div class="srow"><span>${ten}</span><span class="bar"><i class="${am ? 'warm' : ''}" data-w="${Math.round(tiLe * 100)}"></i></span><b>${chu}</b></div>`;
+  el.innerHTML =
+    `<div class="tong">Điểm <b>${d.diem}</b> / 100</div>` +
+    dong('Xếp gọn', d.gon, `${Math.round(d.gon * 100)}%`) +
+    dong('Chỗ trống thừa', d.trong, `${Math.round(d.trong * 100)}%`, true) +
+    dong('Thời gian', d.thoiGian, giay(d.tongGiay - d.dungGiay)) +
+    dong('Booster', d.tietKiem, `${d.dungBooster}/${d.tongBooster}`);
+  // đặt trễ một nhịp để các thanh chạy từ trái sang thay vì hiện sẵn
+  requestAnimationFrame(() => el.querySelectorAll('.bar i').forEach(i => { i.style.width = i.dataset.w + '%'; }));
+
+  // sao sáng theo điểm, sao chưa đạt thì để mờ
+  $('win').querySelectorAll('.stars svg').forEach((sv, i) => sv.classList.toggle('mo', i >= d.sao));
+}
+
+export function showWin(text, diem) { $('winText').textContent = text; renderScore(diem); show('win'); }
 export function hideWin() { hide('win'); }
 export function showLose() {
   const left = S.ITEMS.length - S.checked.size;

@@ -220,7 +220,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const want = Math.max(.3, Math.min(.98, (+$('fitDensity').value || 80) / 100));
     const items = L.items.filter(i => i.id !== 'key');
     if (!items.length) return status('Chưa có món nào để tính', 'bad');
-    const itemArea = items.reduce((s, it) => s + areaOfItem(it.id), 0);
+    const itemArea = items.reduce((s, it) => { const k = Number(it.scale) || 1; return s + areaOfItem(it.id) * k * k; }, 0);
     const cur = polygonArea(L.container.shape) - (L.container.blocks || []).reduce((s, b) => s + b.w * b.h, 0);
     const target = itemArea / want;
     const k = Math.sqrt(target / cur);
