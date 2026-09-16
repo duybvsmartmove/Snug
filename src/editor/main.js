@@ -73,7 +73,13 @@ const napKhungXemThu = () => {
   E.previewReady = false;
   const them = ($('colliderToggle')?.checked ? '&colliders=1' : '')
              + ($('audioToggle')?.checked ? '&audio=1' : '');
-  frame.src = './index.html?preview=1' + them;
+  // Kèm mốc thời gian để luôn lấy bản index.html mới.
+  // GitHub Pages đặt cache-control max-age=600 cho file HTML, mà mỗi lần build thì
+  // index.html lại trỏ sang một tên file CSS/JS khác (có mã băm). Deploy xong, file cũ
+  // bị xoá nhưng bản index.html còn trong cache vẫn trỏ vào nó → khung xem thử mất sạch
+  // CSS, hiện ra chữ trần. Cmd+Shift+R không cứu được vì địa chỉ khung do script gán,
+  // mà điều hướng do script khởi tạo thì không thừa hưởng lệnh bỏ qua cache.
+  frame.src = `./index.html?preview=1${them}&t=${Date.now()}`;
 };
 napKhungXemThu();
 let pushT = null;
