@@ -103,7 +103,12 @@ export function chamDiem() {
   const tongGiay = S.LEVEL?.timer || 0;
   const conGiay = Math.max(0, Math.ceil(S.timeLeft / 1000));
   const dungGiay = Math.max(0, tongGiay - conGiay);
-  const thoiGian = tongGiay > 0 ? kep(conGiay / tongGiay) : 0;
+  // Cùng cái bẫy như "xếp gọn": lấy thẳng thời gian còn lại chia tổng thì muốn trọn điểm
+  // phải xong trong 0 giây. Xong trong NỬA thời gian cho phép đã là rất nhanh — tính
+  // trọn điểm từ mốc đó, rồi giảm dần về 0 khi dùng hết giờ.
+  const NHANH = .5;
+  const tiLeDung = tongGiay > 0 ? dungGiay / tongGiay : 1;
+  const thoiGian = kep((1 - tiLeDung) / (1 - NHANH));
 
   const daCap = { ...DEFAULT_BOOSTS, ...(S.LEVEL?.boosters || {}) };
   const tongBooster = Object.values(daCap).reduce((s, v) => s + v, 0);
@@ -115,6 +120,6 @@ export function chamDiem() {
   const diem = Math.round(gon * 55 + thoiGian * 30 + tietKiem * 15);
   const sao = diem >= 80 ? 3 : diem >= 55 ? 2 : 1;
 
-  return { gon, gonThuc, chuan, tiLeGon: chuan ? kep(gonThuc / chuan) : 0, trong, thoiGian, tietKiem, diem, sao,
+  return { gon, gonThuc, chuan, tiLeDung, tiLeGon: chuan ? kep(gonThuc / chuan) : 0, trong, thoiGian, tietKiem, diem, sao,
            dungGiay, tongGiay, dungBooster, tongBooster };
 }
