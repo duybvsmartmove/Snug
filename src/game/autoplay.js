@@ -2,6 +2,7 @@
 // Dùng để kiểm tra nhanh một level có xếp được không mà không phải ngồi kéo tay.
 import Matter from 'matter-js';
 import { S, BAG } from './state.js';
+import { KEY_ID } from '../data/items.js';
 import { solve } from '../gen/solver.js';
 import { bagZone } from './rules.js';
 import { toast } from '../ui/hud.js';
@@ -68,12 +69,61 @@ export async function autoplay() {
     await wait(NHIP.nghi);                             // chờ đồ ổn định trước khi xếp món tiếp
   }
 
+  // Xếp một lượt xong vẫn thường sót vài món: vật lý làm đống đồ xê dịch so với bản vẽ
+  // của máy xếp. Quay lại nhặt những món chưa vào, tính lại chỗ dựa trên đống đồ ĐANG
+  // nằm thật trong túi rồi đặt lại — đúng cách người chơi làm khi thấy còn thừa đồ.
+  for (let vong = 0; vong < 2 && running; vong++) {
+    await wait(NHIP.nghi * 2);
+    const sot = S.bodies.filter(b => !b.chuaVao && !b.tether && b.itemId !== KEY_ID
+      && !S.checked.has(b.itemId) && !S.gone.has(b.itemId));
+    if (!sot.length) break;
+    if (!await xepLai(sot)) break;
+  }
+
   await wait(NHIP.ketThuc);
   if (running) {
     const left = S.ITEMS.filter(d => !S.checked.has(d.id)).length;
     toast(left ? `Tự chơi xong · còn ${left} món chưa vào túi` : 'Tự chơi xong · vừa khít!', 3000);
   }
   running = false;
+}
+
+/**
+ * Tính lại chỗ cho những món còn sót, lấy đống đồ đang nằm trong túi làm vật cản.
+ * Trả về true nếu có đặt được thêm món nào.
+ */
+async function xepLai(sot) {
+  const c = S.LEVEL?.container; if (!c) return false;
+  const cx = c.cx ?? 210, bottom = c.bottom ?? 404;
+  const sotId = new Set(sot.map(b => b.itemId));
+
+  // Món đã nằm gọn trong túi → khai là "đặt sẵn" để máy xếp coi là vật cản,
+  // đúng hình và đúng góc nó đang nằm.
+  const daVao = S.bodies.filter(b => !b.chuaVao && !sotId.has(b.itemId) && S.checked.has(b.itemId));
+  const tam = {
+    container: c,
+    items: [
+      ...daVao.map(b => ({ id: b.itemId, inBag: true, angle: b.angle, scale: b.levelScale,
+        x: b.position.x - cx, y: b.position.y - bottom })),
+      ...sot.map(b => ({ id: b.itemId, scale: b.levelScale })),
+    ],
+  };
+
+  const sol = solve(tam, { tries: 300 });
+  let datDuoc = 0;
+  for (const step of sol.plan || []) {
+    if (!running) break;
+    const body = sot.find(b => b.itemId === step.id); if (!body) continue;
+    if (step.x < BAG.left - 40 || step.x > BAG.right + 40 || step.y < BAG.top - 40 || step.y > BAG.bottom + 40) continue;
+    World.remove(S.world, body);
+    Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
+    await moveTo(body, step.x, step.y, step.angle || 0);
+    World.add(S.world, body);
+    Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
+    await wait(NHIP.nghi);
+    datDuoc++;
+  }
+  return datDuoc > 0;
 }
 
 export function stopAutoplay() { running = false; }

@@ -13,7 +13,7 @@ if (!ch) { console.error(`Chưa có chương "${map}". Có: ${book.chapters.map(
 console.log(`Đã nạp vùng va chạm sinh từ ảnh cho ${soCollider} món.\n`);
 const rows = [];
 for (const lv of ch.levels) {
-  const s = solve(lv, { tries: 150 });
+  const s = solve(lv, { tries: 300 });
   rows.push({
     level: lv.id, tên: lv.name,
     món: lv.items.filter(i => i.id !== 'key').length,

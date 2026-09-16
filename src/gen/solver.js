@@ -11,9 +11,10 @@ import { pointInPolygon, bbox, mulberry32, shuffle } from '../util/geom.js';
 import { defById } from '../data/items.js';
 
 const CELL = 5;
-// Người chơi xoay được tự do, nên máy cũng phải thử nhiều góc mới ra kết quả sát thực tế.
-// Thử 0° và 90° trước vì đó là thế nằm tự nhiên của phần lớn món.
-const GOC = [0, 90, 45, 135, 180, 270, 225, 315].map(d => d * Math.PI / 180);
+// Người chơi xoay tự do được, nên máy cũng phải thử nhiều góc mới ra kết quả sát thực tế.
+// Cách nhau 22,5° là đủ mịn để món dài lách vào khe chéo mà vẫn chạy nhanh.
+const SO_GOC = 8;
+const GOC = Array.from({ length: SO_GOC }, (_, i) => i * 2 * Math.PI / SO_GOC);
 
 // ---------- hình thật của món ----------
 const TRON_DINH = 16;   // hình tròn xấp xỉ bằng đa giác bấy nhiêu đỉnh
@@ -104,20 +105,57 @@ function danh(g, m, c0, r0, v) {
   }
 }
 
-/** Xếp lần lượt theo một thứ tự cho trước, mỗi món thử từng góc, chọn chỗ thấp nhất bên trái */
+/**
+ * Điểm bám: trong các ô của món, đếm xem có bao nhiêu cạnh tựa vào thành túi hoặc
+ * vào món đã xếp. Càng nhiều thì món càng nằm khít vào chỗ lõm thay vì đứng chơ vơ
+ * giữa khoảng trống, chừa lại những khe vụn không ai dùng được.
+ */
+function diemBam(g, m, c0, r0) {
+  let d = 0;
+  for (let r = 0; r < m.ch; r++) for (let c = 0; c < m.cw; c++) {
+    if (!m.o[r * m.cw + c]) continue;
+    const gr = r0 + r, gc = c0 + c;
+    for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const mr = r + dr, mc = c + dc;
+      if (mr >= 0 && mc >= 0 && mr < m.ch && mc < m.cw && m.o[mr * m.cw + mc]) continue;  // ô của chính món
+      const nr = gr + dr, nc = gc + dc;
+      if (nr < 0 || nc < 0 || nr >= g.rows || nc >= g.cols) { d++; continue; }
+      if (g.grid[nr * g.cols + nc] !== 1) d++;
+    }
+  }
+  return d;
+}
+
+/**
+ * Tìm chỗ cho một món.
+ * Duyệt theo MÉP DƯỚI của món từ đáy túi đi lên — đồ rơi xuống thì chỗ thấp nhất mới là
+ * chỗ đúng. Ở mỗi mức, thử hết mọi góc xoay và mọi cột rồi chọn chỗ bám chắc nhất.
+ * Bản cũ duyệt hết một góc mới sang góc khác nên hay chộp lấy "góc đầu tiên vừa ở đâu đó",
+ * bỏ qua một góc khác đặt được thấp hơn nhiều.
+ */
+function datMon(g, b) {
+  for (let day = g.rows; day >= 1; day--) {
+    let tot = null, diemTot = -1;
+    for (const m of b.matNa) {
+      const r = day - m.ch;
+      if (r < 0) continue;
+      for (let c = 0; c <= g.cols - m.cw; c++) {
+        if (!vua(g, m, c, r)) continue;
+        const d = diemBam(g, m, c, r);
+        if (d > diemTot) { diemTot = d; tot = { m, c, r }; }
+      }
+    }
+    if (tot) return tot;
+  }
+  return null;
+}
+
+/** Xếp lần lượt theo một thứ tự cho trước */
 function tryOrder(g0, mon) {
   const g = { grid: g0.grid.slice(), cols: g0.cols, rows: g0.rows };
   const placed = [];
   for (const b of mon) {
-    let xong = null;
-    for (const m of b.matNa) {
-      for (let r = g.rows - m.ch; r >= 0 && !xong; r--) {
-        for (let c = 0; c <= g.cols - m.cw; c++) {
-          if (vua(g, m, c, r)) { xong = { m, c, r }; break; }
-        }
-      }
-      if (xong) break;
-    }
+    const xong = datMon(g, b);
     if (!xong) return { ok: false, placed, failed: b.id };
     danh(g, xong.m, xong.c, xong.r, 2);
     placed.push({ id: b.id, c: xong.c, r: xong.r, m: xong.m, goc: xong.m.goc });
