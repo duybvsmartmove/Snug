@@ -65,7 +65,9 @@ function renderScore(d) {
     `<div class="srow"><span>${ten}</span><span class="bar"><i class="${am ? 'warm' : ''}" data-w="${Math.round(tiLe * 100)}"></i></span><b>${chu}</b></div>`;
   el.innerHTML =
     `<div class="tong">Điểm <b>${d.diem}</b> / 100</div>` +
-    dong('Xếp gọn', d.gon, `${Math.round(d.gon * 100)}%`) +
+    // Hiện mức so với cách xếp tốt nhất của màn này, không hiện con số đã quy đổi ra điểm:
+    // "xếp gọn 88%" nghĩa là gần bằng mức khít nhất màn này cho phép, dễ hiểu hơn nhiều.
+    dong('Xếp gọn', d.tiLeGon, `${Math.round(d.tiLeGon * 100)}%`) +
     dong('Chỗ trống thừa', d.trong, `${Math.round(d.trong * 100)}%`, true) +
     dong('Thời gian', d.thoiGian, giay(d.tongGiay - d.dungGiay)) +
     dong('Booster', d.tietKiem, `${d.dungBooster}/${d.tongBooster}`);

@@ -20,7 +20,7 @@ const GOC = Array.from({ length: SO_GOC }, (_, i) => i * 2 * Math.PI / SO_GOC);
 const TRON_DINH = 16;   // hình tròn xấp xỉ bằng đa giác bấy nhiêu đỉnh
 
 /** Các đa giác tạo nên hình vật lý của món, đơn vị logic, gốc tại tâm món */
-function hinhMon(id) {
+export function hinhMon(id) {
   const d = defById(id); if (!d) return null;
   const manh = d.kind === 'compound' ? d.parts : [d, ...(d.extra ? [d.extra] : [])];
   const ra = [];
@@ -47,7 +47,7 @@ function hinhMon(id) {
   return ra.length ? ra : null;
 }
 
-const xoay = (pts, a, k) => {
+export const xoay = (pts, a, k) => {
   const cs = Math.cos(a), sn = Math.sin(a);
   return pts.map(([x, y]) => [(x * cs - y * sn) * k, (x * sn + y * cs) * k]);
 };

@@ -16,7 +16,22 @@ export const isAutoplaying = () => running;
 // Nhịp của máy tự chơi, tính bằng mili giây.
 // "nghi" là quãng chờ cho món vừa thả lắng xuống trước khi đặt món tiếp: rút quá tay
 // thì món sau đè lên món trước lúc nó còn đang xê dịch, máy xếp được ít đi.
-const NHIP = { moDau: 300, bay: 210, nghi: 110, ketThuc: 420 };
+const NHIP = { moDau: 300, bay: 210, nghi: 60, ketThuc: 420, langToiDa: 620 };
+
+/**
+ * Chờ món vừa thả nằm yên hẳn rồi mới xếp món tiếp.
+ * Nhịp nghỉ cố định là sai: món rơi từ trên cao xuống đống đồ cần lâu hơn món đặt sát
+ * đáy. Đặt món tiếp khi đống đồ còn đang xê dịch thì nó rơi trượt đi, để lại khe hở.
+ * Chờ theo tốc độ thật nên vừa chắc vừa không phí thời gian ở những món rơi nhanh.
+ */
+async function choLang(body) {
+  const t0 = performance.now();
+  await wait(NHIP.nghi);
+  while (running && performance.now() - t0 < NHIP.langToiDa) {
+    if (body.speed < .35 && body.angularSpeed < .06) break;
+    await wait(32);
+  }
+}
 
 /** Đưa món từ chỗ hiện tại tới đích theo đường cong, trong lúc đó món không va chạm với ai */
 async function moveTo(body, tx, ty, targetAngle, ms = NHIP.bay) {
@@ -66,7 +81,7 @@ export async function autoplay() {
     await moveTo(body, step.x, step.y, step.angle || 0);
     World.add(S.world, body);                          // thả xuống
     Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
-    await wait(NHIP.nghi);                             // chờ đồ ổn định trước khi xếp món tiếp
+    await choLang(body);                               // chờ nằm yên rồi mới sang món sau
   }
 
   // Xếp một lượt xong vẫn thường sót vài món: vật lý làm đống đồ xê dịch so với bản vẽ
@@ -89,23 +104,27 @@ export async function autoplay() {
 }
 
 /**
- * Tính lại chỗ cho những món còn sót, lấy đống đồ đang nằm trong túi làm vật cản.
- * Trả về true nếu có đặt được thêm món nào.
+ * Tính lại chỗ cho một nhóm món, lấy đống đồ còn lại trong túi làm vật cản.
+ * Trả về true nếu có đặt lại được món nào.
+ *
+ * Đã thử thêm một lượt "nén": nhấc mấy món cao nhất ra đặt lại cho chúng tụt xuống lấp
+ * hố bên dưới. Đo ra tệ hơn hẳn — nhấc một món đang nằm yên ra là xô cả đống đồ quanh nó,
+ * màn "Hộp bí ẩn" tụt từ 8/10 xuống 6/10. Nên chỉ đặt lại những món CHƯA vào được túi.
  */
-async function xepLai(sot) {
+async function xepLai(nhom) {
   const c = S.LEVEL?.container; if (!c) return false;
   const cx = c.cx ?? 210, bottom = c.bottom ?? 404;
-  const sotId = new Set(sot.map(b => b.itemId));
+  const nhomId = new Set(nhom.map(b => b.itemId));
 
   // Món đã nằm gọn trong túi → khai là "đặt sẵn" để máy xếp coi là vật cản,
   // đúng hình và đúng góc nó đang nằm.
-  const daVao = S.bodies.filter(b => !b.chuaVao && !sotId.has(b.itemId) && S.checked.has(b.itemId));
+  const daVao = S.bodies.filter(b => !b.chuaVao && !nhomId.has(b.itemId) && S.checked.has(b.itemId));
   const tam = {
     container: c,
     items: [
       ...daVao.map(b => ({ id: b.itemId, inBag: true, angle: b.angle, scale: b.levelScale,
         x: b.position.x - cx, y: b.position.y - bottom })),
-      ...sot.map(b => ({ id: b.itemId, scale: b.levelScale })),
+      ...nhom.map(b => ({ id: b.itemId, scale: b.levelScale })),
     ],
   };
 
@@ -113,14 +132,14 @@ async function xepLai(sot) {
   let datDuoc = 0;
   for (const step of sol.plan || []) {
     if (!running) break;
-    const body = sot.find(b => b.itemId === step.id); if (!body) continue;
+    const body = nhom.find(b => b.itemId === step.id); if (!body) continue;
     if (step.x < BAG.left - 40 || step.x > BAG.right + 40 || step.y < BAG.top - 40 || step.y > BAG.bottom + 40) continue;
     World.remove(S.world, body);
     Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
     await moveTo(body, step.x, step.y, step.angle || 0);
     World.add(S.world, body);
     Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
-    await wait(NHIP.nghi);
+    await choLang(body);
     datDuoc++;
   }
   return datDuoc > 0;
