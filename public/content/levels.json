@@ -1,6 +1,6 @@
 {
-  "version": 28,
-  "publishedAt": "2026-09-15T07:19:21.763Z",
+  "version": 29,
+  "publishedAt": "2026-09-16T09:40:16.650Z",
   "chapters": [
     {
       "id": "school-day",
@@ -17,24 +17,24 @@
           "timer": 120,
           "background": 1,
           "container": {
-            "skin": "lunchbox",
+            "skin": "tote",
             "cx": 210,
             "bottom": 384,
             "shape": [
               [
-                -80.5,
-                -115
+                -118,
+                -123
               ],
               [
-                80.5,
-                -115
+                92,
+                -123
               ],
               [
-                80.5,
-                0
+                91,
+                2
               ],
               [
-                -80.5,
+                -118,
                 0
               ]
             ],
@@ -61,10 +61,16 @@
               "angle": -0.33
             },
             {
-              "id": 18,
-              "x": 374,
-              "y": 503,
-              "angle": -0.06
+              "id": 1,
+              "x": 244,
+              "y": 492,
+              "angle": 0
+            },
+            {
+              "id": 28,
+              "x": 312,
+              "y": 492,
+              "angle": 0
             }
           ],
           "reward": {
@@ -955,6 +961,41 @@
           "difficulty": {
             "points": 15,
             "tier": "Very Hard"
+          }
+        },
+        {
+          "id": "sd-11",
+          "name": "Level mới",
+          "timer": 90,
+          "background": 1,
+          "container": {
+            "skin": "lunchbox",
+            "cx": 210,
+            "bottom": 384,
+            "shape": [
+              [
+                -80.5,
+                -115
+              ],
+              [
+                80.5,
+                -115
+              ],
+              [
+                80.5,
+                0
+              ],
+              [
+                -80.5,
+                0
+              ]
+            ],
+            "blocks": []
+          },
+          "mode": "fixed",
+          "items": [],
+          "reward": {
+            "coin": 20
           }
         }
       ],
