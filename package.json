@@ -13,7 +13,7 @@
     "android:open": "npm run android:sync && cap open android",
     "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease",
-    "android:install": "npm run android:apk && adb install -r android/app/build/outputs/apk/debug/app-debug.apk"
+    "android:install": "npm run android:apk && adb install -r android/app/build/outputs/apk/debug/*-debug.apk"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

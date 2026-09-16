@@ -52,6 +52,13 @@ android {
     }
 }
 
+// Tên file APK lấy theo tên game. Mặc định Gradle đặt là "app-debug.apk" — file này
+// được gửi tay qua chat cho người khác cài, mà cái tên đó không nói được nó là app nào,
+// và ai cũng có một file trùng tên y hệt nằm sẵn trong thư mục tải về.
+base {
+    archivesName = "EverythingFits-v${android.defaultConfig.versionName}"
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
