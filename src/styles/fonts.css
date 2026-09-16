@@ -1,0 +1,27 @@
+/* Chữ đi kèm bản build, không tải từ mạng.
+ *
+ * Trước đây hai font lấy thẳng từ fonts.googleapis.com. Trong app thì đó là một lượt gọi
+ * mạng ngay lúc mở màn: máy không mạng hoặc mạng chậm là chữ hiện bằng font hệ thống rồi
+ * mới nhảy sang font thật, chữ xô đi một nhịp — đúng cái giật lúc vào game.
+ *
+ * Và một lỗi nặng hơn: FREDOKA KHÔNG CÓ CHỮ TIẾNG VIỆT. Bản đầy đủ của nó chỉ 320 ký tự,
+ * không có cả ă, đ, ơ, ư. Nên "Giờ ăn trưa" lâu nay được vẽ nửa bằng Fredoka nửa bằng font
+ * hệ thống, cao thấp lệch nhau. Thay bằng Baloo 2 — cùng dáng tròn mập, và có đủ tiếng Việt.
+ *
+ * Cả hai là font biến thiên: một file lo mọi độ đậm, nhẹ hơn ba file rời. Đã cắt còn Latin
+ * + tiếng Việt nên Baloo 2 chỉ 51KB, Nunito 57KB.
+ */
+@font-face{
+  font-family:'Baloo 2';
+  src:url('./fonts/Baloo2.woff2') format('woff2');
+  font-weight:400 800;font-style:normal;
+  /* block chứ không swap: thà chờ vài mili giây còn hơn cho người chơi thấy chữ nhảy font.
+     File nằm sẵn trong máy nên quãng chờ đó không ai kịp thấy. */
+  font-display:block;
+}
+@font-face{
+  font-family:'Nunito';
+  src:url('./fonts/Nunito.woff2') format('woff2');
+  font-weight:200 1000;font-style:normal;
+  font-display:block;
+}

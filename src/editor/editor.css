@@ -1,3 +1,4 @@
+@import '../styles/fonts.css';
 :root{
   --bg:#F6F1EA; --panel:#FFFFFF; --line:#E6DCD2; --ink:#2B2230; --soft:#8A7D8F;
   --accent:#E2637F; --ok:#2FA46F; --warn:#D9822B; --bad:#D64545;
