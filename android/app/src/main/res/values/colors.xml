@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Đúng màu nền của game. Cửa sổ Android tô sẵn màu này từ lúc chạm vào biểu tượng,
+         nên quãng từ khi mở app tới khi WebView vẽ xong khung đầu không còn chớp trắng
+         hay chớp đen — người chơi chỉ thấy một nền liền mạch rồi màn chờ hiện lên. -->
+    <color name="gameBg">#EADFD6</color>
+</resources>

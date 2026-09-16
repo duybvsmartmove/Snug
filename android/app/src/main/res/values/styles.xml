@@ -13,10 +13,30 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <item name="android:windowBackground">@color/gameBg</item>
+
+        <!-- Tràn viền: hai thanh hệ thống trong suốt để bối cảnh chạy xuống dưới chúng.
+             enforce*Contrast phải tắt, không Android tự bôi một lớp mờ lên thanh điều
+             hướng và công tràn viền coi như đổ sông. windowLayoutInDisplayCutoutMode
+             cho trang dùng cả phần màn quanh tai thỏ; lề an toàn do MainActivity đẩy
+             sang CSS lo. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
     </style>
 
 
+    <!-- Màn mở app. Ảnh splash mặc định của Capacitor là một tấm kê sẵn không liên quan
+         gì tới game; thay bằng đúng màu nền để lúc mở lên là một nền liền mạch, rồi màn
+         chờ trong trang tiếp quản mà mắt không bắt được chỗ chuyển. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="android:background">@color/gameBg</item>
+        <item name="windowSplashScreenBackground">@color/gameBg</item>
+        <item name="android:windowBackground">@color/gameBg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 </resources>

@@ -9,3 +9,4 @@ android/.gradle/
 android/local.properties
 android/keystore.properties
 android/*.jks
+android/.idea/
