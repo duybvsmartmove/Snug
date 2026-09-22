@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi" data-art="cozy">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creative Tool · Everything Fits</title>
+  <link rel="icon" href="./public/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./src/creative/creative.css">
+</head>
+<body>
+  <!-- Sân khấu: khung theo tỉ lệ đã chọn, game 9:16 nằm giữa, phần thừa tô bằng bối cảnh -->
+  <main class="stage-wrap" id="stageWrap">
+    <div class="stage" id="stage">
+      <div class="stage-bg" id="stageBg"></div>
+      <div class="phone" id="phone"><iframe id="game" title="Game" allow="autoplay"></iframe></div>
+    </div>
+  </main>
+  <!-- Báo đang quay, để ngoài khung game cho khỏi lọt vào video -->
+  <div class="rec-dot" id="recDot" hidden><i></i><span id="recTime">0:00</span></div>
+
+  <!-- Thanh công cụ dưới cùng -->
+  <footer class="bar" id="bar">
+    <div class="grp">
+      <button id="backBtn" class="btn" title="Về danh sách level (Esc)">← Levels</button>
+      <div class="lvtag" id="lvTag">—</div>
+    </div>
+
+    <div class="grp">
+      <button id="resetBtn" class="btn" title="Chơi lại màn này">Reset <kbd>R</kbd></button>
+      <button id="autoBtn" class="btn" title="Máy chơi một mạch tới hết">▶ Auto <kbd>S</kbd></button>
+      <button id="stepBtn" class="btn" title="Máy xếp một món rồi dừng, bấm tiếp để xếp món sau">⏭ 1 món <kbd>D</kbd></button>
+      <button id="autoBoostBtn" class="btn tog" title="Hết chỗ thì máy được dùng booster (lắc → thu nhỏ → bỏ). Tắt: máy chỉ xếp tay, kẹt thì dừng">🎁 Booster</button>
+    </div>
+
+    <div class="grp sliders">
+      <label class="sl" title="Nhịp tay của máy chơi">Tay <input id="playSpeed" type="range" min="0.25" max="3" step="0.25" value="1"><b id="playSpeedV">1x</b></label>
+      <label class="sl" title="Tốc độ thời gian trong game: 0.5x là quay chậm">Time <input id="timeScale" type="range" min="0.25" max="2" step="0.25" value="1"><b id="timeScaleV">1x</b></label>
+    </div>
+
+    <div class="grp">
+      <button id="fingerBtn" class="btn tog" title="Ngón tay giả bay theo món khi máy chơi">👆 Tay <kbd>F</kbd></button>
+      <button id="timerBtn" class="btn tog on" title="Đếm giờ hay đóng băng đồng hồ (không thua)">⏱ Giờ <kbd>T</kbd></button>
+      <label class="sel" title="Ép số lượt booster">Boost
+        <select id="boosts">
+          <option value="">theo level</option><option>0</option><option>1</option><option>2</option><option>3</option><option>5</option><option>9</option>
+        </select>
+      </label>
+      <details class="dd" id="hudDd">
+        <summary class="btn">HUD ▾</summary>
+        <div class="dd-menu">
+          <label><input type="checkbox" data-hud="title"> Ẩn tên level</label>
+          <label><input type="checkbox" data-hud="pause"> Ẩn nút pause</label>
+          <label><input type="checkbox" data-hud="timer"> Ẩn đồng hồ · số món</label>
+          <label><input type="checkbox" data-hud="dock"> Ẩn booster</label>
+        </div>
+      </details>
+    </div>
+
+    <div class="grp">
+      <button id="hideBtn" class="btn" title="Ẩn toàn bộ thanh này, bấm H để hiện lại">Hide UI <kbd>H</kbd></button>
+      <label class="sel">Art
+        <select id="art"><option value="cozy">Cozy</option><option value="casual">Casual</option></select>
+      </label>
+      <label class="sel">Aspect
+        <select id="aspect"><option value="9:16">9:16</option><option value="1:1">1:1</option><option value="4:5">4:5</option></select>
+      </label>
+      <label class="sel">Lang
+        <select id="lang"><option value="en">EN</option><option value="vi">VI</option></select>
+      </label>
+    </div>
+
+    <div class="grp">
+      <button id="shotBtn" class="btn" title="Chụp đúng khung đang hiện, đúng kích thước xuất">📷 Chụp</button>
+      <button id="recBtn" class="btn rec" title="Quay khung đang hiện thành file webm, kèm tiếng game">● Quay</button>
+      <span class="size" id="sizeTag">1080×1920</span>
+    </div>
+    <span class="status" id="status"></span>
+  </footer>
+  <!-- Mấu kéo lại thanh công cụ khi đã ẩn: chỉ hiện lúc rê chuột vào góc -->
+  <button class="peek" id="peek" title="Hiện thanh công cụ (H)">UI</button>
+
+  <!-- Màn đầu: chương và level -->
+  <section class="picker" id="picker">
+    <header class="pk-head">
+      <div>
+        <div class="pk-sub">Everything Fits</div>
+        <h1>Creative Tool</h1>
+      </div>
+      <div class="pk-shots">
+        <button class="card-btn" data-screen="home">🏠 Trang chủ game</button>
+        <button class="card-btn" data-screen="map">🗺 Bản đồ chương</button>
+      </div>
+      <p class="pk-tip">Bấm một level để chơi. Quay video và chụp ảnh ở thanh dưới màn chơi.</p>
+    </header>
+    <div class="pk-list" id="pkList"></div>
+  </section>
+
+  <script type="module" src="./src/creative/main.js"></script>
+</body>
+</html>

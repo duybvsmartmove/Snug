@@ -3,6 +3,8 @@
 //  - Bản đồ: mọi chương và mọi màn, màn đã qua / đang mở / còn khoá.
 import * as P from '../game/progress.js';
 import { sfx, initAudio, setSfxOn, setMusicOn, isSfxOn, isMusicOn } from './sfx.js';
+import { t, getLang, setLang, onLangChange, chapterName, levelName } from '../i18n.js';
+import { artUrl, loadAssetIndex } from '../content/loader.js';
 
 const $ = id => document.getElementById(id);
 
@@ -17,18 +19,14 @@ const ICON = {
 let CHAPTERS = [], onPlay = () => {};
 
 // ---------- tra ảnh trong kho art ----------
-let INDEX = null;
+// Mục lục lấy qua loader: nó biết lùi về bộ cozy khi bộ art đang chọn chưa có thư mục.
 const manCache = new Map();
 
-async function assetIndex() {
-  if (!INDEX) INDEX = await (await fetch('./content/assets/index.json')).json();
-  return INDEX;
-}
 async function manifest(kind, id) {
   const key = kind + ':' + id;
   if (manCache.has(key)) return manCache.get(key);
-  const p = (await assetIndex())[kind]?.[id];
-  const m = p ? await (await fetch('./content/' + p)).json() : null;
+  const p = (await loadAssetIndex())[kind]?.[id];
+  const m = p ? await (await fetch(artUrl(p))).json() : null;
   manCache.set(key, m);
   return m;
 }
@@ -36,7 +34,7 @@ async function manifest(kind, id) {
 async function bgUrl(id) {
   try {
     const src = (await manifest('backgrounds', id))?.layers?.[0]?.src;
-    return src ? './content/' + src : null;
+    return src ? artUrl(src) : null;
   } catch { return null; }
 }
 
@@ -45,6 +43,8 @@ const shown = new Set();
 function show(id) { $(id).classList.add('show'); shown.add(id); }
 function hide(id) { $(id).classList.remove('show'); shown.delete(id); }
 export const atHome = () => shown.has('home') || shown.has('mapscr');
+/** Màn phủ đang mở: 'map' | 'home' | null (đang trong màn chơi) */
+export const currentScreen = () => (shown.has('mapscr') ? 'map' : shown.has('home') ? 'home' : null);
 
 export function showHome() {
   drawHome();
@@ -53,7 +53,7 @@ export function showHome() {
 }
 export function hideHome() { hide('home'); hide('mapscr'); }
 
-function showMap() {
+export function showMap() {
   drawMap();
   show('mapscr');
   sfx('whoosh', { gain: .5, rate: 1.15 });
@@ -67,16 +67,16 @@ function drawHome() {
   const { chapter: ch, index } = spot;
   const total = ch.levels.length, done = P.doneCount(ch.id, total);
 
-  $('homeNo').textContent = `CHƯƠNG ${ch.no || 1}`;
-  $('homeName').textContent = ch.name || '—';
-  $('homeCount').textContent = `${done}/${total} màn`;
-  $('homeNext').textContent = `LEVEL ${index + 1}`;
+  $('homeNo').textContent = t('chapter', { no: ch.no || 1 });
+  $('homeName').textContent = chapterName(ch) || '—';
+  $('homeCount').textContent = t('levelsDone', { done, total });
+  $('homeNext').textContent = t('level', { n: index + 1 });
   // đặt trễ một nhịp để thanh tiến độ chạy từ trái sang, không nhảy cóc
   const bar = $('homeBar');
   bar.style.width = '0';
   requestAnimationFrame(() => { bar.style.width = (total ? done / total * 100 : 0) + '%'; });
 
-  $('playLabel').textContent = done === 0 && index === 0 ? 'Bắt đầu' : 'Chơi tiếp';
+  $('playLabel').textContent = t(done === 0 && index === 0 ? 'start' : 'resume');
   setArt(ch);
   setCardBg(ch);
 }
@@ -99,8 +99,8 @@ async function setArt(ch) {
   const clear = () => { back.removeAttribute('src'); front.removeAttribute('src'); };
   try {
     const L = await bagLayers(ch);
-    if (L.body) back.src = './content/' + L.body; else back.removeAttribute('src');
-    if (L.frame) front.src = './content/' + L.frame; else front.removeAttribute('src');
+    if (L.body) back.src = artUrl(L.body); else back.removeAttribute('src');
+    if (L.frame) front.src = artUrl(L.frame); else front.removeAttribute('src');
     if (!L.body && !L.frame) clear();
   } catch { clear(); }
 }
@@ -122,8 +122,8 @@ function drawMap() {
       <div class="chbanner">
         <div class="chbanner-img"></div>
         <div class="chbanner-txt">
-          <span class="chblock-no">CHƯƠNG ${ch.no || ci + 1}</span>
-          <h3>${esc(ch.name || '')}</h3>
+          <span class="chblock-no">${t('chapter', { no: ch.no || ci + 1 })}</span>
+          <h3>${esc(chapterName(ch))}</h3>
         </div>
         <span class="done">${done}/${total}</span>
       </div>`;
@@ -133,7 +133,7 @@ function drawMap() {
     body.className = 'chbody';
     if (!open) {
       const prev = CHAPTERS[ci - 1];
-      body.innerHTML = `<div class="lockmsg">${ICON.lock}Xong Chương ${prev?.no || ci} để mở</div>`;
+      body.innerHTML = `<div class="lockmsg">${ICON.lock}${t('finishToUnlock', { no: prev?.no || ci })}</div>`;
     } else {
       const grid = document.createElement('div');
       grid.className = 'lvgrid';
@@ -143,7 +143,7 @@ function drawMap() {
         b.className = 'lv ' + (isDone ? 'done' : !unlocked ? 'lock' : i === at ? 'now' : 'open');
         b.style.animationDelay = (ci * .07 + i * .022) + 's';
         b.innerHTML = `<span>${i + 1}</span>`;
-        b.title = lv.name || `Level ${i + 1}`;
+        b.title = levelName(lv) || t('level', { n: i + 1 });
         if (!unlocked) b.disabled = true;
         else b.addEventListener('click', () => { sfx('tapBig'); play(ch, i); });
         grid.appendChild(b);
@@ -186,6 +186,7 @@ function play(ch, idx) {
 // ---------- nút bật tắt tiếng ----------
 function paintAudioButtons() {
   const s = $('sfxBtn'), m = $('musicBtn');
+  $('langBtn').textContent = getLang().toUpperCase();
   s.innerHTML = isSfxOn() ? ICON.sfxOn : ICON.sfxOff;
   s.classList.toggle('off', !isSfxOn());
   m.innerHTML = isMusicOn() ? ICON.musOn : ICON.musOff;
@@ -203,6 +204,9 @@ export function initHome({ chapters, onPlay: cb }) {
   $('mapBtn').addEventListener('click', () => { sfx('tap'); showMap(); });
   $('mapBack').addEventListener('click', () => { sfx('tap'); backToHome(); });
 
+  $('langBtn').addEventListener('click', () => { sfx('tap'); setLang(getLang() === 'en' ? 'vi' : 'en'); });
+  // Đổi ngôn ngữ thì vẽ lại màn đang mở: chữ trên thẻ chương và bản đồ đều sinh bằng JS
+  onLangChange(() => { paintAudioButtons(); if (shown.has('home')) drawHome(); if (shown.has('mapscr')) drawMap(); });
   $('sfxBtn').addEventListener('click', () => { setSfxOn(!isSfxOn()); paintAudioButtons(); });
   $('musicBtn').addEventListener('click', () => { setMusicOn(!isMusicOn()); paintAudioButtons(); });
   paintAudioButtons();

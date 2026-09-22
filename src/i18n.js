@@ -1,0 +1,135 @@
+// Song ngữ. Game nói tiếng Anh mặc định, đổi sang tiếng Việt bằng nút trên trang chủ,
+// tham số ?lang=vi, hoặc lệnh từ Creative Tool.
+//
+// Chữ trong index.html gắn data-i18n="key" (nội dung) hoặc data-i18n-aria="key" (aria-label),
+// applyStatic() đổ lại mỗi lần đổi ngôn ngữ. Chữ sinh trong JS gọi t('key', { ten: gia_tri }).
+//
+// Tên level, tên chương và chữ gợi ý trong túi là NỘI DUNG, nằm trong levels.json:
+// name / emptyText là tiếng Việt, nameEn / emptyTextEn là tiếng Anh. Thiếu bản Anh thì
+// dùng bản Việt, không để trống.
+const KEY = 'snug.lang.v1';
+export const LANGS = ['en', 'vi'];
+
+const D = {
+  en: {
+    // HUD
+    itemsLeft: 'items<br>left', chapter: 'CHAPTER {no}', level: 'LEVEL {n}',
+    eyebrow: 'CHAPTER {no} · {name} — LEVEL {n}',
+    boostJiggle: 'Jiggle', boostResize: 'Shrink', boostThrow: 'Throw out',
+    pauseAria: 'Pause', backAria: 'Back', sfxAria: 'Toggle sound', musicAria: 'Toggle music', langAria: 'Language',
+    // Home
+    pickLevel: 'Choose a level', play: 'Play', start: 'Start', resume: 'Continue', levelsDone: '{done}/{total} levels',
+    finishToUnlock: 'Finish Chapter {no} to unlock',
+    // Pause
+    paused: 'Paused', resumeBtn: 'Resume', restart: 'Restart', home: 'Home', prevLevel: '‹ Previous', nextLevel: 'Next ›',
+    // Win
+    winReplay: 'Replay', winNext: 'Next level →',
+    rank99: 'Perfect!', rank93: 'Snug as a bug!', rank84: 'Super tidy!', rank72: 'Neatly packed!', rank0: 'It fits!',
+    brag: 'You beat <b>{pct}%</b> of players on this level',
+    scorePts: 'points', scoreTime: 'time', scoreBoost: 'boosters',
+    // Lose
+    soClose: 'So close!', timeUp: "Time's up.", leftInTray: '{n} items still out of the bag.', tryAgain: 'Try again', extraTime: '+60 sec · 100 coins',
+    // Toasts
+    noFit: "Doesn't fit!", noFitPushed: "Doesn't fit! Pushed back out", pairTogether: 'Tied items must go in together',
+    noFitReturned: "Doesn't fit! Put {n} items back", unlockHint: 'Drag the mystery box onto the key in the bag',
+    unlocked: 'Unlocked: {name}!', unlockedNoFit: "Unlocked: {name} — it doesn't fit there!",
+    nothingToThrow: 'Nothing can be thrown out', threw: 'Threw out {name}', throwFloat: 'Bye!',
+    nothingOutside: 'Nothing left outside the bag', shrunk: 'Shrunk {name} by 20%',
+    fits: 'It fits!', emptyBag: 'Pack your things here!', lockedSlot: 'LOCKED',
+    loadError: 'Could not load level: {msg}',
+    // Autoplay
+    autoNoPlan: 'No packing plan found', autoAll: 'Autoplay: everything fits', autoSome: 'Autoplay: only {a}/{b} fit',
+    autoDoneLeft: 'Autoplay done · {n} items left', autoDoneFit: 'Autoplay done · snug fit!',
+    autoStuck: 'No room for {n} more — this level needs a booster',
+    // Difficulty tiers (content stays in English)
+    Easy: 'Easy', Medium: 'Medium', Hard: 'Hard', 'Very Hard': 'Very Hard', Challenge: 'Challenge',
+  },
+  vi: {
+    itemsLeft: 'món<br>còn lại', chapter: 'CHƯƠNG {no}', level: 'LEVEL {n}',
+    eyebrow: 'CHƯƠNG {no} · {name} — LEVEL {n}',
+    boostJiggle: 'Lắc túi', boostResize: 'Thu nhỏ', boostThrow: 'Bỏ đi',
+    pauseAria: 'Tạm dừng', backAria: 'Quay lại', sfxAria: 'Bật tắt âm thanh', musicAria: 'Bật tắt nhạc nền', langAria: 'Ngôn ngữ',
+    pickLevel: 'Chọn màn chơi', play: 'Chơi', start: 'Bắt đầu', resume: 'Chơi tiếp', levelsDone: '{done}/{total} màn',
+    finishToUnlock: 'Xong Chương {no} để mở',
+    paused: 'Tạm dừng', resumeBtn: 'Chơi tiếp', restart: 'Chơi lại', home: 'Về trang chủ', prevLevel: '‹ Level trước', nextLevel: 'Level sau ›',
+    winReplay: 'Chơi lại', winNext: 'Level tiếp →',
+    rank99: 'Hoàn hảo!', rank93: 'Khít như in!', rank84: 'Cực gọn!', rank72: 'Gọn gàng!', rank0: 'Vừa khít!',
+    brag: 'Bạn vừa vượt <b>{pct}%</b> người chơi ở màn này',
+    scorePts: 'điểm', scoreTime: 'thời gian', scoreBoost: 'booster',
+    soClose: 'Suýt nữa rồi!', timeUp: 'Hết giờ.', leftInTray: 'Còn {n} món chưa vào túi.', tryAgain: 'Thử lại', extraTime: '+60 giây · 100 coin',
+    noFit: 'Không vừa!', noFitPushed: 'Không vừa! Đồ bị đẩy ra ngoài', pairTogether: 'Đồ buộc chung phải vào túi cùng nhau',
+    noFitReturned: 'Không vừa! Đã trả {n} món về chỗ cũ', unlockHint: 'Kéo hộp bí ẩn chạm vào chìa khóa trong túi',
+    unlocked: 'Mở khóa: {name}!', unlockedNoFit: 'Mở khóa: {name} — không vừa chỗ đó!',
+    nothingToThrow: 'Không có món nào bỏ được', threw: 'Đã bỏ {name}', throwFloat: 'Bỏ đi',
+    nothingOutside: 'Không còn món nào ngoài túi', shrunk: 'Đã thu nhỏ {name} 20%',
+    fits: 'Vừa khít!', emptyBag: 'Xếp đồ vào đây nào!', lockedSlot: 'NGĂN KHOÁ',
+    loadError: 'Lỗi tải level: {msg}',
+    autoNoPlan: 'Không tìm được cách xếp nào', autoAll: 'Tự chơi: máy xếp được hết', autoSome: 'Tự chơi: máy chỉ xếp được {a}/{b}',
+    autoDoneLeft: 'Tự chơi xong · còn {n} món chưa vào túi', autoDoneFit: 'Tự chơi xong · vừa khít!',
+    autoStuck: 'Hết chỗ cho {n} món — màn này cần booster',
+    Easy: 'Dễ', Medium: 'Vừa', Hard: 'Khó', 'Very Hard': 'Rất khó', Challenge: 'Thách đấu',
+  },
+};
+
+// Tên tiếng Anh của món, tra theo slug. Manifest chỉ có tên tiếng Việt; slug vốn đã là
+// tiếng Anh viết liền nên bảng này chỉ là dạng đọc được của nó.
+const ITEM_EN = {
+  tshirt: 'T-shirt', shorts: 'Shorts', socks: 'Socks', sneaker: 'Sneaker', raincoat: 'Raincoat',
+  tissue: 'Tissues', sanitizer: 'Hand Sanitizer', handtowel: 'Hand Towel', lipbalm: 'Lip Balm', wetwipes: 'Wet Wipes',
+  tablet: 'Tablet', calculator: 'Calculator', earbuds: 'Earbuds Case', charger: 'Charger',
+  waterbottle: 'Water Bottle', sandwich: 'Sandwich Box', apple: 'Apple', banana: 'Banana', milk: 'Milk Carton', granola: 'Granola Bar',
+  cap: 'Cap', umbrella: 'Umbrella', keyring: 'Keyring', studentcard: 'Student Card',
+  notebook: 'Notebook', textbook: 'Textbook', ruler: 'Ruler', pencil: 'Pencil', gluestick: 'Glue Stick', paintbox: 'Paint Box',
+  jacket: 'Jacket', pajamas: 'Pajamas', toothbrush: 'Toothbrush', toothpaste: 'Toothpaste', shampoo: 'Shampoo', hairbrush: 'Hairbrush', deodorant: 'Deodorant',
+  smartphone: 'Phone', camera: 'Camera', powerbank: 'Power Bank', cable: 'Charging Cable',
+  crackers: 'Crackers', juice: 'Juice Box', sunglasses: 'Sunglasses', wallet: 'Wallet', sleepmask: 'Sleep Mask', neckpillow: 'Neck Pillow',
+  guidebook: 'Guidebook', map: 'Map', ticket: 'Ticket', cards: 'Playing Cards', travelmug: 'Travel Mug',
+  key: 'Key', mystery: 'Mystery Box',
+};
+
+function readSaved() { try { return localStorage.getItem(KEY); } catch { return null; } }
+function initial() {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (LANGS.includes(q)) return q;
+  const s = readSaved();
+  return LANGS.includes(s) ? s : 'en';
+}
+let lang = initial();
+const listeners = [];
+
+export const getLang = () => lang;
+export function setLang(l, { save = true } = {}) {
+  if (!LANGS.includes(l) || l === lang) return;
+  lang = l;
+  if (save) try { localStorage.setItem(KEY, l); } catch {}
+  document.documentElement.lang = l;
+  applyStatic();
+  listeners.forEach(fn => fn(l));
+}
+export function onLangChange(fn) { listeners.push(fn); }
+
+/** Tra chữ theo khoá, điền {ten} bằng vars. Thiếu khoá thì trả tiếng Anh, thiếu nữa thì trả chính khoá. */
+export function t(key, vars) {
+  let s = D[lang]?.[key] ?? D.en[key] ?? key;
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
+  return s;
+}
+
+/** Tên món theo ngôn ngữ hiện tại */
+export function itemName(def) {
+  if (!def) return '';
+  if (lang === 'vi') return def.name || def.slug;
+  return def.nameEn || ITEM_EN[def.slug] || def.name || def.slug;
+}
+/** Tên level / tên chương / chữ gợi ý túi trống theo ngôn ngữ */
+export const levelName = lv => (lang === 'vi' ? lv?.name : (lv?.nameEn || lv?.name)) || '';
+export const chapterName = ch => (lang === 'vi' ? (ch?.nameVi || ch?.name) : ch?.name) || '';
+export const emptyText = lv => (lang === 'vi' ? lv?.emptyText : (lv?.emptyTextEn || lv?.emptyText)) || t('emptyBag');
+export const tierName = tier => (tier ? t(tier) : '');
+
+/** Đổ chữ tĩnh trong HTML: [data-i18n] → innerHTML, [data-i18n-aria] → aria-label */
+export function applyStatic(root = document) {
+  root.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  root.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+}
+document.documentElement.lang = lang;

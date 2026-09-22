@@ -19,7 +19,7 @@ for (const lv of ch.levels) {
     món: lv.items.filter(i => i.id !== 'key').length,
     'máy xếp': `${s.placedCount}/${s.needCount}`,
     'kết quả': s.solvable ? 'xếp được' : 'chặt tay',
-    điểm: lv.difficulty.points, tier: lv.difficulty.tier, giây: lv.timer,
+    điểm: lv.difficulty?.points ?? "-", tier: lv.difficulty?.tier ?? "-", giây: lv.timer,
   });
 }
 console.table(rows);

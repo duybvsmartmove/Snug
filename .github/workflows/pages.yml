@@ -1,5 +1,5 @@
-# Đưa game và Level Editor lên GitHub Pages mỗi khi đẩy lên nhánh main.
-# index.html là game, editor.html là editor.
+# Đưa game, Level Editor và Creative Tool lên GitHub Pages mỗi khi đẩy lên nhánh main.
+# index.html là game, editor.html là editor, creative.html là creative tool.
 name: Deploy
 
 on:

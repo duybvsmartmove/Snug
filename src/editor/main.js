@@ -36,7 +36,7 @@ let draw, gen, pool;
 export function setLevel(level, { keepId = false } = {}) {
   if (keepId && E.level) level.id = E.level.id;
   E.level = level;
-  $('lvName').value = level.name || ''; $('lvTimer').value = level.timer || 90;
+  $('lvName').value = level.name || ''; $('lvNameEn').value = level.nameEn || ''; $('lvTimer').value = level.timer || 90;
   refreshPickers();
   $('lvCoin').value = level.reward?.coin ?? 20;
   onChange();
@@ -259,6 +259,8 @@ export function refreshPickers() {
 
 // ---------- form ----------
 $('lvName').addEventListener('input', e => { E.level.name = e.target.value; refreshLevelSelect(); onChange(); });
+// Tên tiếng Anh: game mặc định nói tiếng Anh, bỏ trống thì hiện tên tiếng Việt
+$('lvNameEn').addEventListener('input', e => { E.level.nameEn = e.target.value; onChange(); });
 $('lvTimer').addEventListener('change', e => { E.level.timer = +e.target.value; onChange(); });
 $('lvBg').addEventListener('change', e => { E.level.background = Number(e.target.value); onChange(); });
 $('lvSkin').addEventListener('change', e => { E.level.container.skin = e.target.value; onChange(); });

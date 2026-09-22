@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -49,7 +49,7 @@
         <div class="eyebrow" id="eyebrow">LEVEL 1</div>
         <div class="title" id="title">Sunny escape</div>
       </div>
-      <button class="pause" id="pauseBtn" aria-label="Tạm dừng">
+      <button class="pause" id="pauseBtn" data-i18n-aria="pauseAria" aria-label="Pause">
         <svg viewBox="0 0 24 24"><rect x="7" y="5.4" width="3.6" height="13.2" rx="1.7"/><rect x="13.4" y="5.4" width="3.6" height="13.2" rx="1.7"/></svg>
       </button>
     </div>
@@ -57,7 +57,7 @@
     <!-- Đồng hồ + số món còn lại: đặt cạnh nhau ở vùng luôn trống, không bao giờ đè lên túi -->
     <div class="hud timerwrap">
       <div class="timer" id="clock">1:30</div>
-      <div class="counter"><b id="count">0</b><span>món<br>còn lại</span></div>
+      <div class="counter"><b id="count">0</b><span data-i18n="itemsLeft">items<br>left</span></div>
     </div>
 
     <!-- Toast -->
@@ -79,7 +79,7 @@
             </g>
           </svg>
         </span>
-        <span class="nm">Lắc túi</span><b class="badge">2</b>
+        <span class="nm" data-i18n="boostJiggle">Jiggle</span><b class="badge">2</b>
       </button>
 
       <button class="boost b-resize" id="bResize">
@@ -94,7 +94,7 @@
             </g>
           </svg>
         </span>
-        <span class="nm">Thu nhỏ</span><b class="badge">2</b>
+        <span class="nm" data-i18n="boostResize">Shrink</span><b class="badge">2</b>
       </button>
 
       <button class="boost b-throw" id="bThrow">
@@ -110,7 +110,7 @@
             </g>
           </svg>
         </span>
-        <span class="nm">Bỏ đi</span><b class="badge">1</b>
+        <span class="nm" data-i18n="boostThrow">Throw out</span><b class="badge">1</b>
       </button>
     </div>
 
@@ -127,11 +127,11 @@
         <div class="chcard" id="homeChapter">
           <div class="chcard-bg" id="homeBg"></div>
           <div class="chcard-art"><img id="homeArt" alt="" draggable="false"><img id="homeArt2" alt="" draggable="false"></div>
-          <div class="chcard-no" id="homeNo">CHƯƠNG 1</div>
+          <div class="chcard-no" id="homeNo">CHAPTER 1</div>
           <div class="chcard-name" id="homeName">—</div>
           <div class="bar"><i id="homeBar"></i></div>
           <div class="chcard-foot">
-            <span id="homeCount">0/0 màn</span>
+            <span id="homeCount">0/0 levels</span>
             <span class="pill" id="homeNext">LEVEL 1</span>
           </div>
         </div>
@@ -139,28 +139,29 @@
         <div class="home-actions">
           <button class="cta wide ghost" id="mapBtn">
             <svg viewBox="0 0 24 24" class="bic"><rect x="3" y="3" width="7.4" height="7.4" rx="2"/><rect x="13.6" y="3" width="7.4" height="7.4" rx="2"/><rect x="3" y="13.6" width="7.4" height="7.4" rx="2"/><rect x="13.6" y="13.6" width="7.4" height="7.4" rx="2"/></svg>
-            Chọn màn chơi
+            <span data-i18n="pickLevel">Choose a level</span>
           </button>
           <button class="cta wide play" id="playBtn">
             <svg viewBox="0 0 24 24" class="bic"><path d="M7 4.6v14.8a1 1 0 0 0 1.53.85l11.2-7.4a1 1 0 0 0 0-1.7L8.53 3.75A1 1 0 0 0 7 4.6z"/></svg>
-            <span id="playLabel">Chơi</span>
+            <span id="playLabel">Play</span>
           </button>
         </div>
       </div>
 
       <div class="home-tools">
-        <button class="iconbtn" id="sfxBtn" aria-label="Bật tắt âm thanh"></button>
-        <button class="iconbtn" id="musicBtn" aria-label="Bật tắt nhạc nền"></button>
+        <button class="iconbtn lang" id="langBtn" data-i18n-aria="langAria" aria-label="Language">EN</button>
+        <button class="iconbtn" id="sfxBtn" data-i18n-aria="sfxAria" aria-label="Toggle sound"></button>
+        <button class="iconbtn" id="musicBtn" data-i18n-aria="musicAria" aria-label="Toggle music"></button>
       </div>
     </div>
 
     <!-- ================= Bản đồ chương & màn ================= -->
     <div class="screen mapscr" id="mapscr">
       <header class="mhead">
-        <button class="iconbtn" id="mapBack" aria-label="Quay lại">
+        <button class="iconbtn" id="mapBack" data-i18n-aria="backAria" aria-label="Back">
           <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <b>Chọn màn chơi</b>
+        <b data-i18n="pickLevel">Choose a level</b>
       </header>
       <div class="mlist" id="mapList"></div>
     </div>
@@ -168,12 +169,12 @@
     <!-- Pause menu -->
     <div class="overlay" id="pause">
       <div class="card">
-        <h2>Tạm dừng</h2>
+        <h2 data-i18n="paused">Paused</h2>
         <div class="actions col">
-          <button class="cta" id="resumeBtn">Chơi tiếp</button>
-          <button class="cta ghost" id="restartBtn">Chơi lại</button>
-          <button class="cta ghost" id="homeBtn">Về trang chủ</button>
-          <div class="lvnav"><button id="prevLv">‹ Level trước</button><button id="nextLv">Level sau ›</button></div>
+          <button class="cta" id="resumeBtn" data-i18n="resumeBtn">Resume</button>
+          <button class="cta ghost" id="restartBtn" data-i18n="restart">Restart</button>
+          <button class="cta ghost" id="homeBtn" data-i18n="home">Home</button>
+          <div class="lvnav"><button id="prevLv" data-i18n="prevLevel">‹ Previous</button><button id="nextLv" data-i18n="nextLevel">Next ›</button></div>
         </div>
       </div>
     </div>
@@ -182,11 +183,11 @@
     <div class="overlay" id="win">
       <div class="card">
         <div class="stars" id="winStars"></div>
-        <h2 id="winRank">Vừa khít!</h2>
+        <h2 id="winRank">It fits!</h2>
         <p id="winText"></p>
         <div class="score" id="winScore"></div>
-        <div class="actions"><button class="cta ghost" id="again">Chơi lại</button><button class="cta" id="next">Level tiếp →</button></div>
-        <button class="linkbtn" id="winHome">Về trang chủ</button>
+        <div class="actions"><button class="cta ghost" id="again" data-i18n="winReplay">Replay</button><button class="cta" id="next" data-i18n="winNext">Next level →</button></div>
+        <button class="linkbtn" id="winHome" data-i18n="home">Home</button>
       </div>
     </div>
 
@@ -194,10 +195,10 @@
     <div class="overlay" id="lose">
       <div class="card">
         <div class="clockicon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></div>
-        <h2>Suýt nữa rồi!</h2>
-        <p id="loseText">Hết giờ.</p>
-        <div class="actions"><button class="cta ghost" id="retry">Thử lại</button><button class="cta" id="extraTime">+60 giây · 100 coin</button></div>
-        <button class="linkbtn" id="loseHome">Về trang chủ</button>
+        <h2 data-i18n="soClose">So close!</h2>
+        <p id="loseText">Time's up.</p>
+        <div class="actions"><button class="cta ghost" id="retry" data-i18n="tryAgain">Try again</button><button class="cta" id="extraTime" data-i18n="extraTime">+60 sec · 100 coins</button></div>
+        <button class="linkbtn" id="loseHome" data-i18n="home">Home</button>
       </div>
     </div>
   </div>

@@ -49,6 +49,11 @@ export const S = {
   checked: new Set(), winFrames: 0, won: false, lost: false, paused: false,
   // thời gian
   timeLeft: 0, timerOn: true,
+  // Đồng hồ game (mili giây), chỉ chạy khi ván đang diễn và chạy theo timeScale.
+  // timeScale < 1 là quay chậm, > 1 là tua nhanh — Creative Tool điều khiển.
+  clock: 0, timeScale: 1,
+  // Ngón tay giả vẽ lên canvas khi máy tự chơi ở Creative Tool: { x, y, down }
+  finger: null, showFinger: false,
   // hiệu ứng
   puffs: [], startTime: 0, shownSec: -1, jiggle: null,
   // thế xếp trong túi ngay trước lần thả gần nhất, để hoàn tác nếu lần thả đó hỏng

@@ -9,6 +9,7 @@ import { sfx } from '../ui/sfx.js';
 import { sparkle, ring } from './fx.js';
 import { ctx } from './canvas.js';
 import { theme } from '../art/helpers.js';
+import { t, itemName } from '../i18n.js';
 
 const { Body, World, Vector, Constraint } = Matter;
 
@@ -58,7 +59,7 @@ export function drawStrings() {
 export function checkUnlock() {
   const box = S.bodies.find(b => b.locked), key = S.bodies.find(b => b.itemId === KEY_ID);
   if (!box || !key || isHeld(key)) return;
-  if (!S.unlockHinted && isHeld(box)) { S.unlockHinted = true; toast('Kéo hộp bí ẩn chạm vào chìa khóa trong túi', 2200); }
+  if (!S.unlockHinted && isHeld(box)) { S.unlockHinted = true; toast(t('unlockHint'), 2200); }
   let hit = false;
   for (const a of partsOf(box)) for (const k of partsOf(key)) {
     if (!Matter.Bounds.overlaps(a.bounds, k.bounds)) continue;
@@ -99,7 +100,7 @@ export function checkUnlock() {
   sfx('unlock');
   ring(noiMo.x, noiMo.y, { color: '#E2B04A', r1: 64, life: 620, width: 5 });
   sparkle(noiMo.x, noiMo.y, { n: 18, color: '#FFD98A', speed: 1.4, life: 780 });
-  toast(khongVua ? `Mở khóa: ${real.name} — không vừa chỗ đó!` : `Mở khóa: ${real.name}!`, khongVua ? 2000 : 1600);
+  toast(t(khongVua ? 'unlockedNoFit' : 'unlocked', { name: itemName(real) }), khongVua ? 2000 : 1600);
 }
 
 // ---------- Điện thoại rung ----------

@@ -2,9 +2,10 @@ import { defineConfig } from 'vite';
 import { resolve, join, normalize } from 'node:path';
 import { mkdirSync, writeFileSync, existsSync, unlinkSync, rmdirSync, readdirSync } from 'node:fs';
 
-// Một repo, hai trang:
-//   index.html   game
-//   editor.html  Level Editor
+// Một repo, ba trang:
+//   index.html     game
+//   editor.html    Level Editor
+//   creative.html  Creative Tool: chọn level, máy chơi, quay video / chụp ảnh store
 //
 // Nội dung nằm trong public/content và đi kèm bản build:
 //   levels.json            sắp xếp chương và level
@@ -59,6 +60,6 @@ export default defineConfig({
   server: { port: 5173, open: false },
   build: {
     outDir: 'dist', target: 'es2020',
-    rollupOptions: { input: { game: resolve(__dirname, 'index.html'), editor: resolve(__dirname, 'editor.html') } },
+    rollupOptions: { input: { game: resolve(__dirname, 'index.html'), editor: resolve(__dirname, 'editor.html'), creative: resolve(__dirname, 'creative.html') } },
   },
 });

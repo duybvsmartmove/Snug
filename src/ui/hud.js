@@ -2,6 +2,7 @@
 import { S } from '../game/state.js';
 import { sfx, duckMusic } from './sfx.js';
 import { shake } from '../game/fx.js';
+import { t } from '../i18n.js';
 
 const $ = id => document.getElementById(id);
 const hint = $('hint'), countEl = $('count'), clockEl = $('clock');
@@ -118,12 +119,8 @@ function thuHang(d) {
  */
 function danhGia(d) {
   const p = Math.round((d.tiLeGon || 0) * 100);
-  const hang = p >= 99 ? 'Hoàn hảo!'
-    : p >= 93 ? 'Khít như in!'
-    : p >= 84 ? 'Cực gọn!'
-    : p >= 72 ? 'Gọn gàng!'
-    : 'Vừa khít!';
-  return { hang, khoe: `Bạn vừa vượt <b>${thuHang(d)}%</b> người chơi ở màn này` };
+  const hang = t(p >= 99 ? 'rank99' : p >= 93 ? 'rank93' : p >= 84 ? 'rank84' : p >= 72 ? 'rank72' : 'rank0');
+  return { hang, khoe: t('brag', { pct: thuHang(d) }) };
 }
 
 /**
@@ -135,7 +132,7 @@ function danhGia(d) {
 function renderScore(d) {
   const el = $('winScore'); if (!el || !d) return;
   const o = (so, ten) => `<div class="chip"><b>${so}</b><span>${ten}</span></div>`;
-  el.innerHTML = o(d.diem, 'điểm') + o(giay(d.dungGiay), 'thời gian') + o(`${d.dungBooster}/${d.tongBooster}`, 'booster');
+  el.innerHTML = o(d.diem, t('scorePts')) + o(giay(d.dungGiay), t('scoreTime')) + o(`${d.dungBooster}/${d.tongBooster}`, t('scoreBoost'));
   renderStars(d.sao);
 }
 
@@ -149,7 +146,7 @@ export function showWin(diem) {
 export function hideWin() { hide('win'); }
 export function showLose() {
   const left = S.ITEMS.length - S.checked.size;
-  $('loseText').textContent = `Còn ${left} món chưa vào túi.`;
+  $('loseText').textContent = t('leftInTray', { n: left });
   sfx('lose'); shake(420); duckMusic(true);
   show('lose');
 }

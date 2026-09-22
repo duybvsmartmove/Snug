@@ -4,15 +4,19 @@
 const KEY = 'snug.progress.v1';
 
 const blank = () => ({ chapter: null, level: 0, done: {} });
-let data = load();
+// Creative Tool chạy cùng origin với game nên dùng chung localStorage. Ở chế độ đó chỉ
+// giữ tiến độ trong bộ nhớ: quay video xong không được làm đổi save của người chơi thật.
+const PARAMS = new URLSearchParams(location.search);
+const CREATIVE = PARAMS.get('creative') === '1';
+let data = CREATIVE ? blank() : load();
 
 function load() {
   try { return { ...blank(), ...(JSON.parse(localStorage.getItem(KEY)) || {}) }; }
   catch { return blank(); }
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {} }
+function save() { if (CREATIVE) return; try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {} }
 
-export const unlockAll = () => new URLSearchParams(location.search).get('all') === '1';
+export const unlockAll = () => CREATIVE || PARAMS.get('all') === '1';
 
 const doneList = id => (data.done[id] ||= []);
 export const isDone = (chId, idx) => !!doneList(chId)[idx];

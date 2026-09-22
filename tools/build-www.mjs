@@ -1,9 +1,9 @@
 /* Assemble www/ — the exact set of files that ships inside the Android app.
  *
- * `vite build` emits both pages into dist/: the game (index.html) and the Level
- * Editor (editor.html). Only the game belongs in an APK — the editor writes
- * content through the dev server's bridge, which does not exist on a phone.
- * So www/ is dist/ minus editor.html and the chunks only it pulls in.
+ * `vite build` emits three pages into dist/: the game (index.html), the Level
+ * Editor (editor.html) and the Creative Tool (creative.html). Only the game
+ * belongs in an APK — the other two are desktop tools for the team.
+ * So www/ is dist/ minus those two pages and the chunks only they pull in.
  *
  * Which chunks those are is read out of the two built HTML files rather than
  * guessed from filenames: Vite hashes names and moves shared code into its own
@@ -35,7 +35,8 @@ function assetsOf(htmlName) {
 }
 
 const game = assetsOf('index.html');
-const editorOnly = [...assetsOf('editor.html')].filter(a => !game.has(a));
+const TOOL_PAGES = ['editor.html', 'creative.html'];
+const editorOnly = [...new Set(TOOL_PAGES.flatMap(p => [...assetsOf(p)]))].filter(a => !game.has(a));
 
 rmSync(WWW, { recursive: true, force: true });
 mkdirSync(WWW, { recursive: true });
@@ -44,7 +45,7 @@ cpSync(DIST, WWW, {
   filter: src => {
     const rel = src.slice(DIST.length + 1);
     if (!rel) return true;
-    if (rel === 'editor.html' || rel === '.DS_Store') return false;
+    if (TOOL_PAGES.includes(rel) || rel === '.DS_Store') return false;
     return !editorOnly.includes(rel);
   },
 });

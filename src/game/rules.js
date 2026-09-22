@@ -9,6 +9,7 @@ import { sparkle, ring, confetti, shake, floatText, dust } from './fx.js';
 import { onImpact } from './physics.js';
 import { markDone, setSpot } from './progress.js';
 import { chamDiem } from './score.js';
+import { t } from '../i18n.js';
 
 const { Body, Bounds, Collision } = Matter;
 
@@ -130,13 +131,13 @@ export function eject(b) {
     Body.setPosition(pair[1], Matter.Vector.add(pair[0].position, d));
     Body.setVelocity(pair[1], { x: 0, y: 0 }); Body.setAngularVelocity(pair[1], 0); pair[1].stuck = 0;
     S.puffs.push({ x: pair[1].position.x, y: pair[1].position.y, t: 0 });
-    toast('Đồ buộc chung phải vào túi cùng nhau');
-  } else toast('Không vừa! Đồ bị đẩy ra ngoài');
+    toast(t('pairTogether'));
+  } else toast(t('noFitPushed'));
 
   // Chính món vừa thả là món không vừa → trả lại thế xếp cũ cho những món bị nó xô.
   if (S.luuTui && pair.includes(S.luuTui.monTha)) {
     const n = hoanTacTui();
-    if (n) toast(`Không vừa! Đã trả ${n} món về chỗ cũ`, 1800);
+    if (n) toast(t('noFitReturned', { n }), 1800);
   }
 }
 
@@ -185,7 +186,7 @@ function theoDoiMonVuaTha(now) {
   const z = bagZone(b);
   if (!z.inZone) {                            // đã văng hẳn ra ngoài túi
     const n = hoanTacTui();
-    if (n) toast(`Không vừa! Đã trả ${n} món về chỗ cũ`, 1800);
+    if (n) toast(t('noFitReturned', { n }), 1800);
     return;
   }
   if (z.fullyInside && b.speed < YEN_TOC) S.luuTui = null;   // vào được rồi, thôi canh
@@ -283,7 +284,7 @@ export function updateChecked() {
         if (lanDau && S.levelIdx + 1 < S.map.levels.length) sfx('unlockLv', { delay: 1.15, gain: .9 });
       }
       confetti(90); sfx('win'); duckMusic(true);
-      floatText(210, 300, 'Vừa khít!', { color: '#5FBF9B', size: 26, life: 1200 });
+      floatText(210, 300, t('fits'), { color: '#5FBF9B', size: 26, life: 1200 });
       // Bảng thắng có lớp mờ phủ kín màn: hiện ngay thì che mất pháo giấy vừa bắn.
       // Chờ một nhịp cho người chơi nhìn thấy ăn mừng rồi bảng mới trượt vào.
       const diem = chamDiem();

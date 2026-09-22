@@ -390,3 +390,31 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 }
 .score .chip b{font:700 1.22em "Baloo 2";color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
 .score .chip span{font:800 .56em "Nunito";color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
+
+/* ==========================================================================
+   CREATIVE TOOL: ẩn từng phần HUD để lấy ảnh nền sạch. Mặc định hiện đủ như game.
+   ========================================================================== */
+#phone.hide-timer .timerwrap{display:none}
+#phone.hide-dock .dock{display:none}
+#phone.hide-title .titleblock{visibility:hidden}
+#phone.hide-pause .pause{visibility:hidden}
+
+/* nút đổi ngôn ngữ trên trang chủ: hai chữ cái, cùng khuôn với hai nút tiếng */
+.iconbtn.lang{font:800 .72em "Nunito";letter-spacing:.06em}
+
+/* ==========================================================================
+   BỘ ART CASUAL: màu bão hoà hơn, viền đậm hơn. Ảnh lấy từ assets-casual/, còn đây là
+   phần HUD vẽ bằng CSS đi kèm. Chưa có ảnh casual thì bảng màu này vẫn đổi được.
+   ========================================================================== */
+html[data-art="casual"]{
+  --ink:#26203F; --ink-soft:#7B7396; --rose:#FF4D6D; --gold:#FFB400; --mint:#22C48F;
+  --card:#FFFFFF; --panel:#FFF1D6; --shadow:0 12px 28px rgba(38,32,63,.22);
+}
+html[data-art="casual"] body{background:#FFE8C9;background-image:radial-gradient(circle at 50% 40%, #FFF6E6, #FFD9A8 70%)}
+html[data-art="casual"] #phone{background:#FFE8C9}
+html[data-art="casual"] .cta{box-shadow:0 4px 0 #C9284A}
+html[data-art="casual"] .cta.play{background:linear-gradient(180deg,#FF6B87,#FF3D63);box-shadow:0 6px 0 #B8203F, 0 14px 26px rgba(38,32,63,.24)}
+html[data-art="casual"] .home{background:radial-gradient(120% 70% at 50% 0%, #FFF8EC 0%, #FFE3B8 46%, #FFC98A 100%)}
+html[data-art="casual"] .mapscr{background:linear-gradient(180deg,#FFF3DF,#FFD9A8)}
+html[data-art="casual"] .titleblock,html[data-art="casual"] .pause,html[data-art="casual"] .timer,html[data-art="casual"] .counter{border:2.5px solid var(--ink)}
+html[data-art="casual"] .boost{border:2.5px solid var(--ink)}

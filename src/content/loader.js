@@ -15,12 +15,25 @@ import { applyCollider } from '../data/collider.js';
 let BASE = './content/';
 export function setContentBase(url) { BASE = url.endsWith('/') ? url : url + '/'; }
 
+// Bộ art theo phong cách. Level và mục lục dùng chung, chỉ khác thư mục ảnh:
+//   cozy    assets/           bộ hiện có
+//   casual  assets-casual/    cùng cấu trúc, cùng tên file, thả ảnh mới vào là dùng được
+// Chọn bằng ?art=casual. Chưa có thư mục casual thì loader lặng lẽ dùng bộ cozy.
+export const ART_STYLES = ['cozy', 'casual'];
+let ART = 'cozy';
+export const artStyle = () => ART;
+export function setArtStyle(s) { ART = ART_STYLES.includes(s) ? s : 'cozy'; }
+/** Đổi đường dẫn "assets/…" sang thư mục của bộ art đang chọn */
+const artDir = p => (ART === 'cozy' ? p : p.replace(/^assets\//, `assets-${ART}/`));
+/** Địa chỉ đầy đủ của một file art, dùng cả ở trang chủ (thẻ <img>, background) */
+export const artUrl = p => (/^(https?:)?\/\//.test(p) ? p : BASE + artDir(p));
+
 const cache = new Map();
-const assetPath = src => (/^(https?:)?\/\//.test(src) ? src : BASE + src);
+const assetPath = src => artUrl(src);
 
 async function getJSON(path, { fresh = false, noStore = false } = {}) {
   if (!fresh && !noStore && cache.has(path)) return cache.get(path);
-  const res = await fetch(BASE + path + (fresh || noStore ? `?t=${Date.now()}` : ''),
+  const res = await fetch(BASE + artDir(path) + (fresh || noStore ? `?t=${Date.now()}` : ''),
     noStore ? { cache: 'no-store' } : undefined);
   if (!res.ok) throw new Error(`Không tải được ${path} (${res.status})`);
   const data = await res.json();
@@ -45,14 +58,33 @@ export const chapters = () => BOOK?.chapters || [];
 export const chapterById = id => chapters().find(c => c.id === id) || chapters()[0] || null;
 
 // ---------- art ----------
-let assetIndex = null;
-export async function loadAssetIndex(force) {
-  if (assetIndex && !force) return assetIndex;
-  cache.delete('assets/index.json');
-  try { assetIndex = await getJSON('assets/index.json', { fresh: true }); }
-  catch { assetIndex = {}; }
-  for (const k of ['items', 'backgrounds', 'bags']) assetIndex[k] = assetIndex[k] || {};
-  return assetIndex;
+let assetIndex = null, indexInFlight = null;
+/**
+ * Mục lục art. Món, nền và túi nạp song song nên ba lời gọi tới đây gần như cùng lúc;
+ * chỉ có MỘT lượt tải thật, các lời gọi sau chờ chung. Không gộp thì lúc bộ art đang
+ * chọn chưa có thư mục, lượt đầu lùi về cozy còn hai lượt sau thấy đã là cozy rồi mà
+ * fetch của mình vẫn hỏng → nhận mục lục rỗng, game mất túi và nền.
+ */
+export function loadAssetIndex(force) {
+  if (assetIndex && !force) return Promise.resolve(assetIndex);
+  if (indexInFlight) return indexInFlight;
+  indexInFlight = (async () => {
+    cache.delete('assets/index.json');
+    let idx;
+    try { idx = await getJSON('assets/index.json', { fresh: true }); }
+    catch {
+      // Bộ art đang chọn chưa có thư mục → về bộ cozy, không để game trắng trơn
+      if (ART !== 'cozy') {
+        console.warn(`Chưa có thư mục assets-${ART}, dùng bộ cozy`); ART = 'cozy';
+        cache.delete('assets/index.json');
+        try { idx = await getJSON('assets/index.json', { fresh: true }); } catch { idx = {}; }
+      } else idx = {};
+    }
+    for (const k of ['items', 'backgrounds', 'bags']) idx[k] = idx[k] || {};
+    assetIndex = idx;
+    return idx;
+  })().finally(() => { indexInFlight = null; });
+  return indexInFlight;
 }
 
 /** Nạp ảnh món. Truyền danh sách mã thì chỉ nạp bấy nhiêu. */

@@ -140,6 +140,39 @@ function tickTimer(dt) {
   if (S.timeLeft <= 0) { S.timeLeft = 0; S.lost = true; showLose(); }
 }
 
+// Ngón tay giả: Creative Tool bật khi máy tự chơi, để video trông như có người kéo.
+// Hình bàn tay lấy từ icon "touch_app" (Material), vẽ bằng Path2D, tô trắng viền mực.
+const HAND = new Path2D('M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74c-3.6-.76-3.54-.75-3.67-.75-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z');
+function drawFinger() {
+  const f = S.finger; if (!f || !S.showFinger) return;
+  ctx.save();
+  // vòng chạm dưới đầu ngón, chỉ hiện khi đang "ấn"
+  if (f.down) {
+    ctx.beginPath(); ctx.arc(f.x, f.y, 22, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.stroke();
+  }
+  // đầu ngón tay (điểm 11.5,3 của icon) đặt đúng vào toạ độ chạm; ấn thì bàn tay hạ thấp một chút
+  const k = 2.6, lift = f.down ? 0 : 6;
+  ctx.translate(f.x - 11.5 * k, f.y - 3 * k + lift);
+  ctx.scale(k, k);
+  ctx.shadowColor = 'rgba(59,42,74,.35)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+  ctx.fillStyle = '#FFFFFF'; ctx.fill(HAND);
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.strokeStyle = '#3B2A4A'; ctx.stroke(HAND);
+  ctx.restore();
+}
+
+/**
+ * Một bước mô phỏng dài `dt` mili giây game. Tách riêng để tua nhanh chạy được nhiều bước
+ * trong một khung hình: đưa thẳng dt = 66ms vào Matter là đồ xuyên qua nhau.
+ */
+function step(dt) {
+  moveHeld(dt);
+  tickEntrance(); tickPhone(dt); tickRotation(dt); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt);
+  S.clock += dt;
+}
+
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(now - last, 33); last = now;
@@ -151,8 +184,20 @@ function frame(now) {
   if (!S.engine) { xoaNen(); requestAnimationFrame(frame); return; }
 
   {
-    if (active) moveHeld(dt);
-    if (active) { tickEntrance(); tickPhone(dt); tickRotation(dt); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt); }
+    if (active) {
+      // Tốc độ 1x: đúng MỘT bước bằng dt, y như trước khi có Creative Tool. Quay chậm: một
+      // bước ngắn hơn. Tua nhanh: ceil(timeScale) bước bằng nhau.
+      //
+      // Độ dài bước phải đều từ khung này sang khung sau. Matter suy vận tốc từ quãng
+      // đường của bước trước nhân tỉ lệ độ dài hai bước, nên bước dài ngắn xen kẽ là mọi
+      // cú đẩy tách va chạm bị nhân đôi rồi chia đôi liên tục: đồ chèn nhau trong túi chật
+      // rung mãi không nằm yên. Đã thử chia theo mốc 16,7ms — khung hình dài 17ms bị chia
+      // thành hai bước 8,5ms, xen với khung 16,6ms không chia, và ra đúng cái rung đó.
+      // Một bước lẻ cực ngắn (0,3ms) còn tệ hơn: nhân 50 lần, đồ bay khỏi sân.
+      const ts = S.timeScale || 1;
+      const n = Math.max(1, Math.ceil(ts)), d = dt * ts / n;
+      for (let i = 0; i < n; i++) step(d);
+    }
     checkEject();
     updateChecked();
     updateClock();
@@ -179,6 +224,7 @@ function frame(now) {
     drawSelection();
     drawPuffs(dt);
     drawFx(dt);
+    drawFinger();
   }
   requestAnimationFrame(frame);
 }

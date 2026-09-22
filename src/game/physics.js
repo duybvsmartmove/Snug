@@ -23,7 +23,14 @@ function makePart(p, x, y) {
   if (p.kind === 'poly') { // đặt sao cho đỉnh vật lý trùng đúng toạ độ vẽ cục bộ
     const verts = p.pts.map(([px, py]) => ({ x: px, y: py }));
     const cen = Vertices.centre(verts);
-    return Bodies.fromVertices(x + cen.x, y + cen.y, [verts], o, true);
+    const b = Bodies.fromVertices(x + cen.x, y + cen.y, [verts], o, true);
+    // Matter có một khe hở: đa giác LÕM được tách thành nhiều mảnh, mảnh vụn bị lọc bỏ,
+    // còn lại đúng một mảnh thì nó trả về mảnh đó ở toạ độ CỤC BỘ (quanh 0,0) mà không
+    // dời tới (x, y) như các nhánh khác. Máy ảnh (mã 39) rơi đúng vào khe này: mở hộp bí
+    // ẩn ra là máy ảnh hiện ở góc trên trái màn rồi bị trả về khay. Đặt lại vị trí cho chắc;
+    // với thân bình thường đây là lệnh không đổi gì.
+    Body.setPosition(b, { x: x + cen.x, y: y + cen.y });
+    return b;
   }
   throw new Error('Unknown part kind: ' + p.kind);
 }
@@ -53,23 +60,52 @@ export function itemArea(def) {
   return b.area;
 }
 
-/** Thành túi: một hình chữ nhật mỏng dọc theo mỗi cạnh polygon, đẩy ra ngoài PAD/2 */
+/**
+ * Thành túi: một hình chữ nhật mỏng dọc theo mỗi cạnh polygon, đẩy ra ngoài PAD/2, dài
+ * ĐÚNG bằng cạnh. Khe ở góc lồi (hai đoạn không chạm nhau ở phía ngoài) bịt bằng một cột
+ * tròn đặt hẳn ra ngoài theo phân giác, chỉ chạm đỉnh.
+ *
+ * Trước đây mỗi đoạn được kéo dài thêm PAD/2 ở hai đầu để bịt khe. Ở góc LÕM (túi chữ L,
+ * khuyết góc) phần kéo dài đó chọc vào lòng túi 7 đơn vị: một vật cản vô hình, người chơi
+ * không thấy, máy xếp không biết, món đặt sát góc bị hất ra không rõ vì sao.
+ */
 function polygonWalls(poly, opt) {
   const walls = [];
-  const cx = poly.reduce((s, p) => s + p[0], 0) / poly.length, cy = poly.reduce((s, p) => s + p[1], 0) / poly.length;
+  const n = poly.length;
+  const cx = poly.reduce((s, p) => s + p[0], 0) / n, cy = poly.reduce((s, p) => s + p[1], 0) / n;
   // bỏ cạnh miệng túi: cạnh nằm trên đỉnh (y nhỏ nhất) và gần ngang
   const minY = Math.min(...poly.map(p => p[1]));
-  for (let i = 0; i < poly.length; i++) {
-    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length];
-    if (Math.abs(y1 - minY) < 1 && Math.abs(y2 - minY) < 1) continue; // miệng túi mở
+  const phapTuyen = [];   // pháp tuyến hướng ra ngoài của cạnh i (đỉnh i → i+1); null nếu là miệng túi
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % n];
     const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-    if (len < 1) continue;
+    if ((Math.abs(y1 - minY) < 1 && Math.abs(y2 - minY) < 1) || len < 1) { phapTuyen.push(null); continue; } // miệng túi mở
     let nx = dy / len, ny = -dx / len;            // pháp tuyến
     const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
     if ((mx + nx - cx) ** 2 + (my + ny - cy) ** 2 < (mx - cx) ** 2 + (my - cy) ** 2) { nx = -nx; ny = -ny; } // hướng ra ngoài
-    walls.push(Bodies.rectangle(mx + nx * PAD / 2, my + ny * PAD / 2, len + PAD, PAD, { ...opt, angle: Math.atan2(dy, dx) }));
+    phapTuyen.push({ nx, ny });
+    walls.push(Bodies.rectangle(mx + nx * PAD / 2, my + ny * PAD / 2, len, PAD, { ...opt, angle: Math.atan2(dy, dx) }));
+  }
+  // Cột bịt khe chỉ ở góc LỒI: ở góc lõm hai đoạn tường đã chồng lên nhau phía ngoài, không có khe.
+  // Lồi hay lõm xét bằng dấu tích có hướng của hai cạnh so với chiều đi của polygon.
+  const chieu = Math.sign(polygonArea2(poly));
+  for (let i = 0; i < n; i++) {
+    const a = phapTuyen[(i - 1 + n) % n], b = phapTuyen[i];
+    if (!a || !b) continue;
+    const [px, py] = poly[(i - 1 + n) % n], [vx, vy] = poly[i], [qx, qy] = poly[(i + 1) % n];
+    const cross = (vx - px) * (qy - vy) - (vy - py) * (qx - vx);
+    if (Math.sign(cross) !== chieu) continue;     // góc lõm
+    let bx = a.nx + b.nx, by = a.ny + b.ny; const L = Math.hypot(bx, by);
+    if (L < 1e-6) continue;                        // hai cạnh thẳng hàng
+    walls.push(Bodies.circle(vx + bx / L * PAD / 2, vy + by / L * PAD / 2, PAD / 2, opt));
   }
   return walls;
+}
+/** Diện tích có dấu ×2 (shoelace): dấu cho biết chiều đi của polygon */
+function polygonArea2(poly) {
+  let s = 0;
+  for (let i = 0; i < poly.length; i++) { const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length]; s += x1 * y2 - x2 * y1; }
+  return s;
 }
 
 /**

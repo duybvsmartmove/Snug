@@ -8,16 +8,23 @@ import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
 import { bindImpacts } from './game/rules.js';
-import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady } from './content/loader.js';
-import { autoplay, stopAutoplay } from './game/autoplay.js';
+import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady, setArtStyle, artStyle } from './content/loader.js';
+import { autoplay, stopAutoplay, autoState, autoLog, chanDoan } from './game/autoplay.js';
 import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
 import * as SCORE from './game/score.js';
-import { initHome, showHome, hideHome } from './ui/home.js';
+import { initHome, showHome, hideHome, showMap } from './ui/home.js';
+import { applyStatic, t } from './i18n.js';
+import { initCreative, isCreative } from './game/creative.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
 import { chuyenMan, moMan } from './ui/veil.js';
 
 const params = new URLSearchParams(location.search);
+
+// Bộ art: ?art=casual đổi thư mục ảnh và bảng màu HUD. Đặt trước mọi lượt nạp ảnh.
+setArtStyle(params.get('art') || 'cozy');
+document.documentElement.dataset.art = artStyle();
+applyStatic();
 
 /**
  * Mở tấm màn lần đầu, khi giao diện đã sẵn sàng thật.
@@ -92,6 +99,7 @@ async function boot() {
   }
 
   initHome({ chapters: chapters(), onPlay: startLevel });
+  initCreative({ startLevel, goHome, showMap, chapterById });
 
   // Mở thẳng một level qua địa chỉ (?level=… hoặc ?i=…) thì bỏ qua trang chủ
   const byId = params.get('level'), byIdx = params.get('i');
@@ -156,7 +164,7 @@ async function buildWithArt(level) {
 // Hook debug ở chế độ dev: mở console gõ __game.S để xem trạng thái, __game.drag(id, x, y) để thử kéo.
 if (import.meta.env?.DEV) {
   window.__game = {
-    S, BAG, FX, RULES, SCORE, restart, nextLevel, prevLevel, autoplay, stopAutoplay,
+    S, BAG, FX, RULES, SCORE, restart, nextLevel, prevLevel, autoplay, stopAutoplay, autoState, autoLog, chanDoan,
     body: id => S.bodies.find(b => b.label === id),
     async drag(id, tx, ty, steps = 10) {
       const cv = document.getElementById('game'), r = cv.getBoundingClientRect();
@@ -177,5 +185,5 @@ if (import.meta.env?.DEV) {
 boot().catch(err => {
   console.error(err);
   moMan();                          // hỏng thì cũng phải cho người chơi thấy màn hình
-  toast('Lỗi tải level: ' + err.message, 5000);
+  toast(t('loadError', { msg: err.message }), 5000);
 });

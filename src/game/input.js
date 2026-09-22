@@ -12,6 +12,7 @@ import { canvas, toLogical } from './canvas.js';
 import { computeGhost, findFreeSpot, bagZone } from './rules.js';
 import { tetherSuspend, tetherRestore } from './mechanics.js';
 import { toast, hideHint } from '../ui/hud.js';
+import { t } from '../i18n.js';
 import { sfx } from '../ui/sfx.js';
 
 const { Body, World, Query, Vector } = Matter;
@@ -41,7 +42,11 @@ function groupOf(body) {
   return other && other !== body ? [body, other] : [body];
 }
 
-export function pickUp(body, p) {
+/**
+ * Nhấc món lên tay. `touch` cho biết đang cầm bằng ngón tay hay bằng chuột: mức nhấc
+ * tính cho ngón tay (xem liftOf) đem sang chuột là thừa, xem ghi chú ở LIFT_CHUOT.
+ */
+export function pickUp(body, p, { touch = true } = {}) {
   S.selected = null;
   S.luuTui = null;          // bỏ ảnh chụp của lần thả trước, sắp có lần thả mới
   const group = groupOf(body);
@@ -58,7 +63,7 @@ export function pickUp(body, p) {
     rel: group.map(b => ({ b, d: Vector.rotate(Vector.sub(b.position, body.position), -body.angle), a: b.angle - body.angle })),
     target: p, startP: p,
     offsetLocal: Vector.rotate(Vector.sub(p, body.position), -body.angle),
-    lift: 0, liftTo: liftOf(body),
+    lift: 0, liftTo: touch ? liftOf(body) : LIFT_CHUOT,
     ghost: true, lastValid: null,
   };
   body.pop = 0;                     // món nảy nhẹ một nhịp lúc rời tay khỏi mặt bàn
@@ -94,6 +99,11 @@ function syncGroup(d) {
 // rồi thì món vẫn nằm trọn trên ngón.
 const HO_NGON_TAY = 46;   // khoảng hở từ chỗ ngón chạm lên tới mép dưới món
 const LIFT_MAX = 150;     // chặn trên, phòng món quá khổ bị nhấc vọt khỏi màn hình
+// Cầm bằng CHUỘT thì không có ngón tay nào che món, nên mức nhấc trên là thừa: món treo
+// cách con trỏ cả trăm đơn vị, và món đang nằm trong túi vọt luôn khỏi miệng túi ngay
+// khi vừa chạm — trên editor và Creative Tool nhìn như món trong túi bị nhấc cao hơn món
+// dưới sàn. Chuột chỉ nhích một chút cho có cảm giác đã cầm lên.
+const LIFT_CHUOT = 8;
 function liftOf(b) {
   const box = b.def?.box;
   const r = box ? Math.max(box[2] - box[0], box[3] - box[1]) * (b.artScale || 1) / 2
@@ -156,7 +166,7 @@ export function drop() {
     World.add(S.world, x);
   }
   if (b.tether) tetherRestore(b.tether);
-  if (bounce) { S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 }); toast('Không vừa!'); sfx('nope'); }
+  if (bounce) { S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 }); toast(t('noFit')); sfx('nope'); }
   else sfx('drop', { rate: 1 + (Math.random() - .5) * .1, gain: .9 });
   S.drag = null;
 }
@@ -262,7 +272,8 @@ function onMove(e) {
   if (spin && e.pointerId === spin.id) { moveSpin(p); return; }
   if (pending && e.pointerId === pending.id) {
     if (Vector.magnitude(Vector.sub(p, pending.startP)) > DRAG_PX) {   // đã kéo đủ xa → nhấc lên
-      pickUp(pending.body, pending.startP);
+      // Bút hay con trỏ không rõ loại coi như ngón tay: thà nhấc thừa còn hơn để che mất món
+      pickUp(pending.body, pending.startP, { touch: e.pointerType !== 'mouse' });
       S.drag.id = e.pointerId; S.drag.target = p;
       pending = null;
     }

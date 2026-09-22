@@ -10,6 +10,7 @@ import { ctx } from '../game/canvas.js';
 import { BAG, S } from '../game/state.js';
 import { theme, rrect } from './helpers.js';
 import { BAG_SKINS } from './scene-registry.js';
+import { t, emptyText } from '../i18n.js';
 
 export const bagSkin = () => BAG_SKINS[BAG.kind] || BAG_SKINS.backpack || null;
 
@@ -79,7 +80,7 @@ function drawBlocks() {
     ctx.lineWidth = 2.6; ctx.strokeStyle = theme.ink; ctx.stroke();
     ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.font = '800 8px Nunito';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (b.w > 46 && b.h > 16) ctx.fillText('NGĂN KHOÁ', b.x + b.w / 2, b.y + b.h / 2);
+    if (b.w > 46 && b.h > 16) ctx.fillText(t('lockedSlot'), b.x + b.w / 2, b.y + b.h / 2);
     ctx.restore();
   }
 }
@@ -94,6 +95,6 @@ function drawEmptyLabel() {
   ctx.globalAlpha = .55; ctx.fillStyle = BAG.kind === 'backpack' ? '#C9D2F5' : '#8A7358';
   ctx.font = '600 15px "Baloo 2", Nunito, sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(S.LEVEL.emptyText || 'Xếp đồ vào đây nào!', BAG.cx, (BAG.top + BAG.bottom) / 2);
+  ctx.fillText(emptyText(S.LEVEL), BAG.cx, (BAG.top + BAG.bottom) / 2);
   ctx.restore();
 }

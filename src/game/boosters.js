@@ -9,6 +9,7 @@ import { jiggle } from './mechanics.js';
 import { toast } from '../ui/hud.js';
 import { sfx } from '../ui/sfx.js';
 import { sparkle, ring, shake, floatText } from './fx.js';
+import { t, itemName } from '../i18n.js';
 
 const { Body } = Matter;
 
@@ -29,8 +30,14 @@ export function renderBoosts() {
   }
 }
 
+// Creative Tool đặt sẵn một con số cho cả ba loại (badge đẹp cho ảnh store, hoặc 0 để
+// quay cảnh hết booster). null là theo level như bình thường.
+export let boostOverride = null;
+export function setBoostOverride(n) { boostOverride = n == null ? null : Math.max(0, n | 0); }
+
 export function resetBoosts() {
   S.boosts = { ...DEFAULT_BOOSTS, ...(S.LEVEL?.boosters || {}) };
+  if (boostOverride != null) S.boosts = { jiggle: boostOverride, resize: boostOverride, throw: boostOverride };
   renderBoosts();
 }
 
@@ -46,16 +53,16 @@ function throwableItems() {
 function useThrow() {
   if (S.boosts.throw <= 0 || S.won || S.lost) return;
   const all = throwableItems();
-  if (!all.length) { sfx('nope'); return toast('Không có món nào bỏ được'); }
+  if (!all.length) { sfx('nope'); return toast(t('nothingToThrow')); }
   const outside = all.filter(b => !bagZone(b).fullyInside);
   const pool = outside.length ? outside : all;
   const b = pool[Math.floor(Math.random() * pool.length)];
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
   sfx('trash'); sparkle(b.position.x, b.position.y, { n: 16, color: '#E8434F', speed: 1.3 });
-  floatText(b.position.x, b.position.y - 16, 'Bỏ đi', { color: '#E8434F' });
+  floatText(b.position.x, b.position.y - 16, t('throwFloat'), { color: '#E8434F' });
   removeBody(b); S.gone.add(b.itemId);
   S.boosts.throw--; renderBoosts();
-  toast(`Đã bỏ ${b.realDef.name}`);
+  toast(t('threw', { name: itemName(b.realDef) }));
 }
 
 function useJiggle() {
@@ -68,14 +75,14 @@ function useJiggle() {
 function useResize() {
   if (S.boosts.resize <= 0 || S.won || S.lost) return;
   const cands = S.bodies.filter(b => daVao(b) && !bagZone(b).fullyInside && !isHeld(b) && b.label !== 'key');
-  if (!cands.length) { sfx('nope'); return toast('Không còn món nào ngoài túi'); }
+  if (!cands.length) { sfx('nope'); return toast(t('nothingOutside')); }
   const b = cands.sort((x, y) => y.area - x.area)[0];
   Body.scale(b, .8, .8); b.artScale *= .8;   // GDD: thu nhỏ 20%
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
   sfx('shrink'); ring(b.position.x, b.position.y, { color: '#3D8BFF', r1: 40, life: 420 });
   floatText(b.position.x, b.position.y - 18, '−20%', { color: '#2A66C8' });
   S.boosts.resize--; renderBoosts();
-  toast(`Đã thu nhỏ ${b.realDef.name} 20%`);
+  toast(t('shrunk', { name: itemName(b.realDef) }));
 }
 
 export function bindBoosters() {

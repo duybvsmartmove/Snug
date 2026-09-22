@@ -10,6 +10,7 @@ import { renderHeader, renderList, hideWin, hideLose, hidePause } from '../ui/hu
 import { clearFx } from './fx.js';
 import { duckMusic, sfx } from '../ui/sfx.js';
 import { setSpot } from './progress.js';
+import { t, chapterName, levelName, onLangChange } from '../i18n.js';
 
 const { Body, World } = Matter;
 
@@ -29,12 +30,7 @@ export function build(level) {
   S.ITEMS = playable.map(it => defById(it.id)).filter(Boolean);
 
   // HUD
-  const ch = S.map ? `CHƯƠNG ${S.map.no || 1} · ${S.map.name} — ` : '';
-  renderHeader({
-    eyebrow: `${ch}LEVEL ${S.levelIdx + 1}`,
-    title: level.name || 'Level',
-    cls: SCENE_CLS[Number(level.background)] || '',
-  });
+  veThanhTen();
   hideWin(); hideLose(); hidePause();
 
   // trạng thái
@@ -69,6 +65,17 @@ export function build(level) {
   renderList(true);
 }
 
+/** Thanh tên level trên HUD; gọi lại khi đổi ngôn ngữ giữa ván */
+function veThanhTen() {
+  const level = S.LEVEL; if (!level) return;
+  renderHeader({
+    eyebrow: S.map ? t('eyebrow', { no: S.map.no || 1, name: chapterName(S.map), n: S.levelIdx + 1 }) : t('level', { n: S.levelIdx + 1 }),
+    title: levelName(level) || 'Level',
+    cls: SCENE_CLS[Number(level.background)] || '',
+  });
+}
+onLangChange(veThanhTen);
+
 // Mở màn: đồ rơi xuống lần lượt chứ không đổ ụp một lúc.
 // Rơi cùng lúc thì mấy chục cú va chạm dồn vào một phần tư giây, nghe thành một tiếng ù
 // và mắt cũng không kịp thấy gì. Thả từ món gần sàn nhất trở lên để món phía trên rơi
@@ -80,14 +87,14 @@ function thaDoVaoSan() {
   const datSan = S.bodies.filter(b => b.datSan);
   const roiXuong = S.bodies.filter(b => !b.datSan).sort((a, b) => b.position.y - a.position.y);
   World.add(S.world, datSan);                      // món đặt sẵn trong túi có mặt ngay
-  const t0 = performance.now() + CHO_DAU;
+  const t0 = S.clock + CHO_DAU;
   roiXuong.forEach((b, i) => { b.chuaVao = true; b.vaoLuc = t0 + i * NHIP_THA; });
 }
 
 /** Gọi mỗi khung hình: thả những món đã tới lượt vào thế giới vật lý */
 export function tickEntrance() {
   if (!S.world) return;
-  const now = performance.now();
+  const now = S.clock;
   for (const b of S.bodies) {
     if (!b.chuaVao || now < b.vaoLuc) continue;
     b.chuaVao = false;
