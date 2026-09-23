@@ -434,9 +434,13 @@ html[data-art="casual"] .boost{border:2.5px solid var(--ink)}
 .pause.has-art svg{display:none}
 .pause.has-art:active{box-shadow:none}
 /* đồng hồ nằm trong khung gỗ có mặt đồng hồ bên trái; chữ dồn sang phần trống bên phải */
+/* Chữ nằm giữa đúng phần nền kem trống bên phải mặt đồng hồ, đo trên ảnh timer.png (752×216):
+   kem chạy từ x 190→733, y 50→182. Khung rộng 6.6em nên quy ra em theo chính khung (padding
+   phần trăm thì CSS tính theo khung CHA, lệch hẳn): trái 190/752·6.6 = 1.67em, phải 0.16em,
+   trên 50/752·6.6 = 0.44em, dưới 34/752·6.6 = 0.3em. */
 .timer.has-art{background:var(--art) center/100% 100% no-repeat;box-shadow:none;border-radius:0;
-  width:6.4em;aspect-ratio:712/216;padding:0 0 0 1.6em;display:grid;place-items:center;
-  font-size:1.35em;color:#5A3A22}
+  width:6.6em;height:1.9em;padding:.44em .16em .3em 1.67em;display:grid;place-items:center;
+  font-size:1.35em;line-height:1;color:#5A3A22}
 .timer.has-art.urgent{background:var(--art) center/100% 100% no-repeat;color:#D23B3B;box-shadow:none}
 .boost.has-art{background:none;box-shadow:none;padding:0;gap:.1em}
 .boost.has-art .ic{width:4.2em;height:4.2em;background:var(--art) center/contain no-repeat}
