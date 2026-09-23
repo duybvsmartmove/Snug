@@ -4,6 +4,11 @@
 // tính, bị dồn sang trái so với túi: đặt lên mỗi món một lực NGƯỢC chiều gia tốc, tỉ lệ với
 // độ mạnh của cú lắc. Lắc nhẹ thì đồ chỉ lắc lư, trượt vào khe hở bên cạnh; lắc mạnh thì
 // thêm một chút lực nhấc cho đồ đang chèn nhau nới ra rồi rơi xuống khít hơn.
+//
+// Chỉ đẩy ngang thì không đủ: đồ nằm chồng lên nhau ghì bằng ma sát tĩnh ~0,8 trọng lực, cú lắc
+// thật lại ngắn (vài chục mili giây) và đổi chiều liên tục, nên đo trên máy thật đồ đứng im.
+// Ngoài đời lắc túi thì đồ nảy khẽ, lúc lơ lửng không còn bị ghì. Làm giống vậy: trong lúc lắc
+// hạ tạm ma sát của đồ trong túi và rung dọc rất nhẹ, thôi lắc một nhịp thì trả ma sát như cũ.
 // Túi, đồ trên sàn, món đang cầm và món đang đóng băng không bị ảnh hưởng.
 //
 // iOS chỉ cho đọc cảm biến sau khi người chơi đồng ý, và chỉ hỏi được trong một lần chạm:
@@ -18,10 +23,15 @@ const { Body } = Matter;
 
 const G = 9.81;              // m/s², để đổi gia tốc thật sang đơn vị trọng lực của game
 const VUNG_CHET = .7;        // m/s²: tay cầm run nhẹ dưới mức này thì bỏ qua
-const TRAN = 16;             // m/s²: lắc mạnh hơn nữa cũng chỉ tính bằng chừng này
-const DO_NHAY = .55;         // 1 = lực ngang đúng bằng gia tốc thật; nhỏ hơn cho đồ lắc lư êm
+const TRAN = 12;             // m/s²: lắc mạnh hơn nữa cũng chỉ tính bằng chừng này
+// Khuếch đại cú lắc: theo tỉ lệ vật lý của game chiếc túi to cỡ 1,6 m ngoài đời, lắc tay thật
+// chỉ làm đồ nhích chưa tới 1 cm, mắt không thấy. Nhân lên cho đồ lắc lư rõ mà không văng.
+const DO_NHAY = 3;
 const NHAC_TU = 5;           // m/s²: từ mức này trở lên thì thêm lực nhấc cho đồ nới ra
 const NHAC = .22;            // độ mạnh lực nhấc so với lực ngang
+const RUNG = .35;            // rung dọc ngẫu nhiên, theo phần của lực ngang
+const MA_SAT_KHI_LAC = .15;  // ma sát còn lại khi đang lắc, theo phần ma sát gốc
+const GIU_NOI = 280;         // thôi lắc chừng này mili giây thì trả ma sát như cũ
 const LOC = .8;              // hệ số lọc bỏ trọng lực khi máy chỉ báo gia tốc kèm trọng lực
 
 let ax = 0;                  // gia tốc ngang đã lọc, m/s², dương = máy giật sang phải
@@ -74,10 +84,22 @@ export function goiYLacMotLan(toast, text) {
 export function shakeImpulse(a, ms = 200) { giaLap = a; giaLapToi = performance.now() + ms; }
 
 /** Gọi mỗi bước vật lý, trước Engine.update */
+/** Trả ma sát gốc cho món đã thôi bị lắc một lúc */
+function traMaSat(now, tatCa = false) {
+  for (const b of S.bodies) {
+    if (!b.maSatGoc || (!tatCa && now < b.noiToi)) continue;
+    b.friction = b.maSatGoc[0]; b.frictionStatic = b.maSatGoc[1];
+    b.maSatGoc = null;
+  }
+}
+
 export function tickShake() {
-  if (!S.world || S.won || S.lost || S.paused) return;
+  if (!S.world) return;
+  const now = performance.now();
+  if (S.won || S.lost || S.paused) { traMaSat(now, true); return; }
+  traMaSat(now);
   let a = ax;
-  if (giaLapToi > performance.now()) a = giaLap;
+  if (giaLapToi > now) a = giaLap;
   if (Math.abs(a) < VUNG_CHET) return;
   a = Math.max(-TRAN, Math.min(TRAN, a));
 
@@ -89,13 +111,18 @@ export function tickShake() {
   for (const b of S.bodies) {
     if (!daVao(b) || b.isStatic || isHeld(b)) continue;
     if (!bagZone(b).inZone) continue;          // chỉ đồ trong túi, đồ trên sàn đứng yên
-    // Quán tính: máy giật sang phải thì đồ dồn sang trái so với túi
-    Body.applyForce(b, b.position, { x: -a * don * b.mass, y: -nhac * don * b.mass });
+    // Nới ma sát trong lúc lắc (nhớ giá trị gốc để trả lại)
+    if (!b.maSatGoc) b.maSatGoc = [b.friction, b.frictionStatic];
+    b.friction = b.maSatGoc[0] * MA_SAT_KHI_LAC; b.frictionStatic = b.maSatGoc[1] * MA_SAT_KHI_LAC;
+    b.noiToi = now + GIU_NOI;
+    // Quán tính: máy giật sang phải thì đồ dồn sang trái so với túi; thêm rung dọc khẽ
+    const rung = (Math.random() - .5) * 2 * RUNG * manh;
+    Body.applyForce(b, b.position, { x: -a * don * b.mass, y: -(nhac + Math.max(0, rung)) * don * b.mass });
     co = true;
   }
   // tiếng sột soạt khi lắc mạnh, không dồn dập
-  if (co && manh > 6 && performance.now() > tiengLuc) {
-    tiengLuc = performance.now() + 450;
+  if (co && manh > 6 && now > tiengLuc) {
+    tiengLuc = now + 450;
     sfx('jiggle', { gain: Math.min(.5, manh / 30), rate: .9 + Math.random() * .2 });
   }
 }
