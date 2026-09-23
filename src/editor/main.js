@@ -15,6 +15,11 @@ import * as gh from './github.js';
 
 const $ = id => document.getElementById(id);
 
+// Trình duyệt tự điền lại ô nhập khi tải lại trang, khớp theo THỨ TỰ ô trong trang. Thêm một ô
+// mới là thứ tự lệch, giá trị cũ rơi nhầm chỗ: số giây 120 từng rơi vào ô tìm kho đồ, lọc
+// sạch món nào cũng không khớp. Mọi ô của editor đều nạp từ dữ liệu level, nên tắt hẳn.
+for (const el of document.querySelectorAll('input, select, textarea')) el.autocomplete = 'off';
+
 // Bộ art đang sửa: ?art=casual. Mỗi bộ có level, ảnh và mục lục riêng nên đổi bộ là mở lại
 // trang, không trộn hai bộ trong một phiên.
 setArtStyle(new URLSearchParams(location.search).get('art') || 'cozy');

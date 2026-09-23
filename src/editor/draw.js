@@ -402,6 +402,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
     for (const def of order) {
       if (scope === 'chapter' && chapterItems && !chapterItems.has(def.id) && def.id > 0) continue;
+      if (def.id <= 0 && !def.sprite) continue;   // chìa khoá / hộp bí ẩn chưa có ảnh ở bộ art này
       if (q && !`${def.id} ${def.name} ${def.slug}`.toLowerCase().includes(q)) continue;
       const b = document.createElement('button'); b.title = labelOf(def);
       const c = document.createElement('canvas'); c.width = c.height = 80;
@@ -417,10 +418,17 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     if (!pal.children.length) {
       const p = document.createElement('p');
       p.className = 'pal-empty';
-      p.textContent = q ? `Không có món nào khớp "${q}"` : 'Chương này chưa có món nào';
+      p.textContent = q ? `Không có món nào khớp "${q}" ` : 'Chương này chưa có món nào';
+      if (q) {   // lọc nhầm thì một nút là về lại đủ kho
+        const b = document.createElement('button');
+        b.className = 'ghost'; b.textContent = 'Xoá lọc';
+        b.addEventListener('click', () => { $('palSearch').value = ''; refreshPalette(); });
+        p.appendChild(b);
+      }
       pal.appendChild(p);
     }
   }
+  $('palSearch').value = '';    // không nhận giá trị trình duyệt tự điền lại lúc tải trang
   $('palSearch').addEventListener('input', refreshPalette);
   $('palScope').addEventListener('change', refreshPalette);
   function addItem(def) {
