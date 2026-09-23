@@ -1,13 +1,8 @@
 {
   "id": 1,
-  "name": "Góc học tập · sáng",
-  "fill": "#F2EAD2",
+  "name": "Nền tím casual",
+  "fill": "#7578B9",
   "layers": [
-    {
-      "src": "assets/01-school-day/backgrounds/bg-1.png",
-      "x": 0,
-      "y": 0,
-      "w": 420
-    }
+    { "src": "assets/01-school-day/backgrounds/bg-1.png", "x": 0, "y": 0, "w": 420, "h": 760 }
   ]
 }

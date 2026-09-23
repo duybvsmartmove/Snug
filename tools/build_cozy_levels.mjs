@@ -1,6 +1,6 @@
-// Dựng lại chương 1 (school-day) của bộ art cozy từ bảng mẫu bên dưới.
+// Dựng lại chương 1 (school-day) của một bộ art từ bảng mẫu bên dưới (túi dáng cố định).
 //
-// Chạy: node tools/build_cozy_levels.mjs [--ghi]
+// Chạy: node tools/build_cozy_levels.mjs [--art casual] [--ghi]     mặc định bộ cozy
 //
 // Túi cozy dáng cố định: level chỉ chọn CỠ túi và đặt VẬT CẢN, không kéo hình lòng túi.
 //   - Cỡ túi tính sao cho độ đầy đạt đúng mục tiêu của level, đo bằng vùng va chạm thật của món.
@@ -10,7 +10,7 @@
 // Mỗi level đặt túi bằng placeFixed (src/data/bag.js), cùng cách editor làm khi kéo thanh cỡ túi.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { CONTENT, ARGS } from './art.mjs';
+import { ART, CONTENT, ARGS } from './art.mjs';
 import { napCollider } from '../load_colliders.mjs';
 import { solve } from '../src/gen/solver.js';
 import { difficulty } from '../src/gen/difficulty.js';
@@ -30,7 +30,8 @@ const NOI = 1.02, NOI_TOI_DA = 6;
 // Vật cản: fx = tâm theo nửa bề ngang (-1 trái … 1 phải), fy = tâm theo chiều cao (0 đáy … 1 đỉnh),
 //          fw, fh = cỡ theo bề ngang / chiều cao lòng túi
 const MAU = { go: '#C99A6E', xanh: '#8FB9A8', hong: '#E7A9A0', vang: '#E9C46A', tim: '#A99BD1' };
-const LEVELS = [
+const LEVELS_BY_ART = {
+  cozy: [
   { id: 'sd-01', name: 'Giờ ăn trưa', nameEn: 'Lunch time', density: .46, timer: 120, coin: 20,
     items: [17, 19, 20, 18], hint: 'Kéo đồ vào ba lô' },
   { id: 'sd-02', name: 'Thêm bình nước', nameEn: 'Grab a bottle', density: .54, timer: 110, coin: 20,
@@ -59,7 +60,42 @@ const LEVELS = [
       { kind: 'round', fx: -.64, fy: .14, fw: .22, fh: .18, color: MAU.tim },
       { kind: 'diamond', fx: .6, fy: .5, fw: .2, fh: .16, color: MAU.xanh },
     ] },
-];
+  ],
+  casual: [
+  // Bộ casual mới chỉ có 10 món (1–10), nên mỗi món xuất hiện 4–8 lần; sắp cho hai level liền nhau
+  // không cùng một bộ món.
+  { id: 'sd-01', name: 'Đồ vệ sinh nhỏ', nameEn: 'Little essentials', density: .46, timer: 120, coin: 20,
+    items: [6, 7, 9, 10], hint: 'Kéo đồ vào ba lô' },
+  { id: 'sd-02', name: 'Thêm khăn tay', nameEn: 'Add a towel', density: .54, timer: 110, coin: 20,
+    items: [6, 7, 8, 9, 10] },
+  { id: 'sd-03', name: 'Áo phông gấp', nameEn: 'Folded tee', density: .60, timer: 100, coin: 25,
+    items: [1, 6, 8, 9, 10],
+    blocks: [{ kind: 'round', fx: .62, fy: .16, fw: .26, fh: .22, color: '#F7B7D2' }] },
+  { id: 'sd-04', name: 'Quần và giày', nameEn: 'Shorts and shoes', density: .64, timer: 100, coin: 30,
+    items: [2, 3, 4, 7, 9] },
+  { id: 'sd-05', name: 'Đôi tất đi kèm', nameEn: 'Socks and towel', density: .68, timer: 95, coin: 30,
+    items: [1, 3, 8, 7, 10, 9], link: [3, 8] },
+  { id: 'sd-06', name: 'Túi hơi chật', nameEn: 'A bit tight', density: .72, timer: 90, coin: 35,
+    items: [5, 4, 6, 7, 9, 10],
+    blocks: [{ kind: 'pill', fx: -.7, fy: .3, fw: .16, fh: .42, color: '#FFD166' }] },
+  { id: 'sd-07', name: 'Đủ bộ quần áo', nameEn: 'Full outfit', density: .76, timer: 90, coin: 40,
+    items: [1, 2, 3, 4, 6, 9] },
+  { id: 'sd-08', name: 'Vướng ngăn giữa', nameEn: 'Middle pocket', density: .79, timer: 85, coin: 45,
+    items: [5, 2, 3, 8, 10, 7, 9],
+    blocks: [{ kind: 'rect', fx: 0, fy: .52, fw: .36, fh: .12, color: '#FF8FAB' }] },
+  { id: 'sd-09', name: 'Sát giờ vào lớp', nameEn: 'Almost late', density: .83, timer: 80, coin: 50,
+    items: [1, 5, 4, 3, 8, 6, 9], link: [3, 8],
+    blocks: [{ kind: 'tri', fx: .66, fy: .12, fw: .24, fh: .2, color: '#FFD166' }] },
+  { id: 'sd-10', name: 'Balo cuối tuần', nameEn: 'Weekend backpack', density: .87, timer: 80, coin: 60,
+    items: [1, 2, 5, 4, 3, 7, 10, 9], link: [3, 9],
+    blocks: [
+      { kind: 'round', fx: -.64, fy: .14, fw: .22, fh: .18, color: '#9B5DE5' },
+      { kind: 'diamond', fx: .6, fy: .5, fw: .2, fh: .16, color: '#F7B7D2' },
+    ] },
+],
+};
+const LEVELS = LEVELS_BY_ART[ART];
+if (!LEVELS) { console.error(`Chưa có bảng mẫu level cho bộ ${ART}`); process.exit(1); }
 
 // ---------- dữ liệu ----------
 napCollider();
@@ -131,7 +167,7 @@ ch.assets = {
   items: [...new Set(levels.flatMap(l => l.items.map(it => it.id)))].sort((a, b) => a - b),
   backgrounds: [1], bags: [SKIN],
 };
-book.chapters = [ch];          // bộ cozy hiện chỉ có chương 1
+book.chapters = [ch];          // bộ nào cũng mới chỉ có chương 1
 book.version = (book.version || 0) + 1;
 book.publishedAt = new Date().toISOString();
 writeFileSync(file, JSON.stringify(book, null, 2));
