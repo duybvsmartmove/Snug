@@ -430,6 +430,8 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   }
   $('palSearch').value = '';    // không nhận giá trị trình duyệt tự điền lại lúc tải trang
   $('palSearch').addEventListener('input', refreshPalette);
+  // quay lại trang bằng nút Back (trang lấy từ bộ nhớ đệm, không chạy lại script) cũng xoá ô tìm
+  window.addEventListener('pageshow', e => { if (e.persisted && $('palSearch').value) { $('palSearch').value = ''; refreshPalette(); } });
   $('palScope').addEventListener('change', refreshPalette);
   function addItem(def) {
     const L = E.level;
