@@ -15,6 +15,7 @@ import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
 import * as SCORE from './game/score.js';
 import { initHome, showHome, hideHome, showMap } from './ui/home.js';
+import { showSplash } from './ui/splash.js';
 import { applyStatic, t } from './i18n.js';
 import { initCreative, isCreative } from './game/creative.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
@@ -116,6 +117,12 @@ async function boot() {
     await startLevel(ch, idx);
   } else {
     showHome();
+    // Splash phủ trên trang chủ: đồ của chương đầu rơi thành đống, bấm Chơi là lộ trang chủ.
+    // Creative Tool tự điều khiển màn hình nên bỏ qua.
+    if (!isCreative) {
+      await loadChapterAssets(chapters()[0]);
+      showSplash();
+    }
   }
   await moManLanDau();
 }

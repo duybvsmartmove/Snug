@@ -1,0 +1,145 @@
+// Màn Splash lúc mở game, theo tinh thần Snug gốc: đồ đạc của chương đầu mưa từ trên cao
+// xuống, va nhau và chất thành đống thật bằng vật lý, logo nằm giữa, nút Chơi bên dưới.
+//
+// Dùng một thế giới Matter RIÊNG, không đụng tới sân chơi: màn này tắt là thế giới bị bỏ đi.
+// Đồ rơi một loạt đầu cho đầy đống rồi rơi lác đác mãi; món cũ nhất mờ dần biến mất để đống
+// không cao quá logo. Chạm vào một món thì nó bật tung lên, cho người chơi nghịch trong lúc chờ.
+// Ảnh và vùng va chạm là của bộ art đang chọn, nên cozy và casual tự ra đúng đồ của mình.
+import Matter from 'matter-js';
+import { ITEM_DEFS } from '../data/items.js';
+import { makeItem } from '../game/physics.js';
+import { sfx, initAudio } from './sfx.js';
+
+const { Engine, World, Bodies, Body, Query } = Matter;
+const $ = id => document.getElementById(id);
+
+const W = 420;                 // bề ngang logic, như sân chơi; chiều cao theo màn thật
+const CO = .86;                // đồ ở splash nhỏ hơn trong game một chút cho đống gọn
+const LOAT_DAU = 24;           // số món rơi dồn dập lúc mở
+const NHIP_DAU = 95;           // mili giây giữa hai món trong loạt đầu
+const NHIP_SAU = 1100;         // sau đó cứ chừng này rơi thêm một món
+const TOI_DA = 28;             // quá số này thì món cũ nhất mờ đi nhường chỗ
+const MO_DI = 450;             // thời gian mờ đi của một món
+
+let run = null;                // { engine, bodies, raf, ... } khi màn đang chạy
+
+/**
+ * Mở màn Splash. Trả về Promise xong khi người chơi bấm Chơi và màn đã khép lại.
+ * Không có món nào có ảnh (content lỗi) thì bỏ qua luôn.
+ */
+export function showSplash() {
+  const defs = ITEM_DEFS.filter(d => d.id > 0 && d.sprite?.ready);
+  const el = $('splash'), cv = $('splashCv');
+  if (!defs.length || !el) return Promise.resolve();
+  const ctx = cv.getContext('2d');
+
+  const engine = Engine.create({ positionIterations: 6, velocityIterations: 4 });
+  engine.gravity.y = 1.05;
+  const r = { engine, bodies: [], raf: 0, H: 760, k: 1, dpr: 1, t: 0, next: 0, spawned: 0, walls: [] };
+  run = r;
+
+  // khung giữ đống đồ: sàn đúng mép dưới màn, hai vách hai bên cao hơn cả màn
+  function dungTuong() {
+    if (r.walls.length) World.remove(engine.world, r.walls);
+    const o = { isStatic: true, friction: .9, restitution: .05 };
+    r.walls = [
+      Bodies.rectangle(W / 2, r.H + 40, W * 2, 80, o),
+      Bodies.rectangle(-40, r.H / 2 - 400, 80, r.H + 1200, o),
+      Bodies.rectangle(W + 40, r.H / 2 - 400, 80, r.H + 1200, o),
+    ];
+    World.add(engine.world, r.walls);
+  }
+  function doCo() {
+    const b = cv.getBoundingClientRect();
+    if (!b.width) return;
+    r.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    r.k = b.width / W; r.H = b.height / r.k;
+    cv.width = Math.round(b.width * r.dpr); cv.height = Math.round(b.height * r.dpr);
+    dungTuong();
+  }
+  r.onResize = doCo;
+  window.addEventListener('resize', doCo);
+  doCo();
+
+  function tha() {
+    const def = defs[Math.floor(Math.random() * defs.length)];
+    const b = makeItem(def, 40 + Math.random() * (W - 80), -60 - Math.random() * 120);
+    Body.scale(b, CO, CO); b.artScale = CO;
+    Body.setAngle(b, Math.random() * Math.PI * 2);
+    Body.setVelocity(b, { x: (Math.random() - .5) * 2, y: 2 + Math.random() * 3 });
+    Body.setAngularVelocity(b, (Math.random() - .5) * .16);
+    b.sinhLuc = r.t;
+    r.bodies.push(b); World.add(engine.world, b);
+    r.spawned++;
+    // đống đã đủ: món cũ nhất còn nguyên thì cho mờ đi
+    const conNguyen = r.bodies.filter(x => x.moTu == null);
+    if (conNguyen.length > TOI_DA) conNguyen[0].moTu = r.t;
+  }
+
+  function ve() {
+    ctx.setTransform(r.dpr * r.k, 0, 0, r.dpr * r.k, 0, 0);
+    ctx.clearRect(0, 0, W, r.H);
+    for (const b of r.bodies) {
+      const sp = b.def.sprite;
+      if (!sp?.ready) continue;
+      const a = b.moTu == null ? 1 : Math.max(0, 1 - (r.t - b.moTu) / MO_DI);
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.translate(b.position.x, b.position.y); ctx.rotate(b.angle);
+      const s = b.artScale * (b.moTu == null ? 1 : .6 + .4 * a);
+      ctx.scale(s, s);
+      const w = sp.img.width / sp.ppu, h = sp.img.height / sp.ppu;
+      ctx.drawImage(sp.img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    }
+  }
+
+  let truoc = performance.now();
+  function khung(now) {
+    if (run !== r) return;
+    const dt = Math.min(34, now - truoc); truoc = now;
+    r.t += dt;
+    const nhip = r.spawned < LOAT_DAU ? NHIP_DAU : NHIP_SAU;
+    if (r.t >= r.next) { tha(); r.next = r.t + nhip * (.7 + Math.random() * .6); }
+    // bước vật lý đều 1/60 giây, dù màn hình 90 hay 120Hz
+    r.du = (r.du || 0) + dt;
+    while (r.du >= 1000 / 60) { Engine.update(engine, 1000 / 60); r.du -= 1000 / 60; }
+    for (const b of r.bodies.slice()) {
+      if (b.moTu != null && r.t - b.moTu > MO_DI) { World.remove(engine.world, b); r.bodies.splice(r.bodies.indexOf(b), 1); }
+    }
+    ve();
+    r.raf = requestAnimationFrame(khung);
+  }
+  r.raf = requestAnimationFrame(khung);
+
+  // chạm vào một món: bật tung nó lên
+  const onDown = e => {
+    const b = cv.getBoundingClientRect();
+    const p = { x: (e.clientX - b.left) / r.k, y: (e.clientY - b.top) / r.k };
+    const trung = Query.point(r.bodies.filter(x => x.moTu == null), p)[0];
+    if (!trung) return;
+    const mon = trung.parent || trung;
+    Body.setVelocity(mon, { x: (Math.random() - .5) * 6, y: -11 - Math.random() * 4 });
+    Body.setAngularVelocity(mon, (Math.random() - .5) * .5);
+    initAudio(); sfx('pick', { rate: .9 + Math.random() * .3 });
+  };
+  cv.addEventListener('pointerdown', onDown);
+
+  el.classList.add('show');
+  return new Promise(xong => {
+    const nut = $('splashPlay');
+    const choi = async () => {
+      nut.removeEventListener('click', choi);
+      sfx('tapBig'); initAudio();
+      el.classList.remove('show');
+      await new Promise(res => setTimeout(res, 380));   // chờ màn mờ hẳn rồi mới dọn
+      cv.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('resize', doCo);
+      cancelAnimationFrame(r.raf);
+      World.clear(engine.world, false); Engine.clear(engine);
+      run = null;
+      xong();
+    };
+    nut.addEventListener('click', choi);
+  });
+}

@@ -18,6 +18,7 @@ const D = {
     boostFreeze: 'Freeze', boostResize: 'Shrink', boostThrow: 'Throw out',
     pauseAria: 'Pause', backAria: 'Back', sfxAria: 'Toggle sound', musicAria: 'Toggle music', langAria: 'Language',
     // Home
+    splashTag: 'Pack it all in!', tapToPlay: 'Tap to play',
     pickLevel: 'Choose a level', play: 'Play', start: 'Start', resume: 'Continue', levelsDone: '{done}/{total} levels',
     finishToUnlock: 'Finish Chapter {no} to unlock',
     // Pause
@@ -49,6 +50,7 @@ const D = {
     eyebrow: 'CHƯƠNG {no} · {name} — LEVEL {n}',
     boostFreeze: 'Đóng băng', boostResize: 'Thu nhỏ', boostThrow: 'Bỏ đi',
     pauseAria: 'Tạm dừng', backAria: 'Quay lại', sfxAria: 'Bật tắt âm thanh', musicAria: 'Bật tắt nhạc nền', langAria: 'Ngôn ngữ',
+    splashTag: 'Xếp gọn mọi thứ vào túi!', tapToPlay: 'Chạm để chơi',
     pickLevel: 'Chọn màn chơi', play: 'Chơi', start: 'Bắt đầu', resume: 'Chơi tiếp', levelsDone: '{done}/{total} màn',
     finishToUnlock: 'Xong Chương {no} để mở',
     paused: 'Tạm dừng', resumeBtn: 'Chơi tiếp', restart: 'Chơi lại', home: 'Về trang chủ', prevLevel: '‹ Level trước', nextLevel: 'Level sau ›',

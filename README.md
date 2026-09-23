@@ -26,6 +26,11 @@ npm run preview
 
 ## Game
 
+**Splash**: mở game là màn Splash (`src/ui/splash.js`): đồ của chương đầu mưa từ trên cao xuống,
+chất thành đống bằng vật lý thật, logo ở giữa, bấm **Chạm để chơi** là vào trang chủ. Chạm vào
+một món trên đống là nó bật tung lên. Đồ và nền theo bộ art đang dùng. Mở thẳng level
+(`?level=`), khung xem thử của editor và Creative Tool bỏ qua màn này.
+
 | Hành động | Cách làm |
 |---|---|
 | Nhặt / đặt đồ | Chạm giữ và kéo, thả ngón để đặt |
