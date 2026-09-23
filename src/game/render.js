@@ -9,6 +9,7 @@ import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
 import { tickFreeze } from './boosters.js';
 import { tickShake } from './shake.js';
+import { artStyle } from '../content/loader.js';
 import { updateClock, showLose } from '../ui/hud.js';
 import { drawFx } from './fx.js';
 import { tickEntrance } from './level.js';
@@ -78,7 +79,9 @@ function drawBody(b) {
     else { ctx.strokeStyle = '#3DDC84'; ctx.lineWidth = 4.5; }
     strokeShape(b, 2);
     ctx.restore();
-  } else if (ok) {
+  } else if (ok && artStyle() !== 'cozy') {
+    // Viền xanh "đã vừa" quanh món nằm gọn trong túi: bộ casual giữ, bộ cozy bỏ cho hình sạch.
+    // Lúc đang kéo thì cả hai bộ vẫn có viền xanh/đỏ báo thả được hay không.
     ctx.save(); ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(95,191,155,.9)'; strokeShape(b, 1); ctx.restore();
   }
   if (HIEN_COLLIDER) {
