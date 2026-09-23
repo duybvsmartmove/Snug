@@ -3,7 +3,7 @@
 //  - Bản đồ: mọi chương và mọi màn, màn đã qua / đang mở / còn khoá.
 import * as P from '../game/progress.js';
 import { sfx, initAudio, setSfxOn, setMusicOn, isSfxOn, isMusicOn } from './sfx.js';
-import { t, getLang, setLang, onLangChange, chapterName, levelName } from '../i18n.js';
+import { t, onLangChange, chapterName, levelName } from '../i18n.js';
 import { artUrl, loadAssetIndex } from '../content/loader.js';
 
 const $ = id => document.getElementById(id);
@@ -186,7 +186,6 @@ function play(ch, idx) {
 // ---------- nút bật tắt tiếng ----------
 function paintAudioButtons() {
   const s = $('sfxBtn'), m = $('musicBtn');
-  $('langBtn').textContent = getLang().toUpperCase();
   s.innerHTML = isSfxOn() ? ICON.sfxOn : ICON.sfxOff;
   s.classList.toggle('off', !isSfxOn());
   m.innerHTML = isMusicOn() ? ICON.musOn : ICON.musOff;
@@ -204,7 +203,6 @@ export function initHome({ chapters, onPlay: cb }) {
   $('mapBtn').addEventListener('click', () => { sfx('tap'); showMap(); });
   $('mapBack').addEventListener('click', () => { sfx('tap'); backToHome(); });
 
-  $('langBtn').addEventListener('click', () => { sfx('tap'); setLang(getLang() === 'en' ? 'vi' : 'en'); });
   // Đổi ngôn ngữ thì vẽ lại màn đang mở: chữ trên thẻ chương và bản đồ đều sinh bằng JS
   onLangChange(() => { paintAudioButtons(); if (shown.has('home')) drawHome(); if (shown.has('mapscr')) drawMap(); });
   $('sfxBtn').addEventListener('click', () => { setSfxOn(!isSfxOn()); paintAudioButtons(); });

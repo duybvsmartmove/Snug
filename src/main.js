@@ -16,7 +16,7 @@ import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
 import * as SCORE from './game/score.js';
 import { initHome, showHome, hideHome, showMap } from './ui/home.js';
-import { showSplash } from './ui/splash.js';
+import { showSplash, hetSplashBoot } from './ui/splash.js';
 import { applyStatic, t } from './i18n.js';
 import { initCreative, isCreative } from './game/creative.js';
 import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } from './ui/sfx.js';
@@ -121,9 +121,10 @@ async function boot() {
     showHome();
     // Splash phủ trên trang chủ: đồ của chương đầu rơi thành đống, bấm Chơi là lộ trang chủ.
     // Creative Tool tự điều khiển màn hình nên bỏ qua.
+    // Logo Splash đã hiện sẵn từ khung đầu (index.html); nạp xong đồ của chương đầu là đồ rơi.
     if (!isCreative) {
-      await loadChapterAssets(chapters()[0]);
-      showSplash();
+      try { await loadChapterAssets(chapters()[0]); showSplash(); }
+      catch (e) { console.warn('splash', e); hetSplashBoot(); }
     }
   }
   await moManLanDau();
@@ -201,6 +202,7 @@ if (import.meta.env?.DEV) {
 
 boot().catch(err => {
   console.error(err);
+  hetSplashBoot();                  // Splash không được treo mãi che màn khi khởi động hỏng
   moMan();                          // hỏng thì cũng phải cho người chơi thấy màn hình
   toast(t('loadError', { msg: err.message }), 5000);
 });

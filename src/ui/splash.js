@@ -25,13 +25,24 @@ export const DUNG_LAU = 3000;  // Splash hiện chừng này rồi tự sang tra
 let run = null;                // { engine, bodies, raf, ... } khi màn đang chạy
 
 /**
+ * Mở app bình thường thì Splash hiện ngay từ khung đầu và tấm màn chuyển cảnh bị ẩn hẳn
+ * (lớp splash-boot trên <html>, đặt trong index.html). Splash xong thì trả tấm màn về trạng
+ * thái mở sẵn để các lần chuyển màn sau vẫn dùng được, không để nó hiện lại che Home.
+ */
+export function hetSplashBoot() {
+  const veil = document.getElementById('veil');
+  if (veil) { veil.classList.remove('boot'); veil.classList.add('off'); }
+  document.documentElement.classList.remove('splash-boot');
+}
+
+/**
  * Mở màn Splash. Trả về Promise xong khi màn đã khép lại (hết giờ hoặc người chơi chạm).
  * Không có món nào có ảnh (content lỗi) thì bỏ qua luôn.
  */
 export function showSplash() {
   const defs = ITEM_DEFS.filter(d => d.id > 0 && d.sprite?.ready);
   const el = $('splash'), cv = $('splashCv');
-  if (!defs.length || !el) return Promise.resolve();
+  if (!defs.length || !el) { hetSplashBoot(); if (el) el.classList.remove('show'); return Promise.resolve(); }
   const ctx = cv.getContext('2d');
 
   const engine = Engine.create({ positionIterations: 6, velocityIterations: 4 });
@@ -64,7 +75,8 @@ export function showSplash() {
 
   function tha() {
     const def = defs[Math.floor(Math.random() * defs.length)];
-    const b = makeItem(def, 40 + Math.random() * (W - 80), -60 - Math.random() * 120);
+    // thả ngay trên mép trên màn, món vào khung hình trong vài khung đầu chứ không rơi mất nửa giây
+    const b = makeItem(def, 40 + Math.random() * (W - 80), -40 - Math.random() * 60);
     Body.scale(b, CO, CO); b.artScale = CO;
     Body.setAngle(b, Math.random() * Math.PI * 2);
     Body.setVelocity(b, { x: (Math.random() - .5) * 2, y: 2 + Math.random() * 3 });
@@ -111,7 +123,8 @@ export function showSplash() {
     ve();
     // Đếm giờ từ lúc tấm màn mở game vừa mở ra, không phải từ lúc dựng: màn còn che thì
     // người chơi chưa thấy gì, tính cả quãng đó là Splash hiện chưa tới DUNG_LAU đã tắt.
-    if (!r.batDau && document.getElementById('veil')?.classList.contains('off')) { r.batDau = true; r.onStart?.(); }
+    const veil = document.getElementById('veil');
+    if (!r.batDau && (!veil || veil.classList.contains('off') || document.documentElement.classList.contains('splash-boot'))) { r.batDau = true; r.onStart?.(); }
     r.raf = requestAnimationFrame(khung);
   }
   r.raf = requestAnimationFrame(khung);
@@ -126,6 +139,7 @@ export function showSplash() {
       clearTimeout(hen);
       el.removeEventListener('pointerdown', khep);
       el.classList.remove('show');
+      hetSplashBoot();
       await new Promise(res => setTimeout(res, 380));   // chờ màn mờ hẳn rồi mới dọn
       window.removeEventListener('resize', doCo);
       cancelAnimationFrame(r.raf);

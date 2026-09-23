@@ -195,7 +195,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   align-items:center;justify-content:space-between;gap:.6em;
   padding:calc(8% + var(--sat)) calc(7% + var(--sar)) calc(5.5% + var(--sab)) calc(7% + var(--sal));
 }
-.brand{text-align:center;margin-top:2.2em}   /* chừa chỗ cho ba nút góc phải trên, không đè lên tên game */
+.brand{text-align:center;margin-top:3.2em}   /* chừa chỗ cho ba nút góc phải trên, không đè lên tên game */
 .brand-sub{
   font:800 .62em "Nunito";letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);
   opacity:.85;margin-bottom:.35em;
@@ -262,6 +262,11 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @keyframes shine{0%,62%{left:-40%}88%,100%{left:120%}}
 
 .home-tools{position:absolute;top:calc(4.2% + var(--sat));right:calc(4.6% + var(--sar));display:flex;gap:.45em;z-index:2}
+/* Hai nút âm thanh và nhạc ở trang chủ: to hơn nút thường cho dễ nhìn, dễ bấm */
+.home-tools .iconbtn{width:3.2em;height:3.2em;border-radius:1em}
+.home-tools .iconbtn svg{width:70%;height:70%}
+/* tắt vẫn phải đọc được: gạch chéo đã nói là tắt, không cần làm mờ icon tới mức khó thấy */
+.home-tools .iconbtn.off{color:var(--ink);opacity:.72}
 .iconbtn{
   width:2.4em;height:2.4em;border:0;border-radius:.8em;cursor:pointer;flex:none;
   background:rgba(255,255,255,.82);color:var(--ink);display:grid;place-items:center;
@@ -402,8 +407,6 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #phone.hide-title .titleblock{visibility:hidden}
 #phone.hide-pause .pause{visibility:hidden}
 
-/* nút đổi ngôn ngữ trên trang chủ: hai chữ cái, cùng khuôn với hai nút tiếng */
-.iconbtn.lang{font:800 .72em "Nunito";letter-spacing:.06em}
 
 /* ==========================================================================
    BỘ ART CASUAL: màu bão hoà hơn, viền đậm hơn. Ảnh lấy từ assets-casual/, còn đây là
@@ -459,8 +462,8 @@ html[data-art="cozy"]{
   --rose:#E9776A; --gold:#EBB54A; --mint:#8DBF8B; --panel:#F6E6C8;
   --shadow:0 12px 28px rgba(90,58,34,.22);
 }
-html[data-art="cozy"] body{background:#E3D6C3;background-image:none}
-html[data-art="cozy"] #phone{background:#E3D6C3}
+html[data-art="cozy"] body{background:#D9CFBE;background-image:none}
+html[data-art="cozy"] #phone{background:#D9CFBE}
 
 /* nút chung */
 html[data-art="cozy"] .cta{background:linear-gradient(180deg,#F18C7C,#E0685A);color:#fff;
@@ -473,13 +476,13 @@ html[data-art="cozy"] .cta.play{background:linear-gradient(180deg,#9CCB8A,#6FAE6
 html[data-art="cozy"] .cta.play:active{box-shadow:0 2px 0 var(--wood)}
 html[data-art="cozy"] .iconbtn{background:var(--cream);color:var(--wood);border:2px solid var(--wood);box-shadow:0 3px 0 var(--wood)}
 html[data-art="cozy"] .iconbtn:active{box-shadow:none}
-html[data-art="cozy"] .iconbtn.off{background:#EFE3CD;color:#B39A80}
+html[data-art="cozy"] .iconbtn.off{background:#EFE3CD;color:#8A6A4F}
 html[data-art="cozy"] .linkbtn{color:var(--ink-soft)}
 html[data-art="cozy"] .linkbtn:hover,html[data-art="cozy"] .lvnav button:hover{background:var(--cream2)}
 html[data-art="cozy"] button:focus-visible{outline-color:var(--gold)}
 
 /* trang chủ */
-html[data-art="cozy"] .home{background:#E3D6C3}
+html[data-art="cozy"] .home{background:#D9CFBE}
 html[data-art="cozy"] .home.has-art,html[data-art="cozy"] .mapscr.has-art{background:var(--art) center/cover no-repeat}
 html[data-art="cozy"] .home-glow{background:
   radial-gradient(40% 24% at 20% 20%, rgba(255,250,238,.55), transparent 70%),
@@ -497,7 +500,7 @@ html[data-art="cozy"] .bar i{background:linear-gradient(90deg,#EBB54A,#E9776A)}
 html[data-art="cozy"] .pill{background:var(--cream2);color:var(--wood);border:1.5px solid var(--wood)}
 
 /* chọn level */
-html[data-art="cozy"] .mapscr{background:#E3D6C3}
+html[data-art="cozy"] .mapscr{background:#D9CFBE}
 html[data-art="cozy"] .mhead{background:rgba(255,246,228,.9);border-bottom:2.5px solid var(--wood);backdrop-filter:none}
 html[data-art="cozy"] .mhead b{color:var(--wood)}
 html[data-art="cozy"] .chblock{background:var(--cream);border:2.5px solid var(--wood);box-shadow:0 5px 0 var(--wood)}
@@ -532,14 +535,19 @@ html[data-art="cozy"] .hint{background:var(--wood);color:var(--cream)}
 /* ==========================================================================
    SPLASH: đồ rơi thành đống (canvas riêng), logo thả xuống nảy nhẹ, nút Chơi hiện sau.
    ========================================================================== */
+/* Hiện ngay từ khung đầu, xem index.html. Không mờ dần vào: trong nhịp mờ đó HUD màn chơi phía
+   sau lộ ra một thoáng (tên level, đồng hồ, nút booster). */
+.splash-boot .splash{opacity:1;visibility:visible;pointer-events:auto;transition:none}
 .splash{z-index:7;background:radial-gradient(120% 70% at 50% 0%, #FFF6EA 0%, #F3E3D2 46%, #E7CDB6 100%);
   align-items:center;justify-content:space-between;transition:opacity .38s ease, visibility .38s}
 .splash canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.splash-brand{position:relative;margin-top:calc(26% + var(--sat));text-align:center;pointer-events:none;
+/* Không canh theo --sat/--sab: hai số đó do Android đẩy vào sau khi trang đã vẽ, canh theo
+   chúng là logo và thanh chạy nhảy một nhịp lúc mở app. Lề phần trăm đã đủ xa hai thanh hệ thống. */
+.splash-brand{position:relative;margin-top:30%;text-align:center;pointer-events:none;
   animation:splashDrop .9s cubic-bezier(.3,1.6,.5,1) .15s both}
 .splash .brand-name{font-size:3.3em}
 .splash-tag{margin:.45em 0 0;font:800 .9em "Nunito";color:var(--ink-soft);letter-spacing:.02em}
-.splash-bar{position:relative;width:38%;height:.5em;margin-bottom:calc(16% + var(--sab));border-radius:999px;
+.splash-bar{position:relative;width:38%;height:.5em;margin-bottom:20%;border-radius:999px;
   background:rgba(255,255,255,.55);overflow:hidden;pointer-events:none;animation:splashRise .4s ease .4s both}
 .splash-bar i{display:block;height:100%;width:100%;border-radius:999px;background:var(--rose);
   transform-origin:left;transform:scaleX(0)}
@@ -549,7 +557,7 @@ html[data-art="cozy"] .splash-bar{background:var(--cream);border:2px solid var(-
 html[data-art="cozy"] .splash-bar i{background:linear-gradient(90deg,#EBB54A,#E9776A)}
 @keyframes splashDrop{0%{opacity:0;transform:translateY(-2.4em) scale(.9)}60%{opacity:1}100%{opacity:1;transform:none}}
 @keyframes splashRise{from{opacity:0;transform:translateY(1.4em)}to{opacity:1;transform:none}}
-html[data-art="cozy"] .splash{background:#E3D6C3}
+html[data-art="cozy"] .splash{background:#D9CFBE}
 html[data-art="cozy"] .splash.has-art{background:var(--art) center/cover no-repeat}
 html[data-art="casual"] .splash{background:radial-gradient(120% 70% at 50% 0%, #FFF8EC 0%, #FFE3B8 46%, #FFC98A 100%)}
 @media (prefers-reduced-motion: reduce){ .splash-brand{animation:none} }

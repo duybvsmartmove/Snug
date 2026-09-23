@@ -30,9 +30,14 @@ public class MainActivity extends BridgeActivity {
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-
+    // Tràn viền TRƯỚC khi cửa sổ dựng khung đầu tiên. Đặt sau super.onCreate thì WebView đã
+    // kịp vẽ một khung chừa thanh điều hướng, rồi mới giãn xuống dưới thanh đó: cả trang giật
+    // xuống một nhịp ngay lúc mở app.
+    // Phải đổi sang theme chơi (không thanh tiêu đề) trước đã: chạm vào cửa sổ lúc còn theme
+    // khởi động là cửa sổ dựng luôn bằng theme đó, và thanh tiêu đề "Everything Fits" hiện ra.
+    setTheme(R.style.AppTheme_NoActionBar);
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+    super.onCreate(savedInstanceState);
 
     // Nền của game là mảng tường kem và mặt bàn gỗ sáng, nên chữ và icon của hai thanh
     // hệ thống phải là màu tối mới đọc được.

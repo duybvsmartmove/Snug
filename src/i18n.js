@@ -1,5 +1,5 @@
-// Song ngữ. Game nói tiếng Anh mặc định, đổi sang tiếng Việt bằng nút trên trang chủ,
-// tham số ?lang=vi, hoặc lệnh từ Creative Tool.
+// Song ngữ. Game luôn nói tiếng Anh; tiếng Việt chỉ mở bằng tham số ?lang=vi hoặc lệnh từ
+// Creative Tool (trang chủ không còn nút đổi ngôn ngữ).
 //
 // Chữ trong index.html gắn data-i18n="key" (nội dung) hoặc data-i18n-aria="key" (aria-label),
 // applyStatic() đổ lại mỗi lần đổi ngôn ngữ. Chữ sinh trong JS gọi t('key', { ten: gia_tri }).
@@ -7,7 +7,6 @@
 // Tên level, tên chương và chữ gợi ý trong túi là NỘI DUNG, nằm trong levels.json:
 // name / emptyText là tiếng Việt, nameEn / emptyTextEn là tiếng Anh. Thiếu bản Anh thì
 // dùng bản Việt, không để trống.
-const KEY = 'snug.lang.v1';
 export const LANGS = ['en', 'vi'];
 
 const D = {
@@ -89,12 +88,12 @@ const ITEM_EN = {
   key: 'Key', mystery: 'Mystery Box',
 };
 
-function readSaved() { try { return localStorage.getItem(KEY); } catch { return null; } }
+// Game luôn mở bằng tiếng Anh: trang chủ không còn nút đổi ngôn ngữ, nên không đọc lựa chọn cũ
+// đã lưu (máy nào từng chọn tiếng Việt sẽ kẹt tiếng Việt mà không có nút đổi lại). Tiếng Việt
+// vẫn mở được bằng ?lang=vi, Creative Tool và khung xem thử của editor dùng cách này.
 function initial() {
   const q = new URLSearchParams(location.search).get('lang');
-  if (LANGS.includes(q)) return q;
-  const s = readSaved();
-  return LANGS.includes(s) ? s : 'en';
+  return LANGS.includes(q) ? q : 'en';
 }
 let lang = initial();
 const listeners = [];
@@ -103,7 +102,6 @@ export const getLang = () => lang;
 export function setLang(l, { save = true } = {}) {
   if (!LANGS.includes(l) || l === lang) return;
   lang = l;
-  if (save) try { localStorage.setItem(KEY, l); } catch {}
   document.documentElement.lang = l;
   applyStatic();
   listeners.forEach(fn => fn(l));

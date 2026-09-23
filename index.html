@@ -1,15 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-art="cozy">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="theme-color" content="#EADFD6">
+  <meta name="theme-color" content="#D9CFBE">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Everything Fits</title>
   <link rel="icon" href="./public/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./src/styles/main.css">
+  <script>
+    // Mở game bình thường thì màn Splash hiện NGAY khung hình đầu (logo có sẵn trong HTML),
+    // không qua tấm màn có chữ nữa: mở app là thấy Splash rồi tới Home. Mở thẳng level, khung
+    // xem thử của editor và Creative Tool không có Splash nên vẫn dùng tấm màn như cũ.
+    if (!/[?&](level|i|preview|creative)=/.test(location.search)) document.documentElement.classList.add('splash-boot');
+  </script>
   <style>
+    .splash-boot #veil{display:none}
     /* Tấm màn chuyển cảnh. Viết thẳng ở đây, không để trong file CSS ngoài: lúc mở app
        nó phải có mặt ngay khung hình đầu tiên, tức là trước khi file CSS kia kịp về.
        Cùng một tấm này lo cả ba việc — che lúc khởi động, che lúc vào màn chơi, che lúc
@@ -17,7 +24,7 @@
        Hai tốc độ khác nhau là cố ý: KÉO VÀO nhanh cho dứt khoát, MỞ RA chậm hơn cho êm. */
     #veil{
       position:fixed;inset:0;z-index:99;display:grid;place-items:center;
-      background:radial-gradient(120% 70% at 50% 0%, #FFF6EA 0%, #F3E3D2 46%, #E7CDB6 100%);
+      background:#D9CFBE;
       opacity:1;transition:opacity .19s ease;
     }
     #veil.off{opacity:0;pointer-events:none;transition:opacity .3s ease}
@@ -156,7 +163,6 @@
       </div>
 
       <div class="home-tools">
-        <button class="iconbtn lang" id="langBtn" data-i18n-aria="langAria" aria-label="Language">EN</button>
         <button class="iconbtn" id="sfxBtn" data-i18n-aria="sfxAria" aria-label="Toggle sound"></button>
         <button class="iconbtn" id="musicBtn" data-i18n-aria="musicAria" aria-label="Toggle music"></button>
       </div>

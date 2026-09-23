@@ -2,9 +2,9 @@
   "appId": "everything.fits.snug.bag.puzzle",
   "appName": "Everything Fits",
   "webDir": "www",
-  "backgroundColor": "#EADFD6",
+  "backgroundColor": "#D9CFBE",
   "android": {
-    "backgroundColor": "#EADFD6",
+    "backgroundColor": "#D9CFBE",
     "allowMixedContent": false,
     "webContentsDebuggingEnabled": true
   }
