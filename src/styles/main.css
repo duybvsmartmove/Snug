@@ -539,11 +539,17 @@ html[data-art="cozy"] .hint{background:var(--wood);color:var(--cream)}
   animation:splashDrop .9s cubic-bezier(.3,1.6,.5,1) .15s both}
 .splash .brand-name{font-size:3.3em}
 .splash-tag{margin:.45em 0 0;font:800 .9em "Nunito";color:var(--ink-soft);letter-spacing:.02em}
-.splash .splash-play{position:relative;width:auto;min-width:62%;margin-bottom:calc(14% + var(--sab));
-  animation:splashRise .5s cubic-bezier(.2,.9,.3,1.3) 1.3s both, playPulse 2.4s ease-in-out 1.8s infinite}
+.splash-bar{position:relative;width:38%;height:.5em;margin-bottom:calc(16% + var(--sab));border-radius:999px;
+  background:rgba(255,255,255,.55);overflow:hidden;pointer-events:none;animation:splashRise .4s ease .4s both}
+.splash-bar i{display:block;height:100%;width:100%;border-radius:999px;background:var(--rose);
+  transform-origin:left;transform:scaleX(0)}
+.splash.go .splash-bar i{animation:splashFill var(--splash-ms,3000ms) linear both}
+@keyframes splashFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+html[data-art="cozy"] .splash-bar{background:var(--cream);border:2px solid var(--wood);height:.75em}
+html[data-art="cozy"] .splash-bar i{background:linear-gradient(90deg,#EBB54A,#E9776A)}
 @keyframes splashDrop{0%{opacity:0;transform:translateY(-2.4em) scale(.9)}60%{opacity:1}100%{opacity:1;transform:none}}
 @keyframes splashRise{from{opacity:0;transform:translateY(1.4em)}to{opacity:1;transform:none}}
 html[data-art="cozy"] .splash{background:#E3D6C3}
 html[data-art="cozy"] .splash.has-art{background:var(--art) center/cover no-repeat}
 html[data-art="casual"] .splash{background:radial-gradient(120% 70% at 50% 0%, #FFF8EC 0%, #FFE3B8 46%, #FFC98A 100%)}
-@media (prefers-reduced-motion: reduce){ .splash-brand,.splash-play{animation:none} }
+@media (prefers-reduced-motion: reduce){ .splash-brand{animation:none} }

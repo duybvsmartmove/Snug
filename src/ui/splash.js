@@ -1,16 +1,16 @@
 // Màn Splash lúc mở game, theo tinh thần Snug gốc: đồ đạc của chương đầu mưa từ trên cao
-// xuống, va nhau và chất thành đống thật bằng vật lý, logo nằm giữa, nút Chơi bên dưới.
+// xuống, va nhau và chất thành đống thật bằng vật lý, logo nằm giữa. Không có nút: hiện
+// DUNG_LAU rồi tự sang trang chủ (trang chủ đã có nút Start); chạm vào đâu cũng bỏ qua sớm.
 //
 // Dùng một thế giới Matter RIÊNG, không đụng tới sân chơi: màn này tắt là thế giới bị bỏ đi.
 // Đồ rơi một loạt đầu cho đầy đống rồi rơi lác đác mãi; món cũ nhất mờ dần biến mất để đống
-// không cao quá logo. Chạm vào một món thì nó bật tung lên, cho người chơi nghịch trong lúc chờ.
+// không cao quá logo.
 // Ảnh và vùng va chạm là của bộ art đang chọn, nên cozy và casual tự ra đúng đồ của mình.
 import Matter from 'matter-js';
 import { ITEM_DEFS } from '../data/items.js';
 import { makeItem } from '../game/physics.js';
-import { sfx, initAudio } from './sfx.js';
 
-const { Engine, World, Bodies, Body, Query } = Matter;
+const { Engine, World, Bodies, Body } = Matter;
 const $ = id => document.getElementById(id);
 
 const W = 420;                 // bề ngang logic, như sân chơi; chiều cao theo màn thật
@@ -20,11 +20,12 @@ const NHIP_DAU = 95;           // mili giây giữa hai món trong loạt đầu
 const NHIP_SAU = 1100;         // sau đó cứ chừng này rơi thêm một món
 const TOI_DA = 28;             // quá số này thì món cũ nhất mờ đi nhường chỗ
 const MO_DI = 450;             // thời gian mờ đi của một món
+export const DUNG_LAU = 3000;  // Splash hiện chừng này rồi tự sang trang chủ
 
 let run = null;                // { engine, bodies, raf, ... } khi màn đang chạy
 
 /**
- * Mở màn Splash. Trả về Promise xong khi người chơi bấm Chơi và màn đã khép lại.
+ * Mở màn Splash. Trả về Promise xong khi màn đã khép lại (hết giờ hoặc người chơi chạm).
  * Không có món nào có ảnh (content lỗi) thì bỏ qua luôn.
  */
 export function showSplash() {
@@ -108,38 +109,31 @@ export function showSplash() {
       if (b.moTu != null && r.t - b.moTu > MO_DI) { World.remove(engine.world, b); r.bodies.splice(r.bodies.indexOf(b), 1); }
     }
     ve();
+    // Đếm giờ từ lúc tấm màn mở game vừa mở ra, không phải từ lúc dựng: màn còn che thì
+    // người chơi chưa thấy gì, tính cả quãng đó là Splash hiện chưa tới DUNG_LAU đã tắt.
+    if (!r.batDau && document.getElementById('veil')?.classList.contains('off')) { r.batDau = true; r.onStart?.(); }
     r.raf = requestAnimationFrame(khung);
   }
   r.raf = requestAnimationFrame(khung);
 
-  // chạm vào một món: bật tung nó lên
-  const onDown = e => {
-    const b = cv.getBoundingClientRect();
-    const p = { x: (e.clientX - b.left) / r.k, y: (e.clientY - b.top) / r.k };
-    const trung = Query.point(r.bodies.filter(x => x.moTu == null), p)[0];
-    if (!trung) return;
-    const mon = trung.parent || trung;
-    Body.setVelocity(mon, { x: (Math.random() - .5) * 6, y: -11 - Math.random() * 4 });
-    Body.setAngularVelocity(mon, (Math.random() - .5) * .5);
-    initAudio(); sfx('pick', { rate: .9 + Math.random() * .3 });
-  };
-  cv.addEventListener('pointerdown', onDown);
-
   el.classList.add('show');
+  el.classList.remove('go');
+  el.style.setProperty('--splash-ms', `${DUNG_LAU}ms`);   // thanh chạy khớp đúng thời gian hiện
   return new Promise(xong => {
-    const nut = $('splashPlay');
-    const choi = async () => {
-      nut.removeEventListener('click', choi);
-      sfx('tapBig'); initAudio();
+    let dong = false, hen = 0;
+    const khep = async () => {
+      if (dong) return; dong = true;
+      clearTimeout(hen);
+      el.removeEventListener('pointerdown', khep);
       el.classList.remove('show');
       await new Promise(res => setTimeout(res, 380));   // chờ màn mờ hẳn rồi mới dọn
-      cv.removeEventListener('pointerdown', onDown);
       window.removeEventListener('resize', doCo);
       cancelAnimationFrame(r.raf);
       World.clear(engine.world, false); Engine.clear(engine);
       run = null;
       xong();
     };
-    nut.addEventListener('click', choi);
+    r.onStart = () => { el.classList.add('go'); hen = setTimeout(khep, DUNG_LAU); };
+    el.addEventListener('pointerdown', khep);
   });
 }
