@@ -177,6 +177,14 @@ async function probeWriter() {
 async function saveAll() {
   const btn = $('publishBtn');
   if (btn.disabled) return;
+  // Đang sửa một bộ mà game lại dùng bộ khác: hỏi có chuyển game sang bộ đang sửa không.
+  // Hai ô "Sửa art" và "Game dùng" tách nhau nên rất dễ tưởng lưu xong là game đổi theo.
+  if (artStyle() !== E.liveArt) {
+    const dang = artStyle().toUpperCase(), game = E.liveArt.toUpperCase();
+    if (confirm(`Game đang dùng bộ ${game}.\n\nOK: lưu level ${dang} và chuyển game sang ${dang}\nHuỷ: chỉ lưu level ${dang}, game vẫn dùng ${game}`)) {
+      E.liveArt = artStyle(); $('liveArt').value = E.liveArt;
+    }
+  }
   btn.disabled = true;
   try {
     const v = await publish();
@@ -184,9 +192,9 @@ async function saveAll() {
     refreshLevelSelect();
     $('liveTag').textContent = `v${v}`;
     markDirty();
-    const bo = artStyle().toUpperCase();
-    status(canWrite ? `Đã lưu vào bộ ${bo} · bản v${v}`
-                    : `Đã đẩy bộ ${bo} lên GitHub · bản v${v}. Khoảng 40 giây nữa người chơi nhận được.`, 'ok');
+    const bo = artStyle().toUpperCase(), game = E.liveArt.toUpperCase();
+    status(canWrite ? `Đã lưu vào bộ ${bo} · bản v${v} · game đang dùng ${game}`
+                    : `Đã đẩy bộ ${bo} lên GitHub · bản v${v} · game dùng ${game}. Khoảng 1–2 phút nữa người chơi nhận được.`, 'ok');
     frame.contentWindow.postMessage({ type: 'assets' }, '*');
   } catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
   finally { btn.disabled = false; }
