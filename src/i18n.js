@@ -35,7 +35,7 @@ const D = {
     noFitReturned: "Doesn't fit! Put {n} items back", unlockHint: 'Drag the mystery box onto the key in the bag',
     unlocked: 'Unlocked: {name}!', unlockedNoFit: "Unlocked: {name} — it doesn't fit there!",
     nothingToThrow: 'Nothing can be thrown out', threw: 'Threw out {name}', throwFloat: 'Bye!',
-    nothingOutside: 'Nothing left outside the bag', shrunk: 'Shrunk {name} by 20%', frozen: 'Frozen for {s}s: items stay where you drop them',
+    nothingOutside: 'Nothing left outside the bag', shrunk: 'Shrunk {name} by 20%', shakeHint: 'Shake your phone to settle items in the bag', frozen: 'Frozen for {s}s: items stay where you drop them',
     fits: 'It fits!', emptyBag: 'Pack your things here!', lockedSlot: 'LOCKED',
     loadError: 'Could not load level: {msg}',
     // Autoplay
@@ -63,7 +63,7 @@ const D = {
     noFitReturned: 'Không vừa! Đã trả {n} món về chỗ cũ', unlockHint: 'Kéo hộp bí ẩn chạm vào chìa khóa trong túi',
     unlocked: 'Mở khóa: {name}!', unlockedNoFit: 'Mở khóa: {name} — không vừa chỗ đó!',
     nothingToThrow: 'Không có món nào bỏ được', threw: 'Đã bỏ {name}', throwFloat: 'Bỏ đi',
-    nothingOutside: 'Không còn món nào ngoài túi', shrunk: 'Đã thu nhỏ {name} 20%', frozen: 'Đóng băng {s} giây: đặt đâu nằm đó',
+    nothingOutside: 'Không còn món nào ngoài túi', shrunk: 'Đã thu nhỏ {name} 20%', shakeHint: 'Lắc điện thoại để đồ trong túi xếp khít hơn', frozen: 'Đóng băng {s} giây: đặt đâu nằm đó',
     fits: 'Vừa khít!', emptyBag: 'Xếp đồ vào đây nào!', lockedSlot: 'NGĂN KHOÁ',
     loadError: 'Lỗi tải level: {msg}',
     autoNoPlan: 'Không tìm được cách xếp nào', autoAll: 'Tự chơi: máy xếp được hết', autoSome: 'Tự chơi: máy chỉ xếp được {a}/{b}',

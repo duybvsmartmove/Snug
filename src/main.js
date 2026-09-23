@@ -4,6 +4,7 @@ import { defById } from './data/items.js';
 import { resize } from './game/canvas.js';
 import { bindInput } from './game/input.js';
 import { bindBoosters } from './game/boosters.js';
+import { bindShake, goiYLacMotLan, shakeImpulse } from './game/shake.js';
 import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level.js';
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
@@ -58,6 +59,7 @@ async function boot() {
   });
   bindInput();
   bindBoosters();
+  bindShake();
   bindImpacts();
   resize();
   startLoop();
@@ -143,6 +145,7 @@ async function startLevel(ch, idx) {
     startMusic();
     await loadAndBuild(idx);
   });
+  goiYLacMotLan(toast, t('shakeHint'));
 }
 
 /**
@@ -178,7 +181,7 @@ async function buildWithArt(level) {
 // Hook debug ở chế độ dev: mở console gõ __game.S để xem trạng thái, __game.drag(id, x, y) để thử kéo.
 if (import.meta.env?.DEV) {
   window.__game = {
-    S, BAG, FX, RULES, SCORE, restart, nextLevel, prevLevel, autoplay, stopAutoplay, autoState, autoLog, chanDoan,
+    S, BAG, FX, RULES, SCORE, shakeImpulse, restart, nextLevel, prevLevel, autoplay, stopAutoplay, autoState, autoLog, chanDoan,
     body: id => S.bodies.find(b => b.label === id),
     async drag(id, tx, ty, steps = 10) {
       const cv = document.getElementById('game'), r = cv.getBoundingClientRect();

@@ -8,6 +8,7 @@ import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js'
 import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
 import { tickFreeze } from './boosters.js';
+import { tickShake } from './shake.js';
 import { updateClock, showLose } from '../ui/hud.js';
 import { drawFx } from './fx.js';
 import { tickEntrance } from './level.js';
@@ -182,7 +183,7 @@ function drawFinger() {
  */
 function step(dt) {
   moveHeld(dt);
-  tickEntrance(); tickPhone(dt); tickRotation(dt); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt);
+  tickEntrance(); tickPhone(dt); tickRotation(dt); tickShake(); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt);
   S.clock += dt;
 }
 

@@ -37,6 +37,13 @@ chạm vào đâu cũng bỏ qua sớm. Đồ và nền theo bộ art đang dùn
 | Xoay | Chạm vào món để chọn, nút hai mũi tên hiện ở góc món; giữ nút rồi kéo, món quay theo ngón |
 | Booster | Đóng băng · Thu nhỏ 20% · Bỏ đi, mỗi loại có số lượt hiện trên badge |
 
+**Lắc điện thoại** (`src/game/shake.js`): cảm biến gia tốc của máy đo cú lắc trái/phải, nhanh
+hay chậm. Chỉ đồ trong túi nhận lực quán tính ngược chiều cú lắc (máy giật sang phải thì đồ dồn
+sang trái), tỉ lệ với độ mạnh; lắc nhẹ thì đồ lắc lư trượt vào khe hở, lắc mạnh thêm chút lực
+nhấc cho đồ chèn nhau nới ra rồi rơi xuống khít hơn. Túi, đồ trên sàn, món đang cầm, món đang
+đóng băng đứng yên. Run tay dưới 0,7 m/s² bỏ qua. iOS xin quyền cảm biến ở lần chạm đầu tiên.
+Trên máy tính: phím ← → để lắc thử. Lần đầu vào màn trên điện thoại có một dòng nhắc.
+
 **Đóng băng**: trong 20 giây mọi món nằm gọn trong túi, và mọi món thả vào túi, đứng yên đúng chỗ
 (không trọng lực, không bị đẩy), để kê chồng hay đặt chênh vênh mà không đổ. Hết giờ thì trả lại
 cho vật lý. Tính theo đồng hồ game nên tạm dừng là băng cũng dừng. Code ở `src/game/boosters.js`.
