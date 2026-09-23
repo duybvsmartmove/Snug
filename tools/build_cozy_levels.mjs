@@ -25,35 +25,36 @@ const NOI = 1.02, NOI_TOI_DA = 6;
 
 // Món: 1 áo phông · 2 quần short · 3 tất · 4 giày · 5 áo mưa · 6 giấy ăn · 7 nước rửa tay
 //      8 khăn tay · 9 son · 10 khăn ướt · 11 máy tính bảng · 12 máy tính bỏ túi · 13 hộp tai nghe
-//      14 củ sạc · 15 bình nước
+//      14 củ sạc · 15 bình nước · 16 bánh mì kẹp · 17 táo · 18 chuối · 19 hộp sữa · 20 thanh ngũ cốc
+// Mỗi món xuất hiện 2–5 lần trong chương, không món nào có mặt ở mọi level.
 // Vật cản: fx = tâm theo nửa bề ngang (-1 trái … 1 phải), fy = tâm theo chiều cao (0 đáy … 1 đỉnh),
 //          fw, fh = cỡ theo bề ngang / chiều cao lòng túi
 const MAU = { go: '#C99A6E', xanh: '#8FB9A8', hong: '#E7A9A0', vang: '#E9C46A', tim: '#A99BD1' };
 const LEVELS = [
-  { id: 'sd-01', name: 'Đồ vệ sinh nhỏ', nameEn: 'Little essentials', density: .46, timer: 120, coin: 20,
-    items: [6, 7, 9, 10], hint: 'Kéo đồ vào ba lô' },
+  { id: 'sd-01', name: 'Giờ ăn trưa', nameEn: 'Lunch time', density: .46, timer: 120, coin: 20,
+    items: [17, 19, 20, 18], hint: 'Kéo đồ vào ba lô' },
   { id: 'sd-02', name: 'Thêm bình nước', nameEn: 'Grab a bottle', density: .54, timer: 110, coin: 20,
-    items: [6, 7, 9, 10, 15] },
-  { id: 'sd-03', name: 'Khăn tay gấp gọn', nameEn: 'Folded towel', density: .60, timer: 100, coin: 25,
-    items: [6, 7, 8, 9, 10, 15],
+    items: [17, 19, 20, 18, 15] },
+  { id: 'sd-03', name: 'Hộp cơm đầy', nameEn: 'Full lunch box', density: .60, timer: 100, coin: 25,
+    items: [16, 17, 19, 20, 18, 15],
     blocks: [{ kind: 'round', fx: .62, fy: .16, fw: .26, fh: .22, color: MAU.xanh }] },
   { id: 'sd-04', name: 'Đồ điện tử', nameEn: 'Gadgets', density: .64, timer: 100, coin: 30,
-    items: [11, 12, 13, 14, 6, 15, 9] },
+    items: [11, 12, 13, 14, 7, 6, 9] },
   { id: 'sd-05', name: 'Đôi tất đi kèm', nameEn: 'Socks and towel', density: .68, timer: 95, coin: 30,
-    items: [1, 3, 8, 7, 10, 13, 9, 12], link: [3, 8] },
+    items: [1, 2, 3, 8, 10, 20, 19], link: [3, 8] },
   { id: 'sd-06', name: 'Túi hơi chật', nameEn: 'A bit tight', density: .72, timer: 90, coin: 35,
-    items: [2, 3, 6, 12, 13, 14, 15, 9, 7],
+    items: [5, 4, 6, 13, 14, 17, 18, 9],
     blocks: [{ kind: 'pill', fx: -.7, fy: .3, fw: .16, fh: .42, color: MAU.hong }] },
   { id: 'sd-07', name: 'Máy tính bảng', nameEn: 'Tablet day', density: .76, timer: 90, coin: 40,
-    items: [11, 8, 3, 9, 10, 12, 14, 7, 6] },
+    items: [11, 16, 12, 7, 10, 15, 18] },
   { id: 'sd-08', name: 'Vướng ngăn giữa', nameEn: 'Middle pocket', density: .79, timer: 85, coin: 45,
-    items: [5, 4, 3, 13, 12, 6, 9, 15, 10],
+    items: [5, 4, 13, 19, 8, 20, 14, 9, 6],
     blocks: [{ kind: 'rect', fx: 0, fy: .52, fw: .36, fh: .12, color: MAU.go }] },
   { id: 'sd-09', name: 'Sát giờ vào lớp', nameEn: 'Almost late', density: .83, timer: 80, coin: 50,
-    items: [5, 1, 4, 3, 8, 12, 15, 9], link: [3, 8],
+    items: [2, 3, 8, 15, 12, 17, 6, 13], link: [3, 8],
     blocks: [{ kind: 'tri', fx: .66, fy: .12, fw: .24, fh: .2, color: MAU.vang }] },
   { id: 'sd-10', name: 'Balo cuối tuần', nameEn: 'Weekend backpack', density: .87, timer: 80, coin: 60,
-    items: [11, 5, 4, 3, 15, 13, 9, 10], link: [3, 9],
+    items: [11, 5, 3, 19, 9, 10, 18, 7], link: [3, 9],
     blocks: [
       { kind: 'round', fx: -.64, fy: .14, fw: .22, fh: .18, color: MAU.tim },
       { kind: 'diamond', fx: .6, fy: .5, fw: .2, fh: .16, color: MAU.xanh },

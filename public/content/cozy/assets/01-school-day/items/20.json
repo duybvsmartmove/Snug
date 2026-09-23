@@ -1,0 +1,63 @@
+{
+  "id": 20,
+  "slug": "granola",
+  "code": "ITM_020",
+  "name": "Thanh ngũ cốc",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/20.png",
+    "pixelsPerUnit": 4
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -44.04,
+        -16.93
+      ],
+      [
+        -28.29,
+        -13.18
+      ],
+      [
+        16.21,
+        -13.18
+      ],
+      [
+        24.96,
+        -14.93
+      ],
+      [
+        29.21,
+        -12.43
+      ],
+      [
+        43.21,
+        -16.43
+      ],
+      [
+        44.21,
+        15.32
+      ],
+      [
+        -7.54,
+        12.57
+      ],
+      [
+        -28.04,
+        13.07
+      ],
+      [
+        -44.04,
+        16.07
+      ]
+    ]
+  }
+}

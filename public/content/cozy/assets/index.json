@@ -14,7 +14,12 @@
     "12": "assets/01-school-day/items/12.json",
     "13": "assets/01-school-day/items/13.json",
     "14": "assets/01-school-day/items/14.json",
-    "15": "assets/01-school-day/items/15.json"
+    "15": "assets/01-school-day/items/15.json",
+    "16": "assets/01-school-day/items/16.json",
+    "17": "assets/01-school-day/items/17.json",
+    "18": "assets/01-school-day/items/18.json",
+    "19": "assets/01-school-day/items/19.json",
+    "20": "assets/01-school-day/items/20.json"
   },
   "backgrounds": {
     "1": "assets/01-school-day/backgrounds/1.json"
