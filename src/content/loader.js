@@ -45,7 +45,13 @@ export async function saveConfig(cfg) { return post('/__content/save', { path: '
 /** Thư mục gốc của bộ art đang chọn */
 const base = () => `${ROOT}${ART}/`;
 /** Địa chỉ đầy đủ của một file art, dùng cả ở trang chủ (thẻ <img>, background) */
-export const artUrl = p => (/^(https?:)?\/\//.test(p) ? p : base() + p);
+// Số bản của levels.json gắn vào địa chỉ mọi ảnh và file mô tả. GitHub Pages cho trình duyệt giữ
+// file tới 10 phút theo tên, mà đổi art thì tên file giữ nguyên (1.png vẫn là 1.png): không có số
+// này, người chơi thấy level mới mà đồ vẫn là ảnh cũ cho tới khi hết hạn cache. Mỗi lần dựng
+// lại art đều đi kèm lưu level nên số bản đổi là đủ.
+let STAMP = '';
+const dauBan = () => (STAMP ? `?v=${STAMP}` : '');
+export const artUrl = p => (/^(https?:)?\/\//.test(p) ? p : base() + p + dauBan());
 /** Đường dẫn của file trong thư mục content/ (cho cầu ghi của editor) */
 export const contentPath = p => `${ART}/${p}`;
 
@@ -54,7 +60,7 @@ const assetPath = src => artUrl(src);
 
 async function getJSON(path, { fresh = false, noStore = false } = {}) {
   if (!fresh && !noStore && cache.has(path)) return cache.get(path);
-  const res = await fetch(base() + path + (fresh || noStore ? `?t=${Date.now()}` : ''),
+  const res = await fetch(base() + path + (fresh || noStore ? `?t=${Date.now()}` : dauBan()),
     noStore ? { cache: 'no-store' } : undefined);
   if (!res.ok) throw new Error(`Không tải được ${path} (${res.status})`);
   const data = await res.json();
@@ -78,6 +84,7 @@ export async function loadBook(opts) {
     setArtStyle('cozy');
     BOOK = await getJSON('levels.json', { ...opts, noStore: true });
   }
+  STAMP = `${ART}-${BOOK?.version || 0}`;
   return BOOK;
 }
 export const book = () => BOOK;
