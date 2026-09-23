@@ -9,7 +9,6 @@ import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
 import { tickFreeze } from './boosters.js';
 import { tickShake } from './shake.js';
-import { artStyle } from '../content/loader.js';
 import { updateClock, showLose } from '../ui/hud.js';
 import { drawFx } from './fx.js';
 import { tickEntrance } from './level.js';
@@ -45,12 +44,13 @@ function drawArt(b) {
 
 function drawBody(b) {
   if (b.chuaVao) return;                 // chưa tới lượt rơi xuống thì chưa có gì để vẽ
-  const held = isHeld(b), ghost = held && S.drag.ghost, ok = S.checked.has(b.itemId);
-  const shake = ghost ? (Math.random() - .5) * 2.5 : 0;   // GDD: không vừa → rung nhẹ
+  const held = isHeld(b), ghost = held && S.drag.ghost;
   ctx.save();
   if (ghost) ctx.globalAlpha = .6;
   else if (held) { ctx.shadowColor = 'rgba(59,42,74,.4)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 8; }
-  ctx.translate(b.position.x + shake, b.position.y); ctx.rotate(b.angle);
+  // Món không vừa KHÔNG rung hình: rung ngẫu nhiên mỗi khung hình trông như hai món đang va
+  // nhau giật giật. Viền đỏ đã đủ báo.
+  ctx.translate(b.position.x, b.position.y); ctx.rotate(b.angle);
   // vừa nhấc lên thì phồng ra một nhịp rồi về cỡ cũ, cho cảm giác món rời khỏi mặt bàn
   const pop = held && b.pop != null && b.pop < 1 ? 1 + Math.sin(b.pop * Math.PI) * .09 : 1;
   ctx.scale((b.artScale || 1) * pop, (b.artScale || 1) * pop);
@@ -72,18 +72,13 @@ function drawBody(b) {
 
   if (held) { // GDD: vừa → viền xanh sáng, không vừa → đỏ
     ctx.save(); ctx.lineJoin = 'round';
-    if (ghost) { ctx.strokeStyle = '#E5484D'; ctx.lineWidth = 3.5; ctx.setLineDash([7, 5]); }
-    // Viền xanh trước đây có thêm quầng sáng bằng shadowBlur. Đó là lần làm mờ THỨ HAI
-    // trong cùng một khung hình, trên một đường viền nhiều đỉnh, và nó chỉ chạy đúng lúc
-    // người chơi đang kéo — tức đúng lúc cần mượt nhất. Viền dày và đậm hơn nói cùng một điều.
-    else { ctx.strokeStyle = '#3DDC84'; ctx.lineWidth = 4.5; }
-    strokeShape(b, 2);
+    // Một nét mảnh liền: xanh là thả được, đỏ là không vừa. Không dùng quầng sáng shadowBlur:
+    // đó là lần làm mờ thứ hai trong khung hình, chạy đúng lúc đang kéo, lúc cần mượt nhất.
+    ctx.strokeStyle = ghost ? '#E5484D' : '#3DBE78'; ctx.lineWidth = 2;
+    strokeShape(b, 1);
     ctx.restore();
-  } else if (ok && artStyle() !== 'cozy') {
-    // Viền xanh "đã vừa" quanh món nằm gọn trong túi: bộ casual giữ, bộ cozy bỏ cho hình sạch.
-    // Lúc đang kéo thì cả hai bộ vẫn có viền xanh/đỏ báo thả được hay không.
-    ctx.save(); ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(95,191,155,.9)'; strokeShape(b, 1); ctx.restore();
   }
+  // Món nằm gọn trong túi không có viền "đã vừa" nữa: hình sạch hơn, tiếng và lấp lánh lúc xếp vừa là đủ.
   if (HIEN_COLLIDER) {
     ctx.save();
     ctx.strokeStyle = '#FF2D7A'; ctx.lineWidth = 1.4; ctx.lineJoin = 'round';
