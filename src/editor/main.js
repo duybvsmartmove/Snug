@@ -23,27 +23,78 @@ for (const el of document.querySelectorAll('input, select, textarea')) el.autoco
 // Bộ art đang sửa: ?art=casual. Mỗi bộ có level, ảnh và mục lục riêng nên đổi bộ là mở lại
 // trang, không trộn hai bộ trong một phiên.
 setArtStyle(new URLSearchParams(location.search).get('art') || 'cozy');
-/** Cho thấy rõ đang sửa bộ nào: màu thanh trên và chữ trên nút Lưu */
+/** Cho thấy rõ đang sửa bộ nào (màu thanh trên, nút Lưu) và game đang chạy bộ nào */
 function veBoArt() {
-  $('artSelect').value = artStyle();
+  for (const b of $('artSeg').children) b.classList.toggle('on', b.dataset.art === artStyle());
   $('artTag').textContent = artStyle().toUpperCase();
   document.body.dataset.editArt = artStyle();
+  $('gameArt').textContent = E.liveArt.toUpperCase();
+  $('gameArt').dataset.art = E.liveArt;
+  const khac = E.liveArt !== artStyle();
+  $('useArtBtn').hidden = !khac;
+  $('useArtBtn').textContent = `Cho game chạy ${artStyle().toUpperCase()}`;
 }
-veBoArt();
-$('liveArt').addEventListener('change', e => { E.liveArt = e.target.value; markDirty(); status(`Bấm Lưu để game chuyển sang bộ ${E.liveArt}`, ''); });
-$('artSelect').addEventListener('change', e => {
-  if (!$('dirtyDot').hidden && !confirm('Level đang sửa chưa lưu. Vẫn đổi bộ art?')) { e.target.value = artStyle(); return; }
+$('artSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.dataset.art === artStyle()) return;
+  if (!$('dirtyDot').hidden && !confirm('Level đang sửa chưa lưu. Vẫn đổi bộ art?')) return;
   const u = new URL(location.href);
-  u.searchParams.set('art', e.target.value);
+  u.searchParams.set('art', b.dataset.art);
   location.href = u.toString();
 });
+// Đổi bộ art của game: ghi config.json NGAY, không chờ bấm Lưu level
+$('useArtBtn').addEventListener('click', async () => {
+  const art = artStyle(), btn = $('useArtBtn');
+  if (!canWrite && !gh.hasToken()) return status('Chưa nối GitHub — bấm nút 🔑 để dán token', 'bad');
+  btn.disabled = true;
+  try {
+    const cfg = { ...(E.config || {}), art };
+    if (canWrite) await saveConfig(cfg); else await gh.putConfig(cfg);
+    E.config = cfg; E.liveArt = art; veBoArt();
+    if (canWrite) status(`Game đã chuyển sang ${art.toUpperCase()}. Tải lại trang game là thấy.`, 'ok');
+    else theoDoiWeb(`Game chuyển sang ${art.toUpperCase()}`, async () => (await docWeb('config.json'))?.art === art);
+  } catch (e) { status('Lỗi đổi bộ art: ' + e.message, 'bad'); }
+  finally { btn.disabled = false; }
+});
+
+/** Đọc một file nội dung đang chạy trên chính trang web này, bỏ qua cache */
+async function docWeb(path) {
+  try { const r = await fetch(`./content/${path}?t=${Date.now()}`, { cache: 'no-store' }); return r.ok ? r.json() : null; }
+  catch { return null; }
+}
+/**
+ * Trên web, commit xong GitHub còn phải build và deploy lại (thường 1–2 phút) thì người chơi
+ * mới thấy. Không báo gì là người ta tưởng hỏng rồi bấm lại. Dò chính trang web mỗi 5 giây,
+ * hiện đồng hồ chờ, tới khi thấy bản mới thì báo xong.
+ */
+let dongHoWeb = 0;
+function theoDoiWeb(viec, daXong) {
+  clearInterval(dongHoWeb);
+  const el = $('webSync'), t0 = Date.now();
+  el.hidden = false; el.className = 'websync wait';
+  const ve = () => { el.textContent = `⏳ ${viec}: đang đưa lên web… ${Math.round((Date.now() - t0) / 1000)}s`; };
+  ve();
+  let dangDo = false;
+  dongHoWeb = setInterval(async () => {
+    ve();
+    if (dangDo) return; dangDo = true;
+    const ok = await daXong(); dangDo = false;
+    if (ok) {
+      clearInterval(dongHoWeb);
+      el.className = 'websync ok'; el.textContent = `✅ ${viec}: web đã cập nhật, tải lại trang game là thấy`;
+      setTimeout(() => { el.hidden = true; }, 12000);
+    } else if (Date.now() - t0 > 240000) {
+      clearInterval(dongHoWeb);
+      el.className = 'websync bad'; el.textContent = `⚠️ ${viec}: sau 4 phút web vẫn chưa cập nhật — xem tab Actions trên GitHub`;
+    }
+  }, 5000);
+}
 
 const areaCache = new Map();
 export const areaOf = id => { if (!areaCache.has(id)) { const d = defById(id); areaCache.set(id, d ? itemArea(d) : 0); } return areaCache.get(id); };
 export const clearAreaCache = () => areaCache.clear();
 
-// liveArt: bộ art game đang dùng (config.json) — liveArtSaved là giá trị đã ghi, khác nhau là còn chờ Lưu
-export const E = { mapId: null, book: null, map: null, level: null, previewReady: false, liveArt: 'cozy', liveArtSaved: 'cozy' };
+// liveArt: bộ art game đang chạy (config.json)
+export const E = { mapId: null, book: null, map: null, level: null, previewReady: false, liveArt: 'cozy' };
 
 // ---------- status ----------
 export function status(text, cls = '') { const s = $('status'); s.textContent = text; s.className = 'status ' + cls; if (text) setTimeout(() => { if (s.textContent === text) s.textContent = ''; }, 3000); }
@@ -93,8 +144,7 @@ export function onChange() {
  */
 export function markDirty() {
   const saved = E.map?.levels.find(l => l.id === E.level?.id);
-  const dirty = !saved || JSON.stringify(saved) !== JSON.stringify(E.level) || E.liveArt !== E.liveArtSaved;
-  $('liveArt').closest('label').classList.toggle('pending', E.liveArt !== E.liveArtSaved);
+  const dirty = !saved || JSON.stringify(saved) !== JSON.stringify(E.level);
   $('publishBtn').classList.toggle('dirty', dirty);
   $('dirtyDot').hidden = !dirty;
 }
@@ -156,12 +206,6 @@ export async function publish(note = '') {
   if (!canWrite && !gh.hasToken()) throw new Error('chưa nối GitHub — bấm nút 🔑 để dán token');
   if (canWrite) await saveContent('levels.json', text);          // chạy ở máy: ghi thẳng ra file
   else await gh.putBook(b);                                       // trên web: commit lên GitHub
-  // Đổi bộ art cho game: ghi config.json chung, game đọc lúc mở
-  if (E.liveArt !== E.liveArtSaved) {
-    const cfg = { ...(E.config || {}), art: E.liveArt };
-    if (canWrite) await saveConfig(cfg); else await gh.putConfig(cfg);
-    E.config = cfg; E.liveArtSaved = E.liveArt;
-  }
   return b.version;
 }
 
@@ -177,14 +221,6 @@ async function probeWriter() {
 async function saveAll() {
   const btn = $('publishBtn');
   if (btn.disabled) return;
-  // Đang sửa một bộ mà game lại dùng bộ khác: hỏi có chuyển game sang bộ đang sửa không.
-  // Hai ô "Sửa art" và "Game dùng" tách nhau nên rất dễ tưởng lưu xong là game đổi theo.
-  if (artStyle() !== E.liveArt) {
-    const dang = artStyle().toUpperCase(), game = E.liveArt.toUpperCase();
-    if (confirm(`Game đang dùng bộ ${game}.\n\nOK: lưu level ${dang} và chuyển game sang ${dang}\nHuỷ: chỉ lưu level ${dang}, game vẫn dùng ${game}`)) {
-      E.liveArt = artStyle(); $('liveArt').value = E.liveArt;
-    }
-  }
   btn.disabled = true;
   try {
     const v = await publish();
@@ -192,9 +228,9 @@ async function saveAll() {
     refreshLevelSelect();
     $('liveTag').textContent = `v${v}`;
     markDirty();
-    const bo = artStyle().toUpperCase(), game = E.liveArt.toUpperCase();
-    status(canWrite ? `Đã lưu vào bộ ${bo} · bản v${v} · game đang dùng ${game}`
-                    : `Đã đẩy bộ ${bo} lên GitHub · bản v${v} · game dùng ${game}. Khoảng 1–2 phút nữa người chơi nhận được.`, 'ok');
+    const art = artStyle(), bo = art.toUpperCase();
+    if (canWrite) status(`Đã lưu level ${bo} · bản v${v}`, 'ok');
+    else theoDoiWeb(`Level ${bo} bản v${v}`, async () => ((await docWeb(`${art}/levels.json`))?.version || 0) >= v);
     frame.contentWindow.postMessage({ type: 'assets' }, '*');
   } catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
   finally { btn.disabled = false; }
@@ -438,8 +474,7 @@ $('pasteJson').addEventListener('click', async () => {
 // ---------- boot ----------
 async function boot() {
   E.config = await loadConfig();
-  E.liveArt = E.liveArtSaved = E.config.art === 'casual' ? 'casual' : 'cozy';
-  $('liveArt').value = E.liveArt;
+  E.liveArt = E.config.art === 'casual' ? 'casual' : 'cozy';
   E.book = await loadBook({ fresh: true });
   // loadBook có thể đã lùi về cozy nếu bộ được chọn chưa có level
   E.bookArt = artStyle();       // file sắp xếp này thuộc bộ nào: chỉ được ghi trả về đúng bộ đó

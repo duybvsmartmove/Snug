@@ -1,7 +1,8 @@
 // Ghi levels.json thẳng lên GitHub, dùng khi editor chạy trên GitHub Pages.
 //
-// Ghi hai file: public/content/<bộ art>/levels.json và public/content/config.json. Commit xong, workflow Pages
-// tự chạy lại khoảng 40 giây là người chơi nhận được.
+// Ghi một file mỗi lần, mỗi lần một commit: public/content/<bộ art>/levels.json (nút Lưu level)
+// hoặc public/content/config.json (nút Cho game chạy …). Commit xong, workflow Pages build lại
+// khoảng 1–2 phút là người chơi nhận được; editor tự dò trang web và báo khi xong.
 //
 // Token do chính người dùng dán vào, cất trong localStorage của trình duyệt họ, chỉ gửi tới
 // api.github.com. Cấp quyền Contents: Read and write cho đúng repo này là đủ.

@@ -15,18 +15,27 @@
       <button data-tab="library">🎨 Thư viện art</button>
     </nav>
     <div class="grow"></div>
-    <label class="field" title="Bộ art đang sửa. Mỗi bộ có level, túi, nền và ảnh riêng">Sửa art <select id="artSelect"><option value="cozy">Cozy</option><option value="casual">Casual</option></select></label>
-    <label class="field livart" title="Bộ art người chơi thấy khi mở game. Đổi xong bấm Lưu thì game nhận ngay">🎮 Game dùng <select id="liveArt"><option value="cozy">Cozy</option><option value="casual">Casual</option></select></label>
+    <!-- Bộ art đang sửa: mỗi bộ có level, túi, nền và ảnh riêng. Đổi bộ là mở lại editor. -->
+    <div class="artbox" title="Bộ art đang sửa trong editor">
+      <span class="artbox-lb">Đang sửa</span>
+      <div class="seg" id="artSeg"><button data-art="cozy">Cozy</button><button data-art="casual">Casual</button></div>
+    </div>
+    <!-- Bộ art game đang chạy: đổi bằng MỘT nút, ghi ngay, không phải bấm Lưu -->
+    <div class="gamebox" id="gameBox" title="Bộ art người chơi thấy khi mở game">
+      🎮 Game đang chạy <b id="gameArt">COZY</b>
+      <button id="useArtBtn" hidden></button>
+    </div>
     <label class="field">Chương <select id="chapterSelect"></select></label>
     <label class="field">Level <select id="levelSelect"></select></label>
     <button id="mgBtn" class="ghost">Quản lý chương &amp; level</button>
     <button id="newLevel" class="ghost">+ Level mới</button>
     <button id="publishBtn" class="publish" title="Ghi level đang sửa vào game (Cmd/Ctrl + S)">
-      <span class="dot" id="dirtyDot" hidden></span>Lưu vào <b class="arttag" id="artTag">COZY</b> <span class="live" id="liveTag">v?</span>
+      <span class="dot" id="dirtyDot" hidden></span>Lưu level <b class="arttag" id="artTag">COZY</b> <span class="live" id="liveTag">v?</span>
     </button>
     <button id="downloadBtn" class="ghost" title="Tải levels.json về máy">Tải JSON</button>
     <button id="ghBtn" class="ghost" title="Nối với GitHub để lưu thẳng" hidden>🔑 <b id="ghTag">chưa nối</b></button>
     <span id="status" class="status"></span>
+    <span id="webSync" class="websync" hidden></span>
   </header>
 
   <!-- ============ DỰNG LEVEL ============ -->

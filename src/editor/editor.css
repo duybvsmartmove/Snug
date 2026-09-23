@@ -225,9 +225,23 @@ button.mini.danger:hover{background:#FBEFEE}
 .scale-row input{width:4.2em;border:1px solid var(--line);border-radius:6px;padding:.2em .4em;font:700 .95em "Nunito";text-align:center;color:var(--ink)}
 .scale-row button{border:1px solid var(--line);background:#fff;border-radius:6px;width:1.8em;height:1.8em;font:800 1em "Nunito";cursor:pointer;color:var(--ink);line-height:1}
 .scale-row button:hover{background:#F6F1EA}
-/* bộ art game đang dùng: đổi mà chưa Lưu thì tô cam cho khỏi quên */
-.field.livart{padding:.15em .5em;border-radius:.6em}
-.field.livart.pending{background:#FFE7C7;color:#A4581C}
+/* Hai khối bộ art trên thanh trên: bộ đang sửa (nút gộp) và bộ game đang chạy (một nút đổi) */
+.artbox{display:inline-flex;align-items:center;gap:.4em}
+.artbox-lb{color:var(--soft);font-weight:700;font-size:.85em}
+#artSeg button{min-width:4.6em}
+body[data-edit-art="cozy"] #artSeg button.on{background:#6FAE67;color:#fff}
+body[data-edit-art="casual"] #artSeg button.on{background:#FF4D6D;color:#fff}
+.gamebox{display:inline-flex;align-items:center;gap:.45em;padding:.3em .35em .3em .7em;border-radius:.8em;
+  background:#F4EEE6;font-weight:700;font-size:.85em;color:var(--soft);white-space:nowrap}
+.gamebox b{padding:.1em .5em;border-radius:.4em;color:#fff;letter-spacing:.05em;font-size:.9em}
+.gamebox b[data-art="cozy"]{background:#6FAE67}
+.gamebox b[data-art="casual"]{background:#FF4D6D}
+#useArtBtn{background:#F08A3C;color:#fff;border:0;border-radius:.6em;padding:.35em .8em;font-weight:800;cursor:pointer}
+#useArtBtn:disabled{opacity:.6;cursor:wait}
+.websync{font-weight:700;font-size:.82em;padding:.35em .7em;border-radius:.6em;white-space:nowrap}
+.websync.wait{background:#FFF1D6;color:#A4581C}
+.websync.ok{background:#E3F4E1;color:#2F7A3A}
+.websync.bad{background:#FDE3E3;color:#B03030}
 .blockopts{display:inline-flex;align-items:center;gap:.35em}
 .blockopts input[type=color]{width:2.2em;height:1.8em;padding:0;border:0;background:none;cursor:pointer}
 /* Bộ art đang sửa: màu viền dưới thanh trên và nhãn trên nút Lưu, để không bao giờ lưu nhầm bộ */

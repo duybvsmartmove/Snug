@@ -157,10 +157,16 @@ nền và vùng va chạm riêng. Dáng món khác thì vùng va chạm khác, l
 không dùng chung gì. Tiến độ người chơi cũng lưu riêng theo bộ. Bộ nào chưa có `levels.json`
 thì game lặng lẽ dùng bộ cozy.
 
-**Game dùng bộ nào** ghi trong `public/content/config.json` (`{ "art": "cozy" }`), chung cho cả
-hai bộ. Trong editor, ô **🎮 Game dùng** ở thanh trên đổi giá trị này; ô tô cam là đã đổi mà
-chưa lưu. Bấm **Lưu** là ghi file (chạy ở máy) hoặc commit lên GitHub (editor trên web), game
-mở lại là nhận. Ô **Sửa art** bên cạnh chỉ chọn bộ đang sửa trong editor, không đổi game.
+**Game chạy bộ nào** ghi trong `public/content/config.json` (`{ "art": "cozy" }`), chung cho cả
+hai bộ. Thanh trên của editor có hai khối:
+
+- **Đang sửa [Cozy | Casual]**: chọn bộ level đang sửa trong editor. Nút **Lưu level …** chỉ lưu
+  level của bộ này, không đổi game.
+- **🎮 Game đang chạy COZY**: bộ người chơi thấy. Đang sửa bộ khác thì hiện nút **Cho game chạy …**,
+  bấm một lần là ghi `config.json` ngay, không cần bấm Lưu.
+
+Chạy ở máy thì ghi thẳng ra file, tải lại game là thấy. Editor trên web thì mỗi thao tác là một
+commit; GitHub build lại mất 1–2 phút, editor tự dò trang web và hiện ⏳ … rồi ✅ khi đã xong.
 Địa chỉ có `?art=` thì ưu tiên hơn config (Creative Tool, khung xem thử của editor dùng cách này).
 
 - **cozy**: art mới. Hiện có chương 1 (15 món, ba lô, một nền giấy, icon HUD).
