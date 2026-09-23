@@ -1,0 +1,33 @@
+{
+  "items": {
+    "1": "assets/01-school-day/items/1.json",
+    "2": "assets/01-school-day/items/2.json",
+    "3": "assets/01-school-day/items/3.json",
+    "4": "assets/01-school-day/items/4.json",
+    "5": "assets/01-school-day/items/5.json",
+    "6": "assets/01-school-day/items/6.json",
+    "7": "assets/01-school-day/items/7.json",
+    "8": "assets/01-school-day/items/8.json",
+    "9": "assets/01-school-day/items/9.json",
+    "10": "assets/01-school-day/items/10.json",
+    "11": "assets/01-school-day/items/11.json",
+    "12": "assets/01-school-day/items/12.json",
+    "13": "assets/01-school-day/items/13.json",
+    "14": "assets/01-school-day/items/14.json",
+    "15": "assets/01-school-day/items/15.json"
+  },
+  "backgrounds": {
+    "1": "assets/01-school-day/backgrounds/1.json"
+  },
+  "bags": {
+    "backpack": "assets/01-school-day/bags/backpack.json"
+  },
+  "ui": {
+    "delete": "assets/ui/delete.png",
+    "pause": "assets/ui/pause.png",
+    "small": "assets/ui/small.png",
+    "snow": "assets/ui/snow.png",
+    "timer": "assets/ui/timer.png",
+    "paper": "assets/01-school-day/backgrounds/bg-1.png"
+  }
+}

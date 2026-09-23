@@ -312,7 +312,6 @@ const conOKhay = () => S.bodies.filter(b => !b.chuaVao && !b.tether && b.itemId 
 
 /**
  * Hết chỗ mà đồ còn ở khay: làm đúng việc người chơi làm, theo thứ tự nhẹ tay trước.
- *   lắc túi   đồ lèn xuống, mở ra khe mới, chưa mất gì
  *   thu nhỏ   món to nhất ngoài túi bé đi 20%
  *   bỏ đi     bớt một món thường
  * Bấm qua chính nút trên HUD để số lượt, tiếng và hiệu ứng y như người bấm.
@@ -320,7 +319,6 @@ const conOKhay = () => S.bodies.filter(b => !b.chuaVao && !b.tether && b.itemId 
  */
 async function dungBooster() {
   const bam = id => { const el = document.getElementById(id); if (!el || el.disabled) return false; el.click(); return true; };
-  if (S.boosts.jiggle > 0 && bam('bJiggle')) { await waitGame(1400); return true; }
   if (S.boosts.resize > 0 && bam('bResize')) { await waitGame(600); return true; }
   if (S.boosts.throw > 0 && bam('bThrow')) { await waitGame(700); return true; }
   return false;

@@ -1,7 +1,8 @@
 // Level Editor: điều phối tab, level hiện tại, live preview (iframe game), bảng đo, lưu content.
 import { ITEM_DEFS, defById } from '../data/items.js';
-import { loadBook, loadItemManifests, loadBackgrounds, loadBags, saveContent, whenSpriteReady, setAssetChapter } from '../content/loader.js';
-import { sceneOptions, BAG_KINDS } from '../art/scene-registry.js';
+import { loadBook, loadItemManifests, loadBackgrounds, loadBags, saveContent, whenSpriteReady, setAssetChapter, setArtStyle, artStyle, loadConfig, saveConfig } from '../content/loader.js';
+import { sceneOptions, BAG_KINDS, BAG_SKINS } from '../art/scene-registry.js';
+import { isFixedSkin, placeFixed } from '../data/bag.js';
 import { itemArea } from '../game/physics.js';
 import { difficulty } from '../gen/difficulty.js';
 import { solve } from '../gen/solver.js';
@@ -13,11 +14,31 @@ import { initManage, nextLevelId } from './manage.js';
 import * as gh from './github.js';
 
 const $ = id => document.getElementById(id);
+
+// Bộ art đang sửa: ?art=casual. Mỗi bộ có level, ảnh và mục lục riêng nên đổi bộ là mở lại
+// trang, không trộn hai bộ trong một phiên.
+setArtStyle(new URLSearchParams(location.search).get('art') || 'cozy');
+/** Cho thấy rõ đang sửa bộ nào: màu thanh trên và chữ trên nút Lưu */
+function veBoArt() {
+  $('artSelect').value = artStyle();
+  $('artTag').textContent = artStyle().toUpperCase();
+  document.body.dataset.editArt = artStyle();
+}
+veBoArt();
+$('liveArt').addEventListener('change', e => { E.liveArt = e.target.value; markDirty(); status(`Bấm Lưu để game chuyển sang bộ ${E.liveArt}`, ''); });
+$('artSelect').addEventListener('change', e => {
+  if (!$('dirtyDot').hidden && !confirm('Level đang sửa chưa lưu. Vẫn đổi bộ art?')) { e.target.value = artStyle(); return; }
+  const u = new URL(location.href);
+  u.searchParams.set('art', e.target.value);
+  location.href = u.toString();
+});
+
 const areaCache = new Map();
 export const areaOf = id => { if (!areaCache.has(id)) { const d = defById(id); areaCache.set(id, d ? itemArea(d) : 0); } return areaCache.get(id); };
 export const clearAreaCache = () => areaCache.clear();
 
-export const E = { mapId: null, book: null, map: null, level: null, previewReady: false };
+// liveArt: bộ art game đang dùng (config.json) — liveArtSaved là giá trị đã ghi, khác nhau là còn chờ Lưu
+export const E = { mapId: null, book: null, map: null, level: null, previewReady: false, liveArt: 'cozy', liveArtSaved: 'cozy' };
 
 // ---------- status ----------
 export function status(text, cls = '') { const s = $('status'); s.textContent = text; s.className = 'status ' + cls; if (text) setTimeout(() => { if (s.textContent === text) s.textContent = ''; }, 3000); }
@@ -33,9 +54,20 @@ export function blankLevel(id) {
 const clone = o => JSON.parse(JSON.stringify(o));
 
 let draw, gen, pool;
+/**
+ * Túi dáng cố định: hình lòng túi và chỗ đặt túi luôn tính lại từ ảnh túi hiện có, để level
+ * dựng từ bản ảnh cũ (hay chưa từng có cỡ) khớp đúng túi đang vẽ.
+ */
+function dongBoTui(level) {
+  const sk = BAG_SKINS[level.container?.skin];
+  if (isFixedSkin(sk)) level.container = placeFixed(level.container, sk, level.container.scale || 1);
+}
+
 export function setLevel(level, { keepId = false } = {}) {
   if (keepId && E.level) level.id = E.level.id;
+  dongBoTui(level);
   E.level = level;
+  draw?.syncBagUi();
   $('lvName').value = level.name || ''; $('lvNameEn').value = level.nameEn || ''; $('lvTimer').value = level.timer || 90;
   refreshPickers();
   $('lvCoin').value = level.reward?.coin ?? 20;
@@ -56,7 +88,8 @@ export function onChange() {
  */
 export function markDirty() {
   const saved = E.map?.levels.find(l => l.id === E.level?.id);
-  const dirty = !saved || JSON.stringify(saved) !== JSON.stringify(E.level);
+  const dirty = !saved || JSON.stringify(saved) !== JSON.stringify(E.level) || E.liveArt !== E.liveArtSaved;
+  $('liveArt').closest('label').classList.toggle('pending', E.liveArt !== E.liveArtSaved);
   $('publishBtn').classList.toggle('dirty', dirty);
   $('dirtyDot').hidden = !dirty;
 }
@@ -79,7 +112,7 @@ const napKhungXemThu = () => {
   // bị xoá nhưng bản index.html còn trong cache vẫn trỏ vào nó → khung xem thử mất sạch
   // CSS, hiện ra chữ trần. Cmd+Shift+R không cứu được vì địa chỉ khung do script gán,
   // mà điều hướng do script khởi tạo thì không thừa hưởng lệnh bỏ qua cache.
-  frame.src = `./index.html?preview=1${them}&t=${Date.now()}`;
+  frame.src = `./index.html?preview=1&art=${artStyle()}${them}&t=${Date.now()}`;
 };
 napKhungXemThu();
 let pushT = null;
@@ -95,9 +128,11 @@ function pushPreview() {
 window.addEventListener('message', e => { if (e.data?.type === 'ready') { E.previewReady = true; pushPreview(); } });
 
 // ---------- lưu sắp xếp ----------
-// Mọi chương và level nằm trong MỘT file: content/levels.json của repo game.
+// Mọi chương và level nằm trong MỘT file: content/<bộ art>/levels.json của repo game.
 // Bấm Phát hành là ghi lại file đó, game đọc thẳng từ máy, không qua mạng.
 export async function publish(note = '') {
+  // Chặn ghi nhầm bộ: level đang mở đọc từ bộ nào thì chỉ ghi trả về đúng bộ đó
+  if (E.bookArt !== artStyle()) throw new Error(`level đang mở thuộc bộ ${E.bookArt}, không ghi vào bộ ${artStyle()}. Tải lại trang.`);
   syncLevelIntoChapter();     // level đang sửa là bản chép riêng, phải trả về chương trước khi ghi
   const b = E.book;
   b.version = (b.version || 0) + 1;
@@ -113,9 +148,15 @@ export async function publish(note = '') {
     ch.assets = { items: [...items].sort((a, c) => a - c), backgrounds: [...bgs].sort((a, c) => a - c), bags: [...bags].sort() };
   }
   const text = JSON.stringify(b, null, 2);
+  if (!canWrite && !gh.hasToken()) throw new Error('chưa nối GitHub — bấm nút 🔑 để dán token');
   if (canWrite) await saveContent('levels.json', text);          // chạy ở máy: ghi thẳng ra file
-  else if (gh.hasToken()) await gh.putBook(b);                    // trên web: commit lên GitHub
-  else throw new Error('chưa nối GitHub — bấm nút 🔑 để dán token');
+  else await gh.putBook(b);                                       // trên web: commit lên GitHub
+  // Đổi bộ art cho game: ghi config.json chung, game đọc lúc mở
+  if (E.liveArt !== E.liveArtSaved) {
+    const cfg = { ...(E.config || {}), art: E.liveArt };
+    if (canWrite) await saveConfig(cfg); else await gh.putConfig(cfg);
+    E.config = cfg; E.liveArtSaved = E.liveArt;
+  }
   return b.version;
 }
 
@@ -138,8 +179,9 @@ async function saveAll() {
     refreshLevelSelect();
     $('liveTag').textContent = `v${v}`;
     markDirty();
-    status(canWrite ? `Đã lưu sắp xếp · bản v${v}`
-                    : `Đã đẩy lên GitHub · bản v${v}. Khoảng 40 giây nữa người chơi nhận được.`, 'ok');
+    const bo = artStyle().toUpperCase();
+    status(canWrite ? `Đã lưu vào bộ ${bo} · bản v${v}`
+                    : `Đã đẩy bộ ${bo} lên GitHub · bản v${v}. Khoảng 40 giây nữa người chơi nhận được.`, 'ok');
     frame.contentWindow.postMessage({ type: 'assets' }, '*');
   } catch (e) { status('Lỗi lưu: ' + e.message, 'bad'); }
   finally { btn.disabled = false; }
@@ -155,9 +197,9 @@ window.addEventListener('keydown', e => {
 $('downloadBtn').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(E.book, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'levels.json'; a.click();
+  a.href = URL.createObjectURL(blob); a.download = `levels-${artStyle()}.json`; a.click();
   URL.revokeObjectURL(a.href);
-  status('Đã tải levels.json — chép vào snug/public/content/', 'ok');
+  status(`Đã tải levels-${artStyle()}.json — đổi tên thành levels.json rồi chép vào snug/public/content/${artStyle()}/`, 'ok');
 });
 
 // ---------- nối GitHub ----------
@@ -263,7 +305,7 @@ $('lvName').addEventListener('input', e => { E.level.name = e.target.value; refr
 $('lvNameEn').addEventListener('input', e => { E.level.nameEn = e.target.value; onChange(); });
 $('lvTimer').addEventListener('change', e => { E.level.timer = +e.target.value; onChange(); });
 $('lvBg').addEventListener('change', e => { E.level.background = Number(e.target.value); onChange(); });
-$('lvSkin').addEventListener('change', e => { E.level.container.skin = e.target.value; onChange(); });
+$('lvSkin').addEventListener('change', e => { E.level.container.skin = e.target.value; dongBoTui(E.level); draw?.syncBagUi(); onChange(); });
 $('lvCoin').addEventListener('change', e => { E.level.reward = { ...(E.level.reward || {}), coin: +e.target.value }; onChange(); });
 
 // ---------- tabs ----------
@@ -382,7 +424,13 @@ $('pasteJson').addEventListener('click', async () => {
 
 // ---------- boot ----------
 async function boot() {
+  E.config = await loadConfig();
+  E.liveArt = E.liveArtSaved = E.config.art === 'casual' ? 'casual' : 'cozy';
+  $('liveArt').value = E.liveArt;
   E.book = await loadBook({ fresh: true });
+  // loadBook có thể đã lùi về cozy nếu bộ được chọn chưa có level
+  E.bookArt = artStyle();       // file sắp xếp này thuộc bộ nào: chỉ được ghi trả về đúng bộ đó
+  veBoArt();
   if (!E.book?.chapters?.length) throw new Error('levels.json chưa có chương nào');
   E.mapId = new URLSearchParams(location.search).get('map') || E.book.chapters[0].id;
 

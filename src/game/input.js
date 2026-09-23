@@ -11,6 +11,7 @@ import { S, partsOf, daVao } from './state.js';
 import { canvas, toLogical } from './canvas.js';
 import { computeGhost, findFreeSpot, bagZone } from './rules.js';
 import { tetherSuspend, tetherRestore } from './mechanics.js';
+import { isFrozenTime, freezeBody } from './boosters.js';
 import { toast, hideHint } from '../ui/hud.js';
 import { t } from '../i18n.js';
 import { sfx } from '../ui/sfx.js';
@@ -52,6 +53,7 @@ export function pickUp(body, p, { touch = true } = {}) {
   const group = groupOf(body);
   for (const b of group) {
     b.giuToi = 0;                    // đang giữ góc mà được nhấc lên thì thôi giữ
+    b.frozen = false;                // nhấc món đang đóng băng lên thì nó thôi băng, thả lại sẽ băng lại
     if (b.isStatic) Body.setStatic(b, false);
     Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
     World.remove(S.world, b);
@@ -164,6 +166,8 @@ export function drop() {
     Body.setVelocity(x, bounce ? { x: (Math.random() - .5) * 1.6, y: 0 } : { x: 0, y: 0 });
     Body.setAngularVelocity(x, 0);
     World.add(S.world, x);
+    // Đang đóng băng: món thả gọn vào túi đứng yên đúng chỗ vừa thả, không rơi, không bị đẩy
+    if (!bounce && isFrozenTime() && bagZone(x).fullyInside) freezeBody(x);
   }
   if (b.tether) tetherRestore(b.tether);
   if (bounce) { S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 }); toast(t('noFit')); sfx('nope'); }

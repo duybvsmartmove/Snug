@@ -4,6 +4,8 @@ import { S, setContainer, toAbs, W, TABLE_Y } from './state.js';
 import { MYSTERY, defById, KEY_ID } from '../data/items.js';
 import { theme } from '../art/helpers.js';
 import { makeItem, createWorld } from './physics.js';
+import { resolveContainer } from '../data/bag.js';
+import { BAG_SKINS } from '../art/scene-registry.js';
 import { createTethers } from './mechanics.js';
 import { resetBoosts } from './boosters.js';
 import { renderHeader, renderList, hideWin, hideLose, hidePause } from '../ui/hud.js';
@@ -21,7 +23,7 @@ const SCENE_CLS = {};
 /** Dựng level từ object JSON */
 export function build(level) {
   S.LEVEL = level;
-  setContainer(level.container || {});
+  setContainer(resolveContainer(level.container || {}, BAG_SKINS));
   theme.ink = level.ink || SCENE_INK[Number(level.background)] || '#3B2A4A';
   // Chìa khoá là công cụ mở hộp bí ẩn, không phải món phải xếp → không tính vào packing list
   const playable = level.items.filter(it => it.id !== KEY_ID);

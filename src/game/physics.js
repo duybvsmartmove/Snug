@@ -8,6 +8,7 @@ import * as decompNS from 'poly-decomp';
 Matter.Common.setDecomp(decompNS.default ?? decompNS);
 import { S, BAG, W, H, FLOOR_Y, PAD } from './state.js';
 import { polygonArea } from '../util/geom.js';
+import { blockPoly, blocksArea } from '../data/blocks.js';
 
 const { Engine, World, Bodies, Body, Vertices, Events } = Matter;
 
@@ -69,7 +70,7 @@ export function itemArea(def) {
  * khuyết góc) phần kéo dài đó chọc vào lòng túi 7 đơn vị: một vật cản vô hình, người chơi
  * không thấy, máy xếp không biết, món đặt sát góc bị hất ra không rõ vì sao.
  */
-function polygonWalls(poly, opt) {
+function polygonWalls(poly, opt, closed = false) {
   const walls = [];
   const n = poly.length;
   const cx = poly.reduce((s, p) => s + p[0], 0) / n, cy = poly.reduce((s, p) => s + p[1], 0) / n;
@@ -79,7 +80,7 @@ function polygonWalls(poly, opt) {
   for (let i = 0; i < n; i++) {
     const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % n];
     const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-    if ((Math.abs(y1 - minY) < 1 && Math.abs(y2 - minY) < 1) || len < 1) { phapTuyen.push(null); continue; } // miệng túi mở
+    if ((!closed && Math.abs(y1 - minY) < 1 && Math.abs(y2 - minY) < 1) || len < 1) { phapTuyen.push(null); continue; } // miệng túi mở
     let nx = dy / len, ny = -dx / len;            // pháp tuyến
     const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
     if ((mx + nx - cx) ** 2 + (my + ny - cy) ** 2 < (mx - cx) ** 2 + (my - cy) ** 2) { nx = -nx; ny = -ny; } // hướng ra ngoài
@@ -116,6 +117,17 @@ function polygonArea2(poly) {
 let baoVaCham = null;
 export const onImpact = fn => { baoVaCham = fn; };
 
+/** Thân vật lý của một vật cản: chữ nhật dựng thẳng, hình khác dựng từ đa giác lồi của nó */
+const blockBody = opt => b => {
+  const o = { ...opt, label: 'block' };
+  if (!b.kind || b.kind === 'rect') return Bodies.rectangle(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h, o);
+  const verts = blockPoly(b).map(([x, y]) => ({ x, y }));
+  const c = Vertices.centre(verts);
+  const body = Bodies.fromVertices(c.x, c.y, [verts], o);
+  Body.setPosition(body, c);
+  return body;
+};
+
 /** Engine mới + tường quanh màn + thành túi theo polygon + block chặn */
 export function createWorld() {
   const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
@@ -132,8 +144,8 @@ export function createWorld() {
     Bodies.rectangle(-t / 2, H / 2, t, H * 2, wallOpt),
     Bodies.rectangle(W + t / 2, H / 2, t, H * 2, wallOpt),
     Bodies.rectangle(W / 2, -t, W * 2, t, wallOpt),
-    ...polygonWalls(BAG.poly, tuiOpt),
-    ...BAG.blocks.map(b => Bodies.rectangle(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h, { ...tuiOpt, label: 'block' })),
+    ...polygonWalls(BAG.poly, tuiOpt, BAG.closed),
+    ...BAG.blocks.map(blockBody(tuiOpt)),
   ];
   World.add(engine.world, walls);
 
@@ -156,7 +168,7 @@ export function createWorld() {
 
 /** Diện tích lòng túi thật (polygon trừ block) */
 export function usableArea() {
-  return polygonArea(BAG.poly) - BAG.blocks.reduce((s, b) => s + b.w * b.h, 0);
+  return polygonArea(BAG.poly) - blocksArea(BAG.blocks);
 }
 
 /** Thay body cũ bằng body mới cùng vị trí/góc, giữ label, dây buộc, trạng thái đóng băng */

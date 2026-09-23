@@ -117,37 +117,3 @@ export function tickPhone(dt) {
   }
 }
 
-// ---------- Lắc túi ----------
-/**
- * Lắc túi: đẩy đồ bên trong nhảy lên cho lèn khít hơn, và rung RIÊNG hình cái túi.
- * Không rung cả màn hình — chỉ chiếc túi lắc, giống như cầm túi rồi giằng vài cái.
- */
-export function jiggle() {
-  if (S.won || S.lost) return;
-  S.jiggle = { t: 0, dur: 420 };          // render.js đọc mốc này để rung hình túi
-  for (const b of S.bodies) {
-    if (isHeld(b)) continue;
-    const z = bagZone(b);
-    if (!z.inZone) continue;              // đồ ngoài túi không bị ảnh hưởng
-    const k = z.fullyInside ? 1 : .5;
-    Body.applyForce(b, b.position, {
-      x: (Math.random() - .5) * .013 * b.mass * k,
-      y: -(0.011 + Math.random() * .013) * b.mass * k,
-    });
-    Body.setAngularVelocity(b, b.angularVelocity + (Math.random() - .5) * .28 * k);
-  }
-}
-
-/** Độ lệch của hình túi trong lúc lắc: dao động tắt dần */
-export function jiggleOffset(dt) {
-  const j = S.jiggle;
-  if (!j) return null;
-  j.t += dt;
-  if (j.t >= j.dur) { S.jiggle = null; return null; }
-  const p = j.t / j.dur, fade = 1 - p;
-  return {
-    x: Math.sin(p * Math.PI * 7) * 7 * fade,
-    y: Math.sin(p * Math.PI * 9 + 1) * 3.5 * fade,
-    rot: Math.sin(p * Math.PI * 6) * .035 * fade,
-  };
-}

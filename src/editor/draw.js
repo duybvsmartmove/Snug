@@ -1,9 +1,14 @@
 // Tab Draw: canvas sắp xếp level. Tool Items (kéo/xoay/buộc dây/khóa), Shape (kéo điểm polygon), Block (vẽ block chặn).
+// Túi dáng cố định (manifest túi có `fixed`) thì không có tool Shape: chỉ đổi cỡ túi bằng thanh kéo,
+// vật cản chọn được hình và màu, bấm vào vật cản đã đặt để chọn, kéo để dời chỗ.
 import { ITEM_DEFS, MYSTERY, defById, labelOf } from '../data/items.js';
 import { theme } from '../art/helpers.js';
 import { W, H, TABLE_Y, FLOOR_Y } from '../game/state.js';
 import { pointInPolygon, polygonArea } from '../util/geom.js';
 import { chapterItemIds, byChapterFirst } from './chapter-items.js';
+import { BAG_SKINS } from '../art/scene-registry.js';
+import { isFixedSkin, placeFixed, maxScale, MIN_SCALE } from '../data/bag.js';
+import { blockPoly, blocksArea, BLOCK_KINDS, BLOCK_COLOR, darker } from '../data/blocks.js';
 
 const $ = id => document.getElementById(id);
 const INK = { 1: '#3B2A4A', 2: '#3B2A4A', 3: '#4A2F3A' };
@@ -12,7 +17,11 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   const cv = $('edit'), ctx = cv.getContext('2d');
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cv.width = W * dpr; cv.height = H * dpr;
-  let tool = 'item', sel = null, linkMode = false, dragging = null, hoverPt = -1;
+  let tool = 'item', sel = null, linkMode = false, dragging = null, hoverPt = -1, selBlock = -1;
+  const skinOf = () => BAG_SKINS[E.level?.container.skin];
+  const fixed = () => isFixedSkin(skinOf());
+  /** Bộ art đang sửa có ảnh hộp bí ẩn và chìa khoá chưa; chưa có thì không cho giấu món */
+  const coHopBiAn = () => !!(MYSTERY.sprite && defById(0)?.sprite);
 
   const abs = (x, y) => ({ x: E.level.container.cx + x, y: E.level.container.bottom + y });
   const loc = (x, y) => ({ x: x - E.level.container.cx, y: y - E.level.container.bottom });
@@ -68,18 +77,31 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     ctx.strokeRect(16, TABLE_Y + 16, W - 32, FLOOR_Y - TABLE_Y - 6); ctx.setLineDash([]);
     ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.font = '700 11px Nunito'; ctx.fillText('khay đồ (spawn)', 22, TABLE_Y + 30);
     ctx.fillText('sàn vật lý', 22, FLOOR_Y - 6);
-    // túi: polygon
+    // túi: dáng cố định thì vẽ chính ảnh túi (phóng đều theo cỡ), rồi viền lòng túi đè lên
     const poly = L.container.shape.map(([x, y]) => { const p = abs(x, y); return [p.x, p.y]; });
+    const sk = skinOf(), body = sk?.img?.body;
+    if (fixed() && body?.complete && body.naturalWidth) {
+      const k = L.container.scale || 1, r = sk.image, o = abs(0, 0);
+      ctx.drawImage(body, o.x + r.x * k, o.y + r.y * k, r.w * k, r.h * k);
+    }
     ctx.beginPath(); poly.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath();
-    ctx.fillStyle = L.container.skin === 'tote' ? 'rgba(63,184,175,.25)' : 'rgba(110,79,174,.28)'; ctx.fill();
-    ctx.lineWidth = 3; ctx.strokeStyle = theme.ink; ctx.stroke();
-    // miệng túi
-    const minY = Math.min(...poly.map(p => p[1]));
-    ctx.strokeStyle = '#E2B04A'; ctx.lineWidth = 4; ctx.beginPath();
-    poly.forEach(([x, y], i) => { const [x2, y2] = poly[(i + 1) % poly.length]; if (Math.abs(y - minY) < 1 && Math.abs(y2 - minY) < 1) { ctx.moveTo(x, y); ctx.lineTo(x2, y2); } });
-    ctx.stroke();
-    // block
-    for (const b of L.container.blocks || []) { const p = abs(b.x, b.y); ctx.fillStyle = 'rgba(40,25,60,.85)'; ctx.fillRect(p.x, p.y, b.w, b.h); ctx.strokeStyle = theme.ink; ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y, b.w, b.h); }
+    if (!fixed()) { ctx.fillStyle = L.container.skin === 'tote' ? 'rgba(63,184,175,.25)' : 'rgba(110,79,174,.28)'; ctx.fill(); }
+    ctx.lineWidth = fixed() ? 1.6 : 3; ctx.strokeStyle = fixed() ? 'rgba(255,255,255,.7)' : theme.ink; ctx.stroke();
+    // miệng túi (túi dáng cố định kín bốn bề, không có miệng)
+    if (!fixed()) {
+      const minY = Math.min(...poly.map(p => p[1]));
+      ctx.strokeStyle = '#E2B04A'; ctx.lineWidth = 4; ctx.beginPath();
+      poly.forEach(([x, y], i) => { const [x2, y2] = poly[(i + 1) % poly.length]; if (Math.abs(y - minY) < 1 && Math.abs(y2 - minY) < 1) { ctx.moveTo(x, y); ctx.lineTo(x2, y2); } });
+      ctx.stroke();
+    }
+    // vật cản: đúng hình và màu như trong game
+    (L.container.blocks || []).forEach((b, i) => {
+      const o = abs(0, 0);
+      ctx.beginPath(); blockPoly(b).forEach(([x, y], j) => (j ? ctx.lineTo(o.x + x, o.y + y) : ctx.moveTo(o.x + x, o.y + y))); ctx.closePath();
+      ctx.fillStyle = b.color || 'rgba(233,144,59,.95)'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = b.color ? darker(b.color) : theme.ink; ctx.stroke();
+      if (tool === 'block' && i === selBlock) { ctx.setLineDash([5, 4]); ctx.strokeStyle = '#E2637F'; ctx.lineWidth = 2.4; ctx.strokeRect(o.x + b.x - 3, o.y + b.y - 3, b.w + 6, b.h + 6); ctx.setLineDash([]); }
+    });
     // dây buộc
     for (const it of L.items) if (it.link) {
       const o = L.items.find(j => j.id === it.link); if (!o) continue;
@@ -128,7 +150,11 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   const polyAbs = () => E.level.container.shape.map(([x, y]) => { const q = abs(x, y); return [q.x, q.y]; });
   function hitPoint(p) { return polyAbs().findIndex(([x, y]) => Math.hypot(x - p.x, y - p.y) < 10); }
   function hitMid(p) { const pa = polyAbs(); return pa.findIndex(([x, y], i) => { const [x2, y2] = pa[(i + 1) % pa.length]; return Math.hypot((x + x2) / 2 - p.x, (y + y2) / 2 - p.y) < 8; }); }
-  function hitBlock(p) { const q = loc(p.x, p.y); return (E.level.container.blocks || []).findIndex(b => q.x >= b.x && q.x <= b.x + b.w && q.y >= b.y && q.y <= b.y + b.h); }
+  function hitBlock(p) {
+    const q = loc(p.x, p.y), bs = E.level.container.blocks || [];
+    for (let i = bs.length - 1; i >= 0; i--) if (pointInPolygon(q.x, q.y, blockPoly(bs[i]))) return i;
+    return -1;
+  }
 
   // ---------- events ----------
   cv.addEventListener('contextmenu', e => e.preventDefault());
@@ -145,8 +171,15 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     }
     if (tool === 'block') {
       const bi = hitBlock(p);
-      if (e.button === 2) { if (bi >= 0) { L.container.blocks.splice(bi, 1); onChange(); } return; }
-      const q = loc(p.x, p.y); dragging = { kind: 'block', x: Math.round(q.x), y: Math.round(q.y), w: 0, h: 0, sx: q.x, sy: q.y }; return;
+      if (e.button === 2) { if (bi >= 0) { L.container.blocks.splice(bi, 1); selBlock = -1; onChange(); } return; }
+      const q = loc(p.x, p.y);
+      if (bi >= 0) {   // bấm vào vật cản có sẵn: chọn nó, kéo thì dời chỗ
+        selBlock = bi; syncBlockOpts();
+        const b = L.container.blocks[bi];
+        dragging = { kind: 'moveBlock', b, dx: b.x - q.x, dy: b.y - q.y, x0: b.x, y0: b.y }; render(); return;
+      }
+      selBlock = -1;
+      dragging = { kind: 'block', x: Math.round(q.x), y: Math.round(q.y), w: 0, h: 0, sx: q.x, sy: q.y }; return;
     }
     // item tool
     const it = hitItem(p);
@@ -167,6 +200,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     if (!dragging) return;
     const L = E.level;
     if (dragging.kind === 'pt') { const q = loc(p.x, p.y); L.container.shape[dragging.i] = [Math.round(q.x), Math.round(q.y)]; onChange(); }
+    else if (dragging.kind === 'moveBlock') { const q = loc(p.x, p.y); dragging.b.x = Math.round(q.x + dragging.dx); dragging.b.y = Math.round(q.y + dragging.dy); onChange(); }
     else if (dragging.kind === 'block') { const q = loc(p.x, p.y); dragging.x = Math.round(Math.min(q.x, dragging.sx)); dragging.y = Math.round(Math.min(q.y, dragging.sy)); dragging.w = Math.round(Math.abs(q.x - dragging.sx)); dragging.h = Math.round(Math.abs(q.y - dragging.sy)); render(); }
     else if (dragging.kind === 'item') {
       const it = dragging.it, nx = p.x + dragging.dx, ny = p.y + dragging.dy;
@@ -174,8 +208,22 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
       onChange();
     }
   });
+  /** Vật cản phải nằm trọn trong lòng túi: chòi ra ngoài thì vừa vô nghĩa vừa làm sai diện tích */
+  const trongTui = b => blockPoly(b).every(([x, y]) => pointInPolygon(x, y, E.level.container.shape));
   const endDrag = () => {
-    if (dragging?.kind === 'block' && dragging.w > 8 && dragging.h > 8) { E.level.container.blocks = E.level.container.blocks || []; E.level.container.blocks.push({ x: dragging.x, y: dragging.y, w: dragging.w, h: dragging.h }); onChange(); }
+    if (dragging?.kind === 'moveBlock' && !trongTui(dragging.b)) {
+      dragging.b.x = dragging.x0; dragging.b.y = dragging.y0;
+      status('Vật cản phải nằm trọn trong lòng túi, đã trả về chỗ cũ', 'bad'); onChange();
+    }
+    if (dragging?.kind === 'block' && dragging.w > 8 && dragging.h > 8 && !trongTui(dragging)) {
+      status('Vật cản phải nằm trọn trong lòng túi', 'bad');
+    } else if (dragging?.kind === 'block' && dragging.w > 8 && dragging.h > 8) {
+      const bs = E.level.container.blocks = E.level.container.blocks || [];
+      const b = { x: dragging.x, y: dragging.y, w: dragging.w, h: dragging.h };
+      // túi cozy (dáng cố định) dùng vật cản có hình và màu; túi kiểu cũ giữ ô chữ nhật như trước
+      if (fixed() || $('blockKind').value !== 'rect') { b.kind = $('blockKind').value; b.color = $('blockColor').value; }
+      bs.push(b); selBlock = bs.length - 1; onChange();
+    }
     dragging = null; render();
   };
   cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
@@ -185,6 +233,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   }, { passive: false });
   window.addEventListener('keydown', e => {
     if (e.target.matches('input,select,textarea')) return;
+    if ((e.key === 'Delete' || e.key === 'Backspace') && tool === 'block' && selBlock >= 0) { E.level.container.blocks.splice(selBlock, 1); selBlock = -1; onChange(); return; }
     if ((e.key === 'Delete' || e.key === 'Backspace') && sel) removeItem(sel);
     if (e.key === 'r' && sel) { sel.angle = Math.round(((sel.angle || 0) + Math.PI / 2) * 100) / 100; onChange(); }
   });
@@ -194,10 +243,69 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   const hints = {
     item: 'Kéo món để đặt · lăn chuột hoặc R để xoay · Delete hoặc chuột phải để xoá',
     shape: 'Kéo điểm tròn để đổi hình · bấm điểm giữa cạnh để thêm điểm · chuột phải để xoá',
-    block: 'Kéo một vùng trong túi để tạo vật cản · chuột phải để xoá',
+    block: 'Kéo một vùng trong túi để tạo vật cản · bấm vào vật cản để chọn rồi kéo dời chỗ, đổi hình, đổi màu · Delete hoặc chuột phải để xoá',
   };
+  // ---------- vật cản: hình và màu ----------
+  $('blockKind').innerHTML = BLOCK_KINDS.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
+  $('blockColor').value = BLOCK_COLOR;
+  function syncBlockOpts() {
+    const b = E.level?.container.blocks?.[selBlock];
+    if (!b) return;
+    $('blockKind').value = b.kind || 'rect'; $('blockColor').value = b.color || BLOCK_COLOR;
+  }
+  const doiVatCan = () => {
+    const b = E.level?.container.blocks?.[selBlock]; if (!b) return;
+    b.kind = $('blockKind').value; b.color = $('blockColor').value; onChange();
+  };
+  $('blockKind').addEventListener('change', doiVatCan);
+  $('blockColor').addEventListener('input', doiVatCan);
   $('toolHint').textContent = hints.item;
-  $('toolSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; tool = b.dataset.tool; [...$('toolSeg').children].forEach(x => x.classList.toggle('on', x === b)); $('toolHint').textContent = hints[tool]; render(); });
+  function chonTool(t) {
+    tool = t;
+    [...$('toolSeg').children].forEach(x => x.classList.toggle('on', x.dataset.tool === t));
+    $('toolHint').textContent = hints[t]; $('blockOpts').hidden = t !== 'block';
+    render();
+  }
+  $('toolSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) chonTool(b.dataset.tool); });
+
+  // ---------- túi dáng cố định: chỉ đổi cỡ ----------
+  /** Hiện đúng bộ điều khiển cho kiểu túi đang chọn; gọi mỗi khi đổi level hoặc đổi túi */
+  function syncBagUi() {
+    const f = fixed();
+    $('fixedRow').hidden = !f; $('freeRow').hidden = f;
+    $('bagHint').textContent = f ? 'Hình túi đi theo ảnh. Chỉ chỉnh cỡ, đặt vật cản ở bước 3' : 'Kéo điểm để đổi hình, hoặc chọn mẫu có sẵn';
+    const shapeBtn = $('toolSeg').querySelector('[data-tool="shape"]');
+    shapeBtn.hidden = f;
+    if (f && tool === 'shape') chonTool('item');
+    if (f) {
+      const max = Math.floor(maxScale(skinOf()) * 100), pct = Math.round((E.level.container.scale || 1) * 100);
+      for (const id of ['bagScale', 'bagScaleNum']) { $(id).min = MIN_SCALE * 100; $(id).max = max; $(id).value = pct; }
+    }
+    selBlock = -1;
+  }
+  function datCo(s) {
+    const sk = skinOf(); if (!sk) return;
+    s = Math.min(maxScale(sk), Math.max(MIN_SCALE, s));
+    E.level.container = placeFixed(E.level.container, sk, s);
+    $('bagScale').value = $('bagScaleNum').value = Math.round(s * 100);
+    onChange();
+    return s;
+  }
+  $('bagScale').addEventListener('input', e => datCo(+e.target.value / 100));
+  $('bagScaleNum').addEventListener('change', e => datCo((+e.target.value || 100) / 100));
+  $('bagScaleReset').addEventListener('click', () => datCo(1));
+  $('fitBagFixed').addEventListener('click', e => {
+    if (e.target.tagName === 'INPUT') return;
+    const L = E.level, want = Math.max(.3, Math.min(.98, (+$('fitDensityFixed').value || 80) / 100));
+    const items = L.items.filter(i => i.id !== 0);
+    if (!items.length) return status('Chưa có món nào để tính', 'bad');
+    const itemArea = items.reduce((s, it) => { const k = Number(it.scale) || 1; return s + areaOfItem(it.id) * k * k; }, 0);
+    // lòng túi và vật cản phóng cùng nhau nên chỗ trống tỉ lệ bình phương cỡ túi
+    const s0 = L.container.scale || 1, cur = polygonArea(L.container.shape) - blocksArea(L.container.blocks);
+    const s = datCo(s0 * Math.sqrt(itemArea / want / cur));
+    if (Math.abs(s - s0 * Math.sqrt(itemArea / want / cur)) > .005) status(`Túi đã ở cỡ giới hạn ${Math.round(s * 100)}%, chưa đạt ${(want * 100).toFixed(0)}%. Bớt món hoặc giảm độ đầy.`, 'bad');
+    else status(`Đã chọn cỡ túi ${Math.round(s * 100)}% cho độ đầy ${(want * 100).toFixed(0)}%`, 'ok');
+  });
   document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => { E.level.container.shape = preset(b.dataset.preset, E.level.container.shape); onChange(); }));
   function preset(kind, cur) {
     const xs = cur.map(p => p[0]), ys = cur.map(p => p[1]);
@@ -221,7 +329,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const items = L.items.filter(i => i.id !== 'key');
     if (!items.length) return status('Chưa có món nào để tính', 'bad');
     const itemArea = items.reduce((s, it) => { const k = Number(it.scale) || 1; return s + areaOfItem(it.id) * k * k; }, 0);
-    const cur = polygonArea(L.container.shape) - (L.container.blocks || []).reduce((s, b) => s + b.w * b.h, 0);
+    const cur = polygonArea(L.container.shape) - blocksArea(L.container.blocks);
     const target = itemArea / want;
     const k = Math.sqrt(target / cur);
     // scale quanh gốc (giữa đáy túi), giới hạn để không tràn màn hình
@@ -254,8 +362,8 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
       <div class="mech">
         <button data-m="link" class="${sel.link ? 'on' : ''}" ${m.canLink ? '' : 'disabled'}
           title="Nối món này với một món khác bằng dây. Hai món phải nhấc và xếp cùng nhau.">${sel.link ? 'Buộc với #' + sel.link : 'Buộc dây…'}</button>
-        <button data-m="locked" class="${sel.locked ? 'on' : ''}" ${m.canLock ? '' : 'disabled'}
-          title="Giấu món này trong hộp bí ẩn. Người chơi phải kéo chìa khoá chạm vào hộp mới mở ra.">Hộp bí ẩn</button>
+        <button data-m="locked" class="${sel.locked ? 'on' : ''}" ${m.canLock && coHopBiAn() ? '' : 'disabled'}
+          title="${coHopBiAn() ? 'Giấu món này trong hộp bí ẩn. Người chơi phải kéo chìa khoá chạm vào hộp mới mở ra.' : 'Bộ art này chưa có ảnh hộp bí ẩn và chìa khoá'}">Hộp bí ẩn</button>
         <button data-m="inBag" class="${sel.inBag ? 'on' : ''}"
           title="Món nằm sẵn trong túi từ đầu màn, không phải xếp. Dùng cho chìa khoá hoặc đồ vướng chỗ.">Đặt sẵn trong túi</button>
         <button data-m="del" title="Bỏ món khỏi level này">Xoá</button>
@@ -326,5 +434,5 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
 
   refreshPalette();
   computeChapterItems();
-  return { render, refreshPalette, computeChapterItems, clearSelection: () => { sel = null; showSel(); } };
+  return { render, refreshPalette, computeChapterItems, syncBagUi, clearSelection: () => { sel = null; showSel(); } };
 }

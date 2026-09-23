@@ -8,7 +8,8 @@ import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
 import { bindImpacts } from './game/rules.js';
-import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady, setArtStyle, artStyle } from './content/loader.js';
+import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady, setArtStyle, artStyle, applyArtIcons, loadConfig } from './content/loader.js';
+import { useArtProgress } from './game/progress.js';
 import { autoplay, stopAutoplay, autoState, autoLog, chanDoan } from './game/autoplay.js';
 import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
@@ -21,7 +22,8 @@ import { chuyenMan, moMan } from './ui/veil.js';
 
 const params = new URLSearchParams(location.search);
 
-// Bộ art: ?art=casual đổi thư mục ảnh và bảng màu HUD. Đặt trước mọi lượt nạp ảnh.
+// Bộ art: ?art=casual đổi thư mục ảnh và bảng màu HUD. Không ghi trên địa chỉ thì theo
+// config.json (editor đặt bằng nút "Game dùng"), đọc trong boot() trước mọi lượt nạp ảnh.
 setArtStyle(params.get('art') || 'cozy');
 document.documentElement.dataset.art = artStyle();
 applyStatic();
@@ -68,8 +70,13 @@ async function boot() {
   setSilent(S.preview && params.get('audio') !== '1');
   unlockOnFirstGesture();
 
+  if (!params.get('art')) setArtStyle((await loadConfig()).art);
   // Toàn bộ nội dung nằm trong bản build: một file sắp xếp và thư mục ảnh. Không gọi mạng.
   await loadBook({ fresh: S.preview });
+  useArtProgress(artStyle());
+  // loadBook có thể đã lùi về cozy nếu bộ được chọn chưa có level: gắn lại bảng màu cho khớp
+  document.documentElement.dataset.art = artStyle();
+  applyArtIcons();
 
   // Live preview từ editor: level gửi qua postMessage, không tải từ content
   window.addEventListener('message', e => {

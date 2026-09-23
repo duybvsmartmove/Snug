@@ -220,9 +220,12 @@ $('art').addEventListener('change', e => {
   cfg.art = e.target.value; saveCfg();
   document.documentElement.dataset.art = cfg.art;
   setArtStyle(cfg.art);
-  // Ảnh nạp theo thư mục lúc khởi động nên phải nạp lại iframe; level đang mở sẽ được mở lại khi ready
-  loadFrame();
-  if (!$('picker').hidden) drawPicker();
+  // Mỗi bộ art có level riêng: nạp lại sắp xếp, rồi nạp lại iframe vì ảnh nạp lúc khởi động
+  loadBook({ fresh: true }).then(b => {
+    book = b;
+    loadFrame();
+    if (!$('picker').hidden) drawPicker();
+  });
 });
 
 $('lang').value = cfg.lang;

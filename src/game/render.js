@@ -1,12 +1,13 @@
 // Vòng lặp game: cập nhật vật lý + cơ chế + timer, rồi vẽ bối cảnh → túi → đồ → dây → khung túi → hiệu ứng.
 import Matter from 'matter-js';
-import { S, BAG, partsOf, isHeld } from './state.js';
+import { S, partsOf, isHeld } from './state.js';
 import { ctx, VIEW } from './canvas.js';
 import { drawScene } from '../art/scenes.js';
 import { drawBag, drawBagFront } from '../art/bags.js';
 import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js';
 import { checkEject, updateChecked } from './rules.js';
-import { tickPhone, checkUnlock, drawStrings, jiggleOffset } from './mechanics.js';
+import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
+import { tickFreeze } from './boosters.js';
 import { updateClock, showLose } from '../ui/hud.js';
 import { drawFx } from './fx.js';
 import { tickEntrance } from './level.js';
@@ -54,6 +55,18 @@ function drawBody(b) {
   ctx.lineJoin = 'round';
   drawArt(b);
   ctx.restore();
+
+  if (b.frozen && !held) {   // đang đóng băng: phủ một lớp băng mỏng theo đúng hình món
+    ctx.save(); ctx.lineJoin = 'round';
+    ctx.fillStyle = 'rgba(170,222,248,.30)'; ctx.strokeStyle = 'rgba(120,196,240,.9)'; ctx.lineWidth = 2;
+    for (const p of partsOf(b)) {
+      ctx.beginPath();
+      if (p.circleRadius) ctx.arc(p.position.x, p.position.y, p.circleRadius, 0, Math.PI * 2);
+      else { p.vertices.forEach((v, i) => (i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y))); ctx.closePath(); }
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
 
   if (held) { // GDD: vừa → viền xanh sáng, không vừa → đỏ
     ctx.save(); ctx.lineJoin = 'round';
@@ -198,29 +211,18 @@ function frame(now) {
       const n = Math.max(1, Math.ceil(ts)), d = dt * ts / n;
       for (let i = 0; i < n; i++) step(d);
     }
+    tickFreeze();
     checkEject();
     updateChecked();
     updateClock();
 
     drawScene();          // phủ kín canvas, không cần xoá trước
 
-    // Lắc túi: chỉ hình chiếc túi rung, đồ bên trong nhảy theo lực vật lý
-    const jig = active ? jiggleOffset(dt) : null;
-    const withJiggle = draw => {
-      if (!jig) return draw();
-      ctx.save();
-      ctx.translate(BAG.cx + jig.x, BAG.bottom + jig.y);
-      ctx.rotate(jig.rot);
-      ctx.translate(-BAG.cx, -BAG.bottom);
-      draw();
-      ctx.restore();
-    };
-
-    withJiggle(drawBag);
+    drawBag();
     const order = S.bodies.slice().sort((a, b) => (isHeld(a) ? 1 : isHeld(b) ? -1 : 0));
     for (const b of order) drawBody(b);
     drawStrings();
-    withJiggle(drawBagFront);
+    drawBagFront();
     drawSelection();
     drawPuffs(dt);
     drawFx(dt);

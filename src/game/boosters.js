@@ -1,32 +1,34 @@
-// Booster theo GDD: Jiggle (lắc túi), Resize (thu nhỏ 20% món lớn nhất ngoài túi), Throw Out (bỏ 1 món thường).
+// Booster: Freeze (đóng băng vật lý trong túi 20 giây), Resize (thu nhỏ 20% món lớn nhất ngoài túi),
+// Throw Out (bỏ 1 món thường).
 // Mỗi loại có số lượt riêng, hiện badge trên nút.
 import Matter from 'matter-js';
-import { S, isHeld, daVao } from './state.js';
+import { S, BAG, isHeld, daVao } from './state.js';
 import { areaOf } from '../data/items.js';
 import { removeBody } from './physics.js';
 import { bagZone } from './rules.js';
-import { jiggle } from './mechanics.js';
 import { toast } from '../ui/hud.js';
 import { sfx } from '../ui/sfx.js';
-import { sparkle, ring, shake, floatText } from './fx.js';
+import { sparkle, ring, floatText } from './fx.js';
 import { t, itemName } from '../i18n.js';
 
 const { Body } = Matter;
 
 const els = {
-  jiggle: document.getElementById('bJiggle'),
+  freeze: document.getElementById('bFreeze'),
   resize: document.getElementById('bResize'),
   throw: document.getElementById('bThrow'),
 };
 
 /** Số lượt mặc định mỗi level (GDD "Free ban đầu"); level JSON ghi đè qua level.boosters */
-export const DEFAULT_BOOSTS = { jiggle: 2, resize: 2, throw: 1 };
+export const DEFAULT_BOOSTS = { freeze: 2, resize: 2, throw: 1 };
 
 export function renderBoosts() {
   for (const k of Object.keys(els)) {
     const el = els[k];
-    el.querySelector('.badge').textContent = S.boosts[k] ?? 0;
-    el.disabled = (S.boosts[k] ?? 0) <= 0;
+    const dangBang = k === 'freeze' && freezeLeft() > 0;
+    el.querySelector('.badge').textContent = dangBang ? Math.ceil(freezeLeft() / 1000) + 's' : S.boosts[k] ?? 0;
+    el.classList.toggle('on', dangBang);
+    el.disabled = dangBang || (S.boosts[k] ?? 0) <= 0;
   }
 }
 
@@ -36,8 +38,9 @@ export let boostOverride = null;
 export function setBoostOverride(n) { boostOverride = n == null ? null : Math.max(0, n | 0); }
 
 export function resetBoosts() {
+  S.freezeUntil = 0; giayCu = -1;
   S.boosts = { ...DEFAULT_BOOSTS, ...(S.LEVEL?.boosters || {}) };
-  if (boostOverride != null) S.boosts = { jiggle: boostOverride, resize: boostOverride, throw: boostOverride };
+  if (boostOverride != null) S.boosts = { freeze: boostOverride, resize: boostOverride, throw: boostOverride };
   renderBoosts();
 }
 
@@ -65,11 +68,52 @@ function useThrow() {
   toast(t('threw', { name: itemName(b.realDef) }));
 }
 
-function useJiggle() {
-  if (S.boosts.jiggle <= 0 || S.won || S.lost) return;
-  S.boosts.jiggle--; renderBoosts();
-  sfx('jiggle'); shake(420);
-  jiggle();
+// ---------- Đóng băng ----------
+// Trong FREEZE_MS, mọi món nằm gọn trong túi và mọi món thả vào túi đều đứng yên đúng chỗ
+// (thân tĩnh, không trọng lực, không bị đẩy), để xếp chồng hay kê chênh vênh mà không đổ.
+// Hết giờ thì trả tất cả về cho vật lý. Tính theo đồng hồ game nên tạm dừng là băng cũng dừng.
+export const FREEZE_MS = 20000;
+const freezeLeft = () => Math.max(0, (S.freezeUntil || 0) - S.clock);
+export const isFrozenTime = () => freezeLeft() > 0;
+
+/** Đóng băng một món: đứng im ngay chỗ đang nằm */
+export function freezeBody(b) {
+  Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
+  if (!b.isStatic) Body.setStatic(b, true);
+  b.frozen = true; b.stuck = 0;
+}
+function unfreezeBody(b) {
+  b.frozen = false;
+  if (b.isStatic) Body.setStatic(b, false);
+  Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
+}
+
+function useFreeze() {
+  if (S.boosts.freeze <= 0 || S.won || S.lost || isFrozenTime()) return;
+  S.boosts.freeze--;
+  S.freezeUntil = S.clock + FREEZE_MS;
+  for (const b of S.bodies) if (daVao(b) && !isHeld(b) && !b.giuToi && bagZone(b).fullyInside) freezeBody(b);
+  sfx('shrink', { rate: .7 });
+  ring(BAG.cx, (BAG.top + BAG.bottom) / 2, { color: '#7FC8F0', r1: 150, life: 600 });
+  sparkle(BAG.cx, (BAG.top + BAG.bottom) / 2, { n: 26, color: '#BFE6FA', speed: 1.6 });
+  renderBoosts();
+  toast(t('frozen', { s: FREEZE_MS / 1000 }));
+}
+
+/** Gọi mỗi khung hình: đếm ngược trên nút, hết giờ thì tan băng */
+let giayCu = -1;
+export function tickFreeze() {
+  if (!S.freezeUntil) return;
+  const con = freezeLeft();
+  for (const b of S.bodies) if (b.frozen) b.stuck = 0;   // đang băng thì không tính là kẹt mép túi
+  if (con > 0) {
+    const giay = Math.ceil(con / 1000);
+    if (giay !== giayCu) { giayCu = giay; renderBoosts(); }
+    return;
+  }
+  S.freezeUntil = 0; giayCu = -1;
+  for (const b of S.bodies) if (b.frozen) unfreezeBody(b);
+  renderBoosts();
 }
 
 function useResize() {
@@ -86,7 +130,7 @@ function useResize() {
 }
 
 export function bindBoosters() {
-  els.jiggle.addEventListener('click', useJiggle);
+  els.freeze.addEventListener('click', useFreeze);
   els.resize.addEventListener('click', useResize);
   els.throw.addEventListener('click', useThrow);
 }

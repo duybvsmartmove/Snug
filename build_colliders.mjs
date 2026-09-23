@@ -4,61 +4,16 @@
 // hai bên không ai biết ai nên lệch nhau vài phần trăm: hai món chạm nhau đúng luật thì
 // nét viền vẫn đè lên nhau, còn nhìn thì tưởng còn khe hở.
 //
-// Chạy: node build_colliders.mjs [--ghi]    (không có --ghi thì chỉ xem trước, không sửa file)
+// Chạy: node build_colliders.mjs [--ghi] [--art casual] [mã món…]
+//   không có --ghi thì chỉ xem trước; không ghi mã món thì làm mọi món của bộ art
 import { readFileSync, writeFileSync } from 'node:fs';
-import { inflateSync } from 'node:zlib';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import { docPNG } from './tools/png.mjs';
+import { doVien, rutGon, dienTich, trongTam } from './tools/vien.mjs';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
-const CONTENT = resolve(ROOT, 'public/content');
+import { CONTENT, ARGS } from './tools/art.mjs';
+const CHI = new Set(ARGS.filter(a => /^-?\d+$/.test(a)));
 const GHI = process.argv.includes('--ghi');
-
-// ---------------- đọc PNG (RGBA 8 bit, không xen dòng) ----------------
-function docPNG(duongDan) {
-  const b = readFileSync(duongDan);
-  if (b.readUInt32BE(0) !== 0x89504e47) throw new Error('không phải PNG');
-  let i = 8, w = 0, h = 0, sauBit = 0, kieuMau = 0, xenDong = 0;
-  const idat = [];
-  while (i < b.length) {
-    const len = b.readUInt32BE(i), ten = b.toString('ascii', i + 4, i + 8);
-    const data = b.subarray(i + 8, i + 8 + len);
-    if (ten === 'IHDR') {
-      w = data.readUInt32BE(0); h = data.readUInt32BE(4);
-      sauBit = data[8]; kieuMau = data[9]; xenDong = data[12];
-    } else if (ten === 'IDAT') idat.push(data);
-    else if (ten === 'IEND') break;
-    i += 12 + len;
-  }
-  if (sauBit !== 8 || kieuMau !== 6 || xenDong !== 0)
-    throw new Error(`chỉ đọc được RGBA 8 bit không xen dòng (nhận được sâu=${sauBit} kiểu=${kieuMau} xen=${xenDong})`);
-
-  const raw = inflateSync(Buffer.concat(idat));
-  const bpp = 4, buocDong = w * bpp;
-  const px = Buffer.alloc(w * h * bpp);
-  let o = 0;
-  for (let y = 0; y < h; y++) {
-    const loc = raw[o++];
-    const dong = raw.subarray(o, o + buocDong); o += buocDong;
-    const ra = px.subarray(y * buocDong, (y + 1) * buocDong);
-    const tren = y ? px.subarray((y - 1) * buocDong, y * buocDong) : null;
-    for (let x = 0; x < buocDong; x++) {
-      const A = x >= bpp ? ra[x - bpp] : 0;      // trái
-      const B = tren ? tren[x] : 0;              // trên
-      const C = tren && x >= bpp ? tren[x - bpp] : 0;  // chéo trên trái
-      let v = dong[x];
-      if (loc === 1) v += A;
-      else if (loc === 2) v += B;
-      else if (loc === 3) v += (A + B) >> 1;
-      else if (loc === 4) {                       // Paeth
-        const p = A + B - C, pa = Math.abs(p - A), pb = Math.abs(p - B), pc = Math.abs(p - C);
-        v += (pa <= pb && pa <= pc) ? A : (pb <= pc ? B : C);
-      }
-      ra[x] = v & 255;
-    }
-  }
-  return { w, h, px };
-}
 
 // ---------------- mặt nạ vùng có màu ----------------
 const NGUONG_ALPHA = 24;
@@ -94,85 +49,6 @@ function matNa(anh) {
   return { m, soO: toNhat };
 }
 
-// ---------------- dò viền (Moore) ----------------
-const HUONG = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
-
-function doVien(m, w, h) {
-  const co = (x, y) => x >= 0 && y >= 0 && x < w && y < h && m[y * w + x] === 1;
-  let s = -1;
-  for (let i = 0; i < w * h && s < 0; i++) if (m[i]) s = i;
-  if (s < 0) return [];
-
-  const sx = s % w, sy = (s / w) | 0;
-  const vien = [[sx, sy]];
-  // Ô nền mà ta "đi tới từ đó". Ô đầu tiên tìm được là ô trên cùng bên trái nên
-  // bên trái nó chắc chắn là nền.
-  let bx = sx - 1, by = sy, cx = sx, cy = sy;
-
-  for (let buoc = 0, toiDa = w * h * 8; buoc < toiDa; buoc++) {
-    let goc = HUONG.findIndex(([dx, dy]) => cx + dx === bx && cy + dy === by);
-    if (goc < 0) goc = 4;
-    let thay = false;
-    for (let k = 1; k <= 8; k++) {
-      const d = (goc + k) % 8;
-      const nx = cx + HUONG[d][0], ny = cy + HUONG[d][1];
-      if (co(nx, ny)) {
-        const truoc = (d + 7) % 8;                  // ô nền ngay trước ô vừa tìm được
-        bx = cx + HUONG[truoc][0]; by = cy + HUONG[truoc][1];
-        cx = nx; cy = ny; thay = true; break;
-      }
-    }
-    if (!thay) break;
-    if (cx === sx && cy === sy) break;
-    vien.push([cx, cy]);
-  }
-  return vien;
-}
-
-// ---------------- rút gọn đường viền (Ramer–Douglas–Peucker) ----------------
-function khoangCach(p, a, b) {
-  const dx = b[0] - a[0], dy = b[1] - a[1];
-  const l2 = dx * dx + dy * dy;
-  if (!l2) return Math.hypot(p[0] - a[0], p[1] - a[1]);
-  let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2;
-  t = Math.max(0, Math.min(1, t));
-  return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
-}
-function rutGon(pts, eps) {
-  if (pts.length < 3) return pts.slice();
-  let xa = 0, chiSo = 0;
-  for (let i = 1; i < pts.length - 1; i++) {
-    const d = khoangCach(pts[i], pts[0], pts[pts.length - 1]);
-    if (d > xa) { xa = d; chiSo = i; }
-  }
-  if (xa <= eps) return [pts[0], pts[pts.length - 1]];
-  return [...rutGon(pts.slice(0, chiSo + 1), eps).slice(0, -1), ...rutGon(pts.slice(chiSo), eps)];
-}
-
-const dienTich = pts => {
-  let s = 0;
-  for (let i = 0, n = pts.length; i < n; i++) {
-    const a = pts[i], b = pts[(i + 1) % n];
-    s += a[0] * b[1] - b[0] * a[1];
-  }
-  return s / 2;
-};
-/** Trọng tâm theo diện tích, đúng công thức Matter dùng để đặt tâm vật */
-function trongTam(pts) {
-  const A = dienTich(pts);
-  if (Math.abs(A) < 1e-9) {
-    const n = pts.length;
-    return [pts.reduce((s, p) => s + p[0], 0) / n, pts.reduce((s, p) => s + p[1], 0) / n];
-  }
-  let cx = 0, cy = 0;
-  for (let i = 0, n = pts.length; i < n; i++) {
-    const a = pts[i], b = pts[(i + 1) % n];
-    const f = a[0] * b[1] - b[0] * a[1];
-    cx += (a[0] + b[0]) * f; cy += (a[1] + b[1]) * f;
-  }
-  return [cx / (6 * A), cy / (6 * A)];
-}
-
 // ---------------- sinh collider cho một món ----------------
 const TOI_DA_DINH = 16;
 
@@ -205,7 +81,10 @@ function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
   const rong = Math.max(...xs) - Math.min(...xs), cao = Math.max(...ys) - Math.min(...ys);
 
   // Món vốn là hình tròn thì giữ hình tròn: lăn đúng chất hơn và rẻ hơn nhiều.
-  if (buocLaCircle) {
+  // Chỉ khi ảnh vẫn tròn thật: art mới có thể vẽ lại dáng khác (hộp tai nghe tròn → viên thuốc).
+  // Quả táo hơi dẹt (0,84) vẫn tính là tròn; viên thuốc (1,34) thì không.
+  const tronThat = Math.abs(Math.log(rong / cao)) < Math.log(1.25) && Math.abs(dienTich(pts)) / (Math.PI * (rong + cao) ** 2 / 16) > .85;
+  if (buocLaCircle && tronThat) {
     const r = +(pts.reduce((s, p) => s + Math.hypot(p[0], p[1]), 0) / pts.length).toFixed(2);
     return { collider: { kind: 'circle', r }, soDinh: 0, rong, cao, dt: Math.PI * r * r };
   }
@@ -219,6 +98,7 @@ const { ITEM_DEFS, defById } = await import('./src/data/items.js');
 const bang = [];
 let loi = 0;
 for (const [id, duong] of Object.entries(index.items)) {
+  if (CHI.size && !CHI.has(id)) continue;
   const fileManifest = resolve(CONTENT, duong);
   const man = JSON.parse(readFileSync(fileManifest, 'utf8'));
   if (!man.sprite?.src) { bang.push({ id, ten: man.name, ghiChu: 'không có ảnh' }); continue; }

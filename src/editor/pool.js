@@ -2,7 +2,7 @@
 // Mã số là khoá chính nên không cho sửa — level đang tham chiếu tới nó.
 import { ITEM_DEFS, defById } from '../data/items.js';
 import { theme } from '../art/helpers.js';
-import { saveContent, applyManifest, assetHome, indexAsset } from '../content/loader.js';
+import { saveContent, applyManifest, assetHome, indexAsset, artUrl } from '../content/loader.js';
 import { chapterItemIds, byChapterFirst } from './chapter-items.js';
 
 const $ = id => document.getElementById(id);
@@ -160,7 +160,7 @@ export function initPool({ E, status, onSaved }) {
       // Giữ nguyên ảnh và vùng va chạm đang có, chỉ ghi lại tên và thuộc tính
       const manifestPath = await assetHome('items', id);
       try {
-        const old = await (await fetch(`./content/${manifestPath}?t=${Date.now()}`)).json();
+        const old = await (await fetch(`${artUrl(manifestPath)}?t=${Date.now()}`)).json();
         if (old.sprite) manifest.sprite = old.sprite;
         if (old.collider) manifest.collider = old.collider;
       } catch {}

@@ -20,9 +20,12 @@ export const BAG = {
 /** Đặt túi từ level.container */
 export function setContainer(c) {
   BAG.cx = c.cx ?? 210; BAG.bottom = c.bottom ?? 404; BAG.kind = c.skin || 'pouch';
+  BAG.oy = BAG.bottom;   // gốc toạ độ level (giữa đáy lòng túi), túi dáng cố định neo ảnh vào đây
   const shape = c.shape && c.shape.length >= 3 ? c.shape : [[-130, -210], [130, -210], [130, 0], [-130, 0]];
   BAG.poly = shape.map(([x, y]) => [BAG.cx + x, BAG.bottom + y]);
-  BAG.blocks = (c.blocks || []).map(b => ({ x: BAG.cx + b.x, y: BAG.bottom + b.y, w: b.w, h: b.h }));
+  BAG.blocks = (c.blocks || []).map(b => ({ ...b, x: BAG.cx + b.x, y: BAG.bottom + b.y }));
+  // Túi dáng cố định kín bốn bề (miệng túi là đường khoá kéo cong), túi cũ để hở cạnh trên
+  BAG.closed = !!c.closed; BAG.scale = c.scale || 1;
   const bb = bbox(BAG.poly);
   BAG.left = bb.minX; BAG.right = bb.maxX; BAG.top = bb.minY; BAG.bottom = bb.maxY;
   BAG.innerW = bb.w; BAG.innerH = bb.h;
@@ -44,7 +47,7 @@ export const S = {
   // cơ chế
   tethers: [], gone: new Set(), unlockFrames: 0, unlockHinted: false,
   // booster
-  boosts: { resize: 1, freeze: 1, throw: 1 },
+  boosts: { freeze: 1, resize: 1, throw: 1 }, freezeUntil: 0,
   // tiến độ
   checked: new Set(), winFrames: 0, won: false, lost: false, paused: false,
   // thời gian
@@ -55,7 +58,7 @@ export const S = {
   // Ngón tay giả vẽ lên canvas khi máy tự chơi ở Creative Tool: { x, y, down }
   finger: null, showFinger: false,
   // hiệu ứng
-  puffs: [], startTime: 0, shownSec: -1, jiggle: null,
+  puffs: [], startTime: 0, shownSec: -1,
   // thế xếp trong túi ngay trước lần thả gần nhất, để hoàn tác nếu lần thả đó hỏng
   luuTui: null,
 };

@@ -15,12 +15,14 @@
       <button data-tab="library">🎨 Thư viện art</button>
     </nav>
     <div class="grow"></div>
+    <label class="field" title="Bộ art đang sửa. Mỗi bộ có level, túi, nền và ảnh riêng">Sửa art <select id="artSelect"><option value="cozy">Cozy</option><option value="casual">Casual</option></select></label>
+    <label class="field livart" title="Bộ art người chơi thấy khi mở game. Đổi xong bấm Lưu thì game nhận ngay">🎮 Game dùng <select id="liveArt"><option value="cozy">Cozy</option><option value="casual">Casual</option></select></label>
     <label class="field">Chương <select id="chapterSelect"></select></label>
     <label class="field">Level <select id="levelSelect"></select></label>
     <button id="mgBtn" class="ghost">Quản lý chương &amp; level</button>
     <button id="newLevel" class="ghost">+ Level mới</button>
     <button id="publishBtn" class="publish" title="Ghi level đang sửa vào game (Cmd/Ctrl + S)">
-      <span class="dot" id="dirtyDot" hidden></span>Lưu <span class="live" id="liveTag">v?</span>
+      <span class="dot" id="dirtyDot" hidden></span>Lưu vào <b class="arttag" id="artTag">COZY</b> <span class="live" id="liveTag">v?</span>
     </button>
     <button id="downloadBtn" class="ghost" title="Tải levels.json về máy">Tải JSON</button>
     <button id="ghBtn" class="ghost" title="Nối với GitHub để lưu thẳng" hidden>🔑 <b id="ghTag">chưa nối</b></button>
@@ -62,8 +64,16 @@
 
       <!-- 2. Chiếc túi -->
       <div class="card">
-        <div class="card-head"><b>2. Hình dáng túi</b><span class="hint">Kéo điểm để đổi hình, hoặc chọn mẫu có sẵn</span></div>
-        <div class="row">
+        <div class="card-head"><b>2. Hình dáng túi</b><span class="hint" id="bagHint">Kéo điểm để đổi hình, hoặc chọn mẫu có sẵn</span></div>
+        <!-- Túi dáng cố định (vẽ liền một tấm): chỉ đổi cỡ, hình lòng túi đi theo ảnh -->
+        <div class="row" id="fixedRow" hidden>
+          <label class="field">Cỡ túi <input id="bagScale" type="range" min="50" max="110" step="1"></label>
+          <input id="bagScaleNum" type="number" min="50" max="110" step="1" style="width:4.5em"> %
+          <button id="bagScaleReset" class="ghost" title="Về cỡ mặc định">100%</button>
+          <div class="grow"></div>
+          <button id="fitBagFixed" title="Chọn cỡ túi cho khớp độ đầy mong muốn">Vừa khít <input id="fitDensityFixed" type="number" value="80" min="40" max="98"> %</button>
+        </div>
+        <div class="row" id="freeRow">
           <div class="seg" id="shapeSeg">
             <button data-preset="rect">Chữ nhật</button>
             <button data-preset="rounded">Bo góc</button>
@@ -85,6 +95,10 @@
             <button data-tool="shape">Sửa túi</button>
             <button data-tool="block">Vật cản</button>
           </div>
+          <span class="blockopts" id="blockOpts" hidden>
+            <select id="blockKind" title="Hình vật cản"></select>
+            <input id="blockColor" type="color" value="#C99A6E" title="Màu vật cản">
+          </span>
           <span class="hint" id="toolHint"></span>
           <div class="grow"></div>
           <button id="genBtn" class="ghost">🎲 Máy chọn đồ giúp…</button>
@@ -255,7 +269,7 @@
     <div class="modal" id="mgModal" hidden>
       <div class="modal-card" style="width:min(860px,100%)">
         <div class="modal-head"><b>Chương &amp; level</b><button id="mgClose" class="ghost">Đóng</button></div>
-        <p class="tip">Mọi thay đổi ghi vào <code>content/levels.json</code>. Mở lại game là thấy ngay.</p>
+        <p class="tip">Mọi thay đổi ghi vào <code>content/&lt;bộ art&gt;/levels.json</code> của bộ art đang chọn. Mở lại game là thấy ngay.</p>
 
         <div class="mg-block">
           <div class="mg-head"><b>Chương</b><span class="hint">Bấm một chương để xem level của nó · kéo ⋮⋮ để đổi thứ tự</span></div>

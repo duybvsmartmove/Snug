@@ -15,7 +15,7 @@ const D = {
     // HUD
     itemsLeft: 'items<br>left', chapter: 'CHAPTER {no}', level: 'LEVEL {n}',
     eyebrow: 'CHAPTER {no} · {name} — LEVEL {n}',
-    boostJiggle: 'Jiggle', boostResize: 'Shrink', boostThrow: 'Throw out',
+    boostFreeze: 'Freeze', boostResize: 'Shrink', boostThrow: 'Throw out',
     pauseAria: 'Pause', backAria: 'Back', sfxAria: 'Toggle sound', musicAria: 'Toggle music', langAria: 'Language',
     // Home
     pickLevel: 'Choose a level', play: 'Play', start: 'Start', resume: 'Continue', levelsDone: '{done}/{total} levels',
@@ -34,7 +34,7 @@ const D = {
     noFitReturned: "Doesn't fit! Put {n} items back", unlockHint: 'Drag the mystery box onto the key in the bag',
     unlocked: 'Unlocked: {name}!', unlockedNoFit: "Unlocked: {name} — it doesn't fit there!",
     nothingToThrow: 'Nothing can be thrown out', threw: 'Threw out {name}', throwFloat: 'Bye!',
-    nothingOutside: 'Nothing left outside the bag', shrunk: 'Shrunk {name} by 20%',
+    nothingOutside: 'Nothing left outside the bag', shrunk: 'Shrunk {name} by 20%', frozen: 'Frozen for {s}s: items stay where you drop them',
     fits: 'It fits!', emptyBag: 'Pack your things here!', lockedSlot: 'LOCKED',
     loadError: 'Could not load level: {msg}',
     // Autoplay
@@ -47,7 +47,7 @@ const D = {
   vi: {
     itemsLeft: 'món<br>còn lại', chapter: 'CHƯƠNG {no}', level: 'LEVEL {n}',
     eyebrow: 'CHƯƠNG {no} · {name} — LEVEL {n}',
-    boostJiggle: 'Lắc túi', boostResize: 'Thu nhỏ', boostThrow: 'Bỏ đi',
+    boostFreeze: 'Đóng băng', boostResize: 'Thu nhỏ', boostThrow: 'Bỏ đi',
     pauseAria: 'Tạm dừng', backAria: 'Quay lại', sfxAria: 'Bật tắt âm thanh', musicAria: 'Bật tắt nhạc nền', langAria: 'Ngôn ngữ',
     pickLevel: 'Chọn màn chơi', play: 'Chơi', start: 'Bắt đầu', resume: 'Chơi tiếp', levelsDone: '{done}/{total} màn',
     finishToUnlock: 'Xong Chương {no} để mở',
@@ -61,7 +61,7 @@ const D = {
     noFitReturned: 'Không vừa! Đã trả {n} món về chỗ cũ', unlockHint: 'Kéo hộp bí ẩn chạm vào chìa khóa trong túi',
     unlocked: 'Mở khóa: {name}!', unlockedNoFit: 'Mở khóa: {name} — không vừa chỗ đó!',
     nothingToThrow: 'Không có món nào bỏ được', threw: 'Đã bỏ {name}', throwFloat: 'Bỏ đi',
-    nothingOutside: 'Không còn món nào ngoài túi', shrunk: 'Đã thu nhỏ {name} 20%',
+    nothingOutside: 'Không còn món nào ngoài túi', shrunk: 'Đã thu nhỏ {name} 20%', frozen: 'Đóng băng {s} giây: đặt đâu nằm đó',
     fits: 'Vừa khít!', emptyBag: 'Xếp đồ vào đây nào!', lockedSlot: 'NGĂN KHOÁ',
     loadError: 'Lỗi tải level: {msg}',
     autoNoPlan: 'Không tìm được cách xếp nào', autoAll: 'Tự chơi: máy xếp được hết', autoSome: 'Tự chơi: máy chỉ xếp được {a}/{b}',

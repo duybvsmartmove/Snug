@@ -10,6 +10,7 @@ import { ctx } from '../game/canvas.js';
 import { BAG, S } from '../game/state.js';
 import { theme, rrect } from './helpers.js';
 import { BAG_SKINS } from './scene-registry.js';
+import { blockPoly, darker } from '../data/blocks.js';
 import { t, emptyText } from '../i18n.js';
 
 export const bagSkin = () => BAG_SKINS[BAG.kind] || BAG_SKINS.backpack || null;
@@ -29,8 +30,10 @@ function drawLayer(img, m) {
 // hình, và trên máy Android tầm trung một mình nó đã ăn vài mili giây mỗi frame. Vệt
 // chuyển màu cho ra đúng mảng mờ ấy mà không tốn gì; bảng màu tạo một lần rồi dùng lại.
 let bagShadow = null, bagShadowR = 0;
-function drawBagShadow() {
-  const rx = (BAG.BR - BAG.BL) / 2 + 14;
+function drawBagShadow(s) {
+  const k = BAG.scale || 1;
+  const rx = s?.fixed ? s.image.w * k * .42 : (BAG.BR - BAG.BL) / 2 + 14;
+  const day = s?.fixed ? BAG.oy + (s.image.y + s.image.h) * k - 6 : BAG.BB + 10;
   if (!bagShadow || bagShadowR !== rx) {
     bagShadow = ctx.createRadialGradient(0, 0, rx * .45, 0, 0, rx);
     bagShadow.addColorStop(0, 'rgba(60,45,35,.30)');
@@ -38,15 +41,26 @@ function drawBagShadow() {
     bagShadowR = rx;
   }
   ctx.save();
-  ctx.translate(BAG.cx + 3, BAG.BB + 10); ctx.scale(1, 19 / rx);
+  ctx.translate(BAG.cx + 3, day); ctx.scale(1, 19 / rx);
   ctx.fillStyle = bagShadow;
   ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
+/**
+ * Túi dáng cố định: ảnh phóng ĐỀU theo cỡ túi của level, neo ở giữa đáy lòng túi.
+ * Không kéo giãn nên quai, khoá kéo luôn đúng dáng.
+ */
+function drawFixed(img, s) {
+  if (!img?.complete || !img.naturalWidth) return;
+  const k = BAG.scale || 1, r = s.image;
+  ctx.drawImage(img, BAG.cx + r.x * k, BAG.oy + r.y * k, r.w * k, r.h * k);
+}
+
 export function drawBag() {
   const s = bagSkin(); if (!s) return;
-  drawBagShadow();
+  drawBagShadow(s);
+  if (s.fixed) { drawFixed(s.img?.body, s); return; }
 
   drawLayer(s.img?.body, s.margin);
 
@@ -59,8 +73,9 @@ export function drawBag() {
 
 export function drawBagFront() {
   const s = bagSkin(); if (!s) return;
-  drawLayer(s.img?.frame, s.margin);
+  if (s.fixed) drawFixed(s.img?.frame, s); else drawLayer(s.img?.frame, s.margin);
   drawBlocks();
+  if (s.fixed) { drawEmptyLabel(); return; }   // đường khoá kéo đã vẽ trong ảnh
 
   // mép lòng túi bám theo polygon của level
   ctx.save(); innerPath(ctx);
@@ -75,12 +90,23 @@ export function drawBagFront() {
 function drawBlocks() {
   for (const b of BAG.blocks || []) {
     ctx.save();
-    rrect(ctx, b.x, b.y, b.w, b.h, 6);
-    ctx.fillStyle = '#E9903B'; ctx.fill();
-    ctx.lineWidth = 2.6; ctx.strokeStyle = theme.ink; ctx.stroke();
-    ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.font = '800 8px Nunito';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (b.w > 46 && b.h > 16) ctx.fillText(t('lockedSlot'), b.x + b.w / 2, b.y + b.h / 2);
+    if (!b.kind || b.kind === 'rect') rrect(ctx, b.x, b.y, b.w, b.h, Math.min(8, b.w / 4, b.h / 4));
+    else { ctx.beginPath(); blockPoly(b).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); }
+    // Không ghi màu là vật cản kiểu cũ (ô cam viền mực, bộ casual). Có màu thì tô màu đó,
+    // thêm bóng sáng mềm phía trên cho có khối và viền đậm cùng tông, không dùng mực đen.
+    const mau = b.color || '#E9903B';
+    ctx.fillStyle = mau; ctx.fill();
+    if (b.color) {
+      ctx.save(); ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(b.x, b.y, b.w, b.h * .38);
+      ctx.restore();
+    }
+    ctx.lineWidth = b.color ? 2.4 : 2.6; ctx.strokeStyle = b.color ? darker(mau) : theme.ink; ctx.stroke();
+    if ((!b.kind || b.kind === 'rect') && b.w > 46 && b.h > 16) {
+      ctx.fillStyle = darker(mau, .5); ctx.globalAlpha = .7; ctx.font = '800 8px Nunito';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(t('lockedSlot'), b.x + b.w / 2, b.y + b.h / 2);
+    }
     ctx.restore();
   }
 }

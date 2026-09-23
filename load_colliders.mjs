@@ -2,12 +2,10 @@
 // Các công cụ thiết kế phải gọi cái này trước khi đo, nếu không chúng vẫn đo bằng
 // hình viết tay cũ còn người chơi thì gặp hình sinh từ ảnh.
 import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { ITEM_DEFS, defById } from './src/data/items.js';
 import { applyCollider } from './src/data/collider.js';
-
-const CONTENT = resolve(dirname(fileURLToPath(import.meta.url)), 'public/content');
+import { CONTENT } from './tools/art.mjs';
 
 export function napCollider() {
   const index = JSON.parse(readFileSync(resolve(CONTENT, 'assets/index.json'), 'utf8'));

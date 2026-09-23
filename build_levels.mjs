@@ -1,12 +1,13 @@
 // Dựng lại 10 level của một chương.
-// Chạy: node build_levels.mjs [mã chương]     mặc định school-day
+// Chạy: node build_levels.mjs [mã chương] [--art casual]     mặc định school-day, bộ cozy
 //
 // Công thức chung: ba giai đoạn theo túi từ nhỏ tới lớn, mỗi level mở đúng một thứ mới,
 // density tăng dần. Món lấy từ sheet Level Design.
 // Thêm chương mới = thêm một mục vào CHAPTERS và một mục vào LEVELS.
 import { readFileSync, writeFileSync } from 'node:fs';
+import { ARGS, CONTENT } from './tools/art.mjs';
 
-const BOOK = 'public/content/levels.json';
+const BOOK = `${CONTENT}/levels.json`;
 
 // Đọc định nghĩa món: id là SỐ, slug chỉ để viết template cho dễ đọc
 const ITEMS = {}, SLUG2ID = {};
@@ -50,7 +51,7 @@ const CHAPTERS = {
   },
 };
 
-const MAP = process.argv[2] || 'school-day';
+const MAP = ARGS[0] || 'school-day';
 const CH = CHAPTERS[MAP];
 if (!CH) { console.error(`Chưa có chương "${MAP}". Có: ${Object.keys(CHAPTERS).join(', ')}`); process.exit(1); }
 const BAGS = CH.bags;

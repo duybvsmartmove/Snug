@@ -14,6 +14,7 @@
 // trên rơi xuống khi món dưới chưa có mặt, cả đống trật chỗ.
 import { pointInPolygon, bbox, mulberry32 } from '../util/geom.js';
 import { defById } from '../data/items.js';
+import { blockPoly } from '../data/blocks.js';
 
 // Tuỳ chọn mặt nạ:
 //   center  ô thuộc món khi TÂM ô nằm trong hình — không thiên lệch, ước lượng sát nhất
@@ -105,14 +106,18 @@ function rasterize(container, CELL) {
   const shape = container.shape, bb = bbox(shape);
   const cols = Math.ceil(bb.w / CELL), rows = Math.ceil(bb.h / CELL);
   const grid = new Uint8Array(cols * rows);
-  const blocks = container.blocks || [];
+  const blocks = (container.blocks || []).map(b => ({ ...b, poly: !b.kind || b.kind === 'rect' ? null : blockPoly(b) }));
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
     const x0 = bb.minX + c * CELL, y0 = bb.minY + r * CELL;
     let ok = DIEM_TUI.every(([u, v]) => pointInPolygon(x0 + u * CELL, y0 + v * CELL, shape));
     for (const b of blocks) {
       if (!ok) break;
-      // ngăn khoá: ô nào chạm vào là bận
-      if (x0 + CELL > b.x && x0 < b.x + b.w && y0 + CELL > b.y && y0 < b.y + b.h) ok = false;
+      // vật cản: ô nào chạm vào là bận
+      if (!(x0 + CELL > b.x && x0 < b.x + b.w && y0 + CELL > b.y && y0 < b.y + b.h)) continue;
+      if (!b.poly) { ok = false; continue; }
+      // hình khác chữ nhật: bận khi tâm hoặc một góc ô nằm trong hình, hoặc một đỉnh hình rơi vào ô
+      ok = ![[.5, .5], [0, 0], [1, 0], [0, 1], [1, 1]].some(([u, v]) => pointInPolygon(x0 + u * CELL, y0 + v * CELL, b.poly))
+        && !b.poly.some(([px, py]) => px >= x0 && px <= x0 + CELL && py >= y0 && py <= y0 + CELL);
     }
     grid[r * cols + c] = ok ? 1 : 0;
   }

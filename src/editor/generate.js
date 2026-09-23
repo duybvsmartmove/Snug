@@ -1,5 +1,5 @@
 // Tab Generate: template + seed → level, dùng container hiện tại ở tab Draw.
-import { ITEM_DEFS } from '../data/items.js';
+import { ITEM_DEFS, MYSTERY, defById } from '../data/items.js';
 import { generate } from '../gen/generator.js';
 
 const $ = id => document.getElementById(id);
@@ -27,7 +27,8 @@ export function initGenerate({ E, setLevel, areaOf, status }) {
       pool: [...checked], count: [+$('gCountMin').value, +$('gCountMax').value],
       density: [+$('gDenMin').value / 100, +$('gDenMax').value / 100],
       sizeDist: { L: +$('gL').value, M: +$('gM').value },
-      mechanics: { linked: +$('gLinked').value, locked: +$('gLocked').value },
+      // bộ art chưa có ảnh hộp bí ẩn và chìa khoá thì không giấu món nào, kẻo hộp vô hình
+      mechanics: { linked: +$('gLinked').value, locked: MYSTERY.sprite && defById(0)?.sprite ? +$('gLocked').value : 0 },
       container: E.level.container,
     };
   }

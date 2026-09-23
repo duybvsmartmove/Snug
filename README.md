@@ -30,7 +30,11 @@ npm run preview
 |---|---|
 | Nhặt / đặt đồ | Chạm giữ và kéo, thả ngón để đặt |
 | Xoay | Chạm vào món để chọn, nút hai mũi tên hiện ở góc món; giữ nút rồi kéo, món quay theo ngón |
-| Booster | Lắc túi · Thu nhỏ 20% · Bỏ đi, mỗi loại có số lượt hiện trên badge |
+| Booster | Đóng băng · Thu nhỏ 20% · Bỏ đi, mỗi loại có số lượt hiện trên badge |
+
+**Đóng băng**: trong 20 giây mọi món nằm gọn trong túi, và mọi món thả vào túi, đứng yên đúng chỗ
+(không trọng lực, không bị đẩy), để kê chồng hay đặt chênh vênh mà không đổ. Hết giờ thì trả lại
+cho vật lý. Tính theo đồng hồ game nên tạm dừng là băng cũng dừng. Code ở `src/game/boosters.js`.
 | Tạm dừng / đổi level | Nút góc phải trên |
 
 Luật theo GDD: vừa chỗ thì viền xanh, không vừa thì viền đỏ và rung, thả ra là bật ngược ra ngoài túi.
@@ -100,12 +104,15 @@ Mọi thứ nằm trong `public/content` và đi kèm bản build. **Lúc chơi 
 
 ```
 public/content/
-  levels.json                      sắp xếp chương và level — editor ghi ra file này
-  assets/index.json                mục lục: mã số → file mô tả
-  assets/01-school-day/items/…     ảnh món và mô tả, nằm cạnh nhau
-  assets/01-school-day/bags/…      ảnh ba lớp của từng kiểu túi
-  assets/01-school-day/backgrounds/…
-  assets/02-weekend-trip/…
+  config.json                        bộ art game đang dùng, editor ghi khi bấm Lưu
+  cozy/                              bộ art cozy
+    levels.json                      sắp xếp chương và level — editor ghi ra file này
+    assets/index.json                mục lục: mã số → file mô tả, kèm nhóm "ui" (icon HUD)
+    assets/01-school-day/items/…     ảnh món và mô tả, nằm cạnh nhau
+    assets/01-school-day/bags/…      ảnh túi
+    assets/01-school-day/backgrounds/…
+    assets/ui/…                      icon booster, nút tạm dừng, khung đồng hồ
+  casual/                            bộ art casual, cùng cấu trúc
 ```
 
 `levels.json` chứa toàn bộ chương và level trong một file, khoảng 40 KB. Bấm **Lưu sắp xếp**
@@ -139,11 +146,34 @@ việc này xảy ra nhiều, ví dụ Water Bottle có mặt ở 6 chương.
 
 ### Hai bộ art
 
-Bộ art chọn bằng `?art=cozy|casual` (Creative Tool có nút Art). Level và mục lục dùng chung,
-chỉ khác thư mục ảnh: `assets/` là cozy, `assets-casual/` là casual, **cùng cấu trúc, cùng tên
-file**. Muốn thêm bộ casual: chép nguyên `public/content/assets` thành `public/content/assets-casual`
-rồi thay PNG. Chưa có thư mục đó thì game lặng lẽ dùng bộ cozy. Bảng màu HUD của từng bộ nằm ở
-cuối `src/styles/main.css` (`html[data-art="casual"]`).
+Bộ art chọn bằng `?art=cozy|casual` (Creative Tool và editor có ô chọn Art). Hai bộ **tách riêng
+hoàn toàn**: mỗi bộ một thư mục gốc `public/content/<bộ>/` có level, mục lục, ảnh món, túi,
+nền và vùng va chạm riêng. Dáng món khác thì vùng va chạm khác, level phải cân riêng, nên
+không dùng chung gì. Tiến độ người chơi cũng lưu riêng theo bộ. Bộ nào chưa có `levels.json`
+thì game lặng lẽ dùng bộ cozy.
+
+**Game dùng bộ nào** ghi trong `public/content/config.json` (`{ "art": "cozy" }`), chung cho cả
+hai bộ. Trong editor, ô **🎮 Game dùng** ở thanh trên đổi giá trị này; ô tô cam là đã đổi mà
+chưa lưu. Bấm **Lưu** là ghi file (chạy ở máy) hoặc commit lên GitHub (editor trên web), game
+mở lại là nhận. Ô **Sửa art** bên cạnh chỉ chọn bộ đang sửa trong editor, không đổi game.
+Địa chỉ có `?art=` thì ưu tiên hơn config (Creative Tool, khung xem thử của editor dùng cách này).
+
+- **cozy**: art mới. Hiện có chương 1 (15 món, ba lô, một nền giấy, icon HUD).
+- **casual**: art viền đậm cũ, hai chương, giữ nguyên như trước khi tách.
+
+HUD dùng icon ảnh khi mục lục của bộ có nhóm `ui` (`pause`, `timer`, `snow`, `small`, `delete`),
+không có thì giữ icon vẽ sẵn. Bảng màu HUD của từng bộ nằm ở cuối `src/styles/main.css`.
+
+Công cụ Node đều nhận `--art casual` (mặc định cozy):
+
+| Lệnh | Làm gì |
+|---|---|
+| `node tools/import_items.mjs <thư mục PNG> --ghi` | nhập ảnh món theo mã `ITM_xxx` trong tên file: lọc nền rác, cắt sát viền, giữ diện tích món, sinh vùng va chạm |
+| `node tools/import_bag.mjs <ảnh> --id backpack --ghi` | nhập túi dáng cố định: dò lòng túi trong đường khoá kéo, tách lớp body/frame |
+| `node tools/import_ui.mjs ic_*.png --ghi` | nhập icon HUD, tên lấy theo file bỏ `ic_` |
+| `node tools/build_cozy_levels.mjs --ghi` | dựng lại 10 level chương 1 của cozy từ bảng mẫu trong file |
+| `node tools/refit_levels.mjs --ghi` | cân lại lòng túi kiểu cũ theo độ đầy của bộ tham chiếu |
+| `node check_levels.mjs [chương]` | cho máy xếp thử từng level |
 
 ### Thay art
 
@@ -171,9 +201,22 @@ một mảnh thì nó trả thân ở toạ độ cục bộ quanh (0,0), không
 
 Trong hai chương hiện có, giày thể thao là món lõm duy nhất, giờ tách thành 2 mảnh.
 
-### Túi có ba lớp
+### Túi dáng cố định (cozy)
 
-Túi không thể là một ảnh phẳng vì lòng túi đổi hình theo từng level. Mỗi kiểu túi có ba ảnh:
+Túi cozy vẽ liền một tấm. Hình lòng túi **đi theo ảnh**: `import_bag.mjs` dò mảng lòng túi nằm
+trong đường khoá kéo thành đa giác `inner` trong file mô tả túi. Level không kéo hình túi nữa,
+chỉ chọn **cỡ túi** (`container.scale`, ảnh phóng đều, không méo) và đặt **vật cản**. Túi kín bốn
+bề, không có miệng hở. Level vẫn ghi kèm `shape` tính sẵn cho công cụ Node đọc, nhưng lúc chơi
+và lúc mở trong editor luôn tính lại từ ảnh túi. Đáy ảnh túi luôn neo trên mép bàn, cỡ lớn nhất
+giới hạn để túi không chạm đồng hồ (`src/data/bag.js`).
+
+Vật cản có năm hình (chữ nhật, tròn, viên thuốc, tam giác, thoi) và màu tuỳ chọn
+(`src/data/blocks.js`). Trong editor, tool Vật cản: kéo để tạo, bấm để chọn, kéo để dời chỗ,
+đổi hình và màu ở ô bên cạnh, Delete để xoá.
+
+### Túi có ba lớp (casual)
+
+Túi casual không thể là một ảnh phẳng vì lòng túi đổi hình theo từng level. Mỗi kiểu túi có ba ảnh:
 
 | Lớp | Vai trò |
 |---|---|

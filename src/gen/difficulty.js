@@ -1,6 +1,7 @@
 // Difficulty Point theo bảng trong GDD Level Generation System.
 import { defById } from '../data/items.js';
 import { polygonArea, isConvex } from '../util/geom.js';
+import { blocksArea } from '../data/blocks.js';
 
 export const TIERS = [
   { max: 6, name: 'Easy' }, { max: 10, name: 'Medium' }, { max: 14, name: 'Hard' }, { max: 17, name: 'Very Hard' }, { max: Infinity, name: 'Challenge' },
@@ -10,8 +11,7 @@ export const tierOf = pts => TIERS.find(t => pts <= t.max).name;
 /** Diện tích lòng túi thật theo polygon trừ block */
 export function containerArea(container) {
   const shape = container.shape || [];
-  const blocks = (container.blocks || []).reduce((s, b) => s + b.w * b.h, 0);
-  return Math.max(1, polygonArea(shape) - blocks);
+  return Math.max(1, polygonArea(shape) - blocksArea(container.blocks));
 }
 
 /** Độ phức tạp container: 0 đơn giản · 1 hơi irregular · 2 irregular nhiều góc · 3 nhiều vùng */
@@ -19,6 +19,8 @@ export function containerComplexity(container) {
   const shape = container.shape || [];
   const blocks = (container.blocks || []).length;
   if ((container.areas || []).length > 0 || blocks >= 2) return 3;
+  // Túi dáng cố định (có scale): hình túi như nhau ở mọi level, độ phức tạp chỉ do vật cản
+  if (container.scale != null) return blocks ? 1 : 0;
   if (shape.length <= 4 && blocks === 0) return 0;
   if (!isConvex(shape) && shape.length >= 8) return 2;
   if (!isConvex(shape) || blocks === 1 || shape.length > 4) return 1;

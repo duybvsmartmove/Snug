@@ -1,18 +1,27 @@
 // Tiến độ người chơi, lưu ngay trong máy người chơi (localStorage).
 // Luật mở khoá: trong một chương thì level mở tuần tự; chương sau mở khi chương trước xong hết.
 // Mở địa chỉ kèm ?all=1 thì mở sẵn mọi level — dùng khi demo hoặc kiểm tra thiết kế.
-const KEY = 'snug.progress.v1';
+const PARAMS = new URLSearchParams(location.search);
+// Mỗi bộ art có level riêng nên tiến độ cũng riêng: level 7 của cozy không phải level 7 của casual.
+// Cozy giữ khoá cũ để không mất save đang có. Bộ art chỉ biết được sau khi đọc config.json,
+// nên main.js gọi useArtProgress() rồi mới dựng trang chủ.
+const keyOf = art => (art === 'casual' ? 'snug.progress.v1.casual' : 'snug.progress.v1');
+let KEY = keyOf(PARAMS.get('art'));
 
 const blank = () => ({ chapter: null, level: 0, done: {} });
 // Creative Tool chạy cùng origin với game nên dùng chung localStorage. Ở chế độ đó chỉ
 // giữ tiến độ trong bộ nhớ: quay video xong không được làm đổi save của người chơi thật.
-const PARAMS = new URLSearchParams(location.search);
 const CREATIVE = PARAMS.get('creative') === '1';
 let data = CREATIVE ? blank() : load();
 
 function load() {
   try { return { ...blank(), ...(JSON.parse(localStorage.getItem(KEY)) || {}) }; }
   catch { return blank(); }
+}
+/** Chuyển sang tiến độ của bộ art đang chơi */
+export function useArtProgress(art) {
+  KEY = keyOf(art);
+  if (!CREATIVE) data = load();
 }
 function save() { if (CREATIVE) return; try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {} }
 

@@ -92,7 +92,7 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch
 .hint{position:absolute;left:50%;top:36%;transform:translateX(-50%);
   background:rgba(59,42,74,.82);color:#fff;font:700 .78em "Nunito";padding:.55em 1em;border-radius:999px;
   white-space:nowrap;pointer-events:none;transition:opacity .35s, transform .35s;z-index:3}
-.hint.hide{opacity:0;transform:translate(-50%,6px)}
+.hint.hide,.hint:empty{opacity:0;transform:translate(-50%,6px)}
 
 /* ---- booster: mỗi nút một màu riêng, icon đặc để nhìn là hiểu ---- */
 .dock{bottom:0;padding:0 calc(3.5% + var(--sar)) calc(3.2% + var(--sab)) calc(3.5% + var(--sal));display:flex;justify-content:space-between;gap:2.5%}
@@ -109,14 +109,17 @@ canvas#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch
   background:#fff;font:800 .78em "Nunito";display:grid;place-items:center;
   box-shadow:0 2px 5px rgba(59,42,74,.3);
 }
-.b-jiggle{background:#7B4FD8;box-shadow:0 5px 0 #5A34AC, 0 10px 20px rgba(59,42,74,.2)}
-.b-jiggle .badge{color:#5A34AC}
+.b-freeze{background:#3FA9E0;box-shadow:0 5px 0 #2A7FB0, 0 10px 20px rgba(59,42,74,.2)}
+.b-freeze .badge{color:#2A7FB0}
+.b-freeze.on{animation:frostPulse 1.1s ease-in-out infinite alternate}
+.b-freeze.on:disabled{filter:none;opacity:1}
+@keyframes frostPulse{from{filter:drop-shadow(0 0 0 rgba(120,200,245,0))}to{filter:drop-shadow(0 0 .5em rgba(120,200,245,.95))}}
 .b-resize{background:#3D8BFF;box-shadow:0 5px 0 #2A66C8, 0 10px 20px rgba(59,42,74,.2)}
 .b-resize .badge{color:#2A66C8}
 .b-throw{background:#E8434F;box-shadow:0 5px 0 #B92A38, 0 10px 20px rgba(59,42,74,.2)}
 .b-throw .badge{color:#B92A38}
 .boost:active{transform:translateY(4px)}
-.b-jiggle:active{box-shadow:0 1px 0 #5A34AC}
+.b-freeze:active{box-shadow:0 1px 0 #2A7FB0}
 .b-resize:active{box-shadow:0 1px 0 #2A66C8}
 .b-throw:active{box-shadow:0 1px 0 #B92A38}
 .boost:disabled{filter:grayscale(.75);opacity:.5}
@@ -192,7 +195,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
   align-items:center;justify-content:space-between;gap:.6em;
   padding:calc(8% + var(--sat)) calc(7% + var(--sar)) calc(5.5% + var(--sab)) calc(7% + var(--sal));
 }
-.brand{text-align:center}
+.brand{text-align:center;margin-top:2.2em}   /* chừa chỗ cho ba nút góc phải trên, không đè lên tên game */
 .brand-sub{
   font:800 .62em "Nunito";letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);
   opacity:.85;margin-bottom:.35em;
@@ -418,3 +421,110 @@ html[data-art="casual"] .home{background:radial-gradient(120% 70% at 50% 0%, #FF
 html[data-art="casual"] .mapscr{background:linear-gradient(180deg,#FFF3DF,#FFD9A8)}
 html[data-art="casual"] .titleblock,html[data-art="casual"] .pause,html[data-art="casual"] .timer,html[data-art="casual"] .counter{border:2.5px solid var(--ink)}
 html[data-art="casual"] .boost{border:2.5px solid var(--ink)}
+
+/* ==========================================================================
+   ẢNH GIAO DIỆN CỦA BỘ ART. Nút nào có data-art-icon mà mục lục art có ảnh cùng tên (nhóm "ui")
+   thì hud.js gắn ảnh vào biến --art và thêm lớp .has-art: bỏ nền và icon vẽ sẵn, dùng ảnh.
+   Bộ nào không có ảnh thì giữ nguyên nút vẽ bằng CSS.
+   ========================================================================== */
+.pause.has-art{background:var(--art) center/contain no-repeat;box-shadow:none;width:3em;height:3em;border-radius:0}
+.pause.has-art svg{display:none}
+.pause.has-art:active{box-shadow:none}
+/* đồng hồ nằm trong khung gỗ có mặt đồng hồ bên trái; chữ dồn sang phần trống bên phải */
+.timer.has-art{background:var(--art) center/100% 100% no-repeat;box-shadow:none;border-radius:0;
+  width:6.4em;aspect-ratio:712/216;padding:0 0 0 1.6em;display:grid;place-items:center;
+  font-size:1.35em;color:#5A3A22}
+.timer.has-art.urgent{background:var(--art) center/100% 100% no-repeat;color:#D23B3B;box-shadow:none}
+.boost.has-art{background:none;box-shadow:none;padding:0;gap:.1em}
+.boost.has-art .ic{width:4.2em;height:4.2em;background:var(--art) center/contain no-repeat}
+.boost.has-art .ic svg{display:none}
+.boost.has-art .nm{color:var(--ink);font-size:.74em}
+.boost.has-art .badge{top:-.2em;right:calc(50% - 2.9em);background:#E8434F;color:#fff;border:2px solid #FFF3DC}
+.boost.has-art:active{box-shadow:none}
+.b-freeze.has-art.on .ic{animation:frostPulse 1.1s ease-in-out infinite alternate}
+.b-freeze.has-art.on{animation:none}
+
+/* ---- bộ art COZY: thẻ giấy kem viền nâu, cùng chất với các icon ---- */
+html[data-art="cozy"]{--ink:#5A3A22;--ink-soft:#9A7B5F;--card:#FFF6E4}
+html[data-art="cozy"] .titleblock,html[data-art="cozy"] .counter{background:#FFF6E4;border:2px solid #7A4E2D;box-shadow:0 3px 0 #7A4E2D}
+html[data-art="cozy"] .counter b{color:#D8594F}
+
+/* ==========================================================================
+   BỘ ART COZY: các màn ngoài sân chơi (trang chủ, chọn level, tạm dừng, thắng, thua).
+   Cùng chất liệu với icon cozy: giấy kem, viền nâu gỗ, bóng đổ nâu phẳng phía dưới,
+   màu phấn ấm. Chỉ áp khi html[data-art="cozy"], bộ casual giữ nguyên như cũ.
+   ========================================================================== */
+html[data-art="cozy"]{
+  --wood:#6B4226; --cream:#FFF6E4; --cream2:#F6E6C8;
+  --rose:#E9776A; --gold:#EBB54A; --mint:#8DBF8B; --panel:#F6E6C8;
+  --shadow:0 12px 28px rgba(90,58,34,.22);
+}
+html[data-art="cozy"] body{background:#E3D6C3;background-image:none}
+html[data-art="cozy"] #phone{background:#E3D6C3}
+
+/* nút chung */
+html[data-art="cozy"] .cta{background:linear-gradient(180deg,#F18C7C,#E0685A);color:#fff;
+  border:2.5px solid var(--wood);box-shadow:0 4px 0 var(--wood);text-shadow:0 1.5px 0 rgba(107,66,38,.45)}
+html[data-art="cozy"] .cta:active{box-shadow:0 1px 0 var(--wood)}
+html[data-art="cozy"] .cta.ghost{background:var(--cream);color:var(--wood);text-shadow:none;box-shadow:0 4px 0 var(--wood)}
+html[data-art="cozy"] .cta.ghost:active{box-shadow:0 1px 0 var(--wood)}
+html[data-art="cozy"] .cta.play{background:linear-gradient(180deg,#9CCB8A,#6FAE67);border:3px solid var(--wood);
+  box-shadow:0 6px 0 var(--wood), 0 14px 26px rgba(90,58,34,.22)}
+html[data-art="cozy"] .cta.play:active{box-shadow:0 2px 0 var(--wood)}
+html[data-art="cozy"] .iconbtn{background:var(--cream);color:var(--wood);border:2px solid var(--wood);box-shadow:0 3px 0 var(--wood)}
+html[data-art="cozy"] .iconbtn:active{box-shadow:none}
+html[data-art="cozy"] .iconbtn.off{background:#EFE3CD;color:#B39A80}
+html[data-art="cozy"] .linkbtn{color:var(--ink-soft)}
+html[data-art="cozy"] .linkbtn:hover,html[data-art="cozy"] .lvnav button:hover{background:var(--cream2)}
+html[data-art="cozy"] button:focus-visible{outline-color:var(--gold)}
+
+/* trang chủ */
+html[data-art="cozy"] .home{background:#E3D6C3}
+html[data-art="cozy"] .home.has-art,html[data-art="cozy"] .mapscr.has-art{background:var(--art) center/cover no-repeat}
+html[data-art="cozy"] .home-glow{background:
+  radial-gradient(40% 24% at 20% 20%, rgba(255,250,238,.55), transparent 70%),
+  radial-gradient(60% 34% at 50% 104%, rgba(233,119,106,.12), transparent 70%)}
+html[data-art="cozy"] .brand-sub{color:var(--ink-soft)}
+html[data-art="cozy"] .brand-name{color:var(--wood);text-shadow:0 3px 0 rgba(255,246,228,.9)}
+html[data-art="cozy"] .brand-name em{color:var(--rose)}
+html[data-art="cozy"] .chcard{background:var(--cream);border:3px solid var(--wood);
+  box-shadow:0 6px 0 var(--wood), 0 16px 30px rgba(90,58,34,.18)}
+html[data-art="cozy"] .chcard-bg{opacity:.55}
+html[data-art="cozy"] .chcard-art img{filter:drop-shadow(0 8px 10px rgba(90,58,34,.25))}
+html[data-art="cozy"] .chcard-name{color:var(--wood);text-shadow:none}
+html[data-art="cozy"] .bar{background:#EADAC0;border:2px solid var(--wood);box-shadow:none;height:.8em}
+html[data-art="cozy"] .bar i{background:linear-gradient(90deg,#EBB54A,#E9776A)}
+html[data-art="cozy"] .pill{background:var(--cream2);color:var(--wood);border:1.5px solid var(--wood)}
+
+/* chọn level */
+html[data-art="cozy"] .mapscr{background:#E3D6C3}
+html[data-art="cozy"] .mhead{background:rgba(255,246,228,.9);border-bottom:2.5px solid var(--wood);backdrop-filter:none}
+html[data-art="cozy"] .mhead b{color:var(--wood)}
+html[data-art="cozy"] .chblock{background:var(--cream);border:2.5px solid var(--wood);box-shadow:0 5px 0 var(--wood)}
+html[data-art="cozy"] .chbanner{border-bottom:2.5px solid var(--wood)}
+html[data-art="cozy"] .chbanner-img{background-color:#E9D9BF}
+html[data-art="cozy"] .chbanner::after{background:linear-gradient(180deg,rgba(107,66,38,0) 30%,rgba(107,66,38,.62) 100%)}
+html[data-art="cozy"] .lv{background:#F3E5CB;color:#B39A80;border:2px solid #C9AE8C;box-shadow:0 3px 0 #C9AE8C}
+html[data-art="cozy"] .lv.open{background:var(--cream);color:var(--wood);border-color:var(--wood);box-shadow:0 3px 0 var(--wood)}
+html[data-art="cozy"] .lv.done{background:var(--mint);color:#fff;border-color:var(--wood);box-shadow:0 3px 0 var(--wood);
+  text-shadow:0 1.5px 0 rgba(107,66,38,.45)}
+html[data-art="cozy"] .lv.done::after{box-shadow:0 0 0 .1em rgba(107,66,38,.4)}
+html[data-art="cozy"] .lv.now{background:var(--rose);color:#fff;border-color:var(--wood);text-shadow:0 1.5px 0 rgba(107,66,38,.45);
+  animation:popIn .3s cubic-bezier(.2,.9,.3,1.5) both, nowPulseCozy 1.6s ease-in-out infinite .35s}
+@keyframes nowPulseCozy{0%,100%{box-shadow:0 3px 0 var(--wood), 0 0 0 0 rgba(233,119,106,.5)}50%{box-shadow:0 3px 0 var(--wood), 0 0 0 .55em rgba(233,119,106,0)}}
+html[data-art="cozy"] .lv.lock{color:#C9AE8C}
+html[data-art="cozy"] .mlist::-webkit-scrollbar-thumb{background:rgba(107,66,38,.3)}
+
+/* bảng tạm dừng / thắng / thua */
+html[data-art="cozy"] .overlay{background:rgba(90,58,34,.45)}
+html[data-art="cozy"] .card{background:var(--cream);border:3px solid var(--wood);box-shadow:0 7px 0 var(--wood), 0 20px 40px rgba(60,36,18,.3)}
+html[data-art="cozy"] .card h2{color:var(--wood)}
+html[data-art="cozy"] .star > svg{fill:#E6D6BD}
+html[data-art="cozy"] .star .fill svg{fill:var(--gold);filter:drop-shadow(0 2px 0 var(--wood))}
+html[data-art="cozy"] .clockicon{background:var(--cream2);border:2.5px solid var(--wood)}
+html[data-art="cozy"] .clockicon svg{stroke:var(--rose)}
+html[data-art="cozy"] #winText{color:var(--wood)}
+html[data-art="cozy"] #winText b{color:var(--rose)}
+html[data-art="cozy"] .score .chip{background:var(--cream2);border:2px solid #C9AE8C}
+html[data-art="cozy"] .score .chip b{color:var(--wood)}
+html[data-art="cozy"] .hint{background:var(--wood);color:var(--cream)}
