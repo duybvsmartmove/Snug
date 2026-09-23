@@ -99,6 +99,8 @@ export function showSplash() {
       ctx.save();
       ctx.globalAlpha = a;
       ctx.translate(b.position.x, b.position.y); ctx.rotate(b.angle);
+      const o = b.origin || { x: 0, y: 0 };
+      ctx.translate(o.x * b.artScale, o.y * b.artScale);   // bù độ lệch trọng tâm ↔ tâm ảnh, như render.js
       const s = b.artScale * (b.moTu == null ? 1 : .6 + .4 * a);
       ctx.scale(s, s);
       const w = sp.img.width / sp.ppu, h = sp.img.height / sp.ppu;

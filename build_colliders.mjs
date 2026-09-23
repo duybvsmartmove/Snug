@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { docPNG } from './tools/png.mjs';
-import { doVien, rutGon, dienTich, trongTam } from './tools/vien.mjs';
+import { doVien, rutGon, dienTich } from './tools/vien.mjs';
 
 import { CONTENT, ARGS } from './tools/art.mjs';
 const CHI = new Set(ARGS.filter(a => /^-?\d+$/.test(a)));
@@ -68,14 +68,13 @@ function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
     eps *= 1.28;
   }
 
-  // đổi sang đơn vị game, gốc đặt ở TÂM ẢNH (đúng chỗ renderer vẽ ảnh)
+  // Đổi sang đơn vị game, gốc đặt ở TÂM ẢNH: đa giác nằm đúng chỗ nó nằm trên ảnh.
+  // Không dời về trọng tâm nữa. Trước đây có dời, để trọng tâm về (0,0) cho khớp chỗ Matter đặt
+  // thân; nhưng dời đa giác là dời nó so với ảnh, món cân đối thì lệch vài px không thấy, quả
+  // chuối cong thì vùng va chạm trượt hẳn ra ngoài. Giờ renderer vẽ ảnh bù độ lệch trọng tâm
+  // (body.origin), đa giác giữ nguyên chỗ trên ảnh.
   const cx = anh.w / 2, cy = anh.h / 2;
-  let pts = gon.map(([x, y]) => [(x + .5 - cx) / ppu, (y + .5 - cy) / ppu]);
-
-  // Dời sao cho TRỌNG TÂM đa giác về gốc. Matter đặt vật theo trọng tâm, còn renderer
-  // vẽ ảnh căn giữa tại đúng chỗ đó — không dời thì hình lệch khỏi vùng va chạm.
-  const [tx, ty] = trongTam(pts);
-  pts = pts.map(([x, y]) => [+(x - tx).toFixed(2), +(y - ty).toFixed(2)]);
+  const pts = gon.map(([x, y]) => [+((x + .5 - cx) / ppu).toFixed(2), +((y + .5 - cy) / ppu).toFixed(2)]);
 
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const rong = Math.max(...xs) - Math.min(...xs), cao = Math.max(...ys) - Math.min(...ys);
@@ -85,6 +84,8 @@ function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
   // Quả táo hơi dẹt (0,84) vẫn tính là tròn; viên thuốc (1,34) thì không.
   const tronThat = Math.abs(Math.log(rong / cao)) < Math.log(1.25) && Math.abs(dienTich(pts)) / (Math.PI * (rong + cao) ** 2 / 16) > .85;
   if (buocLaCircle && tronThat) {
+    // Hình tròn thì tâm đặt tại tâm ảnh: cách đo bán kính theo gốc chỉ đúng khi món nằm giữa ảnh,
+    // mà ảnh đã cắt sát viền nên đúng.
     const r = +(pts.reduce((s, p) => s + Math.hypot(p[0], p[1]), 0) / pts.length).toFixed(2);
     return { collider: { kind: 'circle', r }, soDinh: 0, rong, cao, dt: Math.PI * r * r };
   }

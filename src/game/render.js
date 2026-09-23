@@ -51,9 +51,14 @@ function drawBody(b) {
   // Món không vừa KHÔNG rung hình: rung ngẫu nhiên mỗi khung hình trông như hai món đang va
   // nhau giật giật. Viền đỏ đã đủ báo.
   ctx.translate(b.position.x, b.position.y); ctx.rotate(b.angle);
+  // Matter đặt thân theo trọng tâm, còn ảnh phải căn giữa tại GỐC HÌNH (tâm ảnh). Hai điểm này
+  // lệch nhau một đoạn body.origin (đo ở góc 0, chưa nhân cỡ): món cong như quả chuối lệch hàng
+  // chục px, không bù thì ảnh trượt khỏi vùng va chạm.
+  const k = b.artScale || 1, o = b.origin || { x: 0, y: 0 };
+  ctx.translate(o.x * k, o.y * k);
   // vừa nhấc lên thì phồng ra một nhịp rồi về cỡ cũ, cho cảm giác món rời khỏi mặt bàn
   const pop = held && b.pop != null && b.pop < 1 ? 1 + Math.sin(b.pop * Math.PI) * .09 : 1;
-  ctx.scale((b.artScale || 1) * pop, (b.artScale || 1) * pop);
+  ctx.scale(k * pop, k * pop);
   ctx.lineJoin = 'round';
   drawArt(b);
   ctx.restore();
