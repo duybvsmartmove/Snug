@@ -192,6 +192,12 @@ function giuGocSauXoay(b) {
   if (b.isStatic) return;          // món vốn đã đứng yên sẵn thì không có gì để giữ
   Body.setVelocity(b, { x: 0, y: 0 });
   Body.setAngularVelocity(b, 0);
+  // Trên khay (ngoài túi) thì giữ góc luôn tới khi người chơi chạm lại: món cong như quả
+  // chuối xoay nghiêng mà thả cho vật lý là đổ lăn về thế nằm, trượt đi cả mấy chục đơn vị,
+  // mất góc vừa canh. Không đóng băng hẳn (món còn lơ lửng thì treo luôn trên không), chỉ
+  // khoá góc và chỗ ngang, còn rơi xuống sàn thì vẫn rơi. Xem thaGocDaGiu.
+  if (!bagZone(b).inZone) { b.giuToi = Infinity; b.khoaGoc = b.angle; b.khoaX = b.position.x; return; }
+  // Trong túi thì đóng băng một nhịp rồi để nó lọt vào khe như thật.
   Body.setStatic(b, true);
   b.giuToi = performance.now() + GIU_SAU_XOAY;
 }
@@ -205,6 +211,12 @@ function thaGocDaGiu() {
     // đóng băng thì khung nào cũng "nằm im", để nguyên là xoay hơi lâu một chút đã bị
     // hất ra khay. Mấy khung này không tính.
     b.stuck = 0;
+    if (b.giuToi === Infinity) {         // trên khay: khoá góc và chỗ ngang, rơi dọc vẫn tự nhiên
+      Body.setAngle(b, b.khoaGoc); Body.setAngularVelocity(b, 0);
+      Body.setPosition(b, { x: b.khoaX, y: b.position.y });
+      Body.setVelocity(b, { x: 0, y: b.velocity.y });
+      continue;
+    }
     if (now < b.giuToi) continue;
     b.giuToi = 0;
     Body.setStatic(b, false);
@@ -214,9 +226,11 @@ function thaGocDaGiu() {
 }
 
 function beginSpin(body, p, pointerId) {
+  if (body.giuToi === Infinity) body.giuToi = 0;   // đang khoá góc trên khay: gỡ để ngón tay xoay được
   spin = {
     body, id: pointerId, moved: false,
     startAngle: body.angle,
+    x0: body.position.x, y0: body.position.y,     // chỗ đứng lúc bắt đầu xoay, xem tickRotation
     startPointer: Math.atan2(p.y - body.position.y, p.x - body.position.x),
   };
   Body.setAngularVelocity(body, 0);
@@ -238,8 +252,39 @@ export const isSpinning = () => !!spin;
 
 /** Giữ món đang xoay đứng yên, và trả lại cho vật lý những món đã hết nhịp giữ */
 export function tickRotation() {
-  if (spin) Body.setAngularVelocity(spin.body, 0);
+  if (spin) {
+    // Đang xoay thì món đứng yên một chỗ như đang bị ngón tay giữ: chỉ đổi góc. Không ghim
+    // thì đầu cong của món (quả chuối) lấn vào sàn, vào món bên cạnh, bị vật lý đẩy ngang,
+    // món trơn trượt đi cả chục đơn vị trong lúc người chơi còn đang xoay. Cho phép bị đẩy
+    // LÊN (không lún vào sàn), còn sang ngang hay rơi xuống thì không.
+    const b = spin.body;
+    if (!b.isStatic) {
+      Body.setPosition(b, { x: spin.x0, y: b.position.y });
+      Body.setVelocity(b, { x: 0, y: b.velocity.y });
+    }
+    Body.setAngularVelocity(b, 0);
+  }
   thaGocDaGiu();
+  bamKhay();
+}
+
+// Món trơn (ma sát thấp: chuối, táo, son…) trơn là để TRONG TÚI nó trượt vào khe cho vừa.
+// Nằm ngoài khay mà vẫn trơn thì vừa xoay xong buông tay, hay bị món khác chạm khẽ, là
+// trượt đi mất chỗ người chơi vừa đặt. Nên ngoài túi món nào cũng bám khay như thường;
+// vào vùng túi thì trả lại đúng độ trơn gốc.
+const BAM_KHAY = .6, BAM_KHAY_TINH = .8;
+function bamKhay() {
+  for (const b of S.bodies) {
+    if (b.isStatic || !daVao(b)) continue;
+    const ngoai = !bagZone(b).inZone;
+    if (ngoai && !b.maSatKhay && b.friction < BAM_KHAY) {
+      b.maSatKhay = [b.friction, b.frictionStatic];
+      b.friction = BAM_KHAY; b.frictionStatic = Math.max(b.frictionStatic, BAM_KHAY_TINH);
+    } else if (!ngoai && b.maSatKhay) {
+      b.friction = b.maSatKhay[0]; b.frictionStatic = b.maSatKhay[1];
+      b.maSatKhay = null;
+    }
+  }
 }
 
 function hitRotateButton(p) {

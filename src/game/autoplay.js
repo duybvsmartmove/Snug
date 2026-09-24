@@ -14,6 +14,7 @@ import { makeItem } from './physics.js';
 import { solve, solveAsync } from '../gen/solver.js';
 import { bagZone } from './rules.js';
 import { toast } from '../ui/hud.js';
+import { shakeImpulse } from './shake.js';
 import { t } from '../i18n.js';
 
 const { Body, World, Bounds, Collision, Vector } = Matter;
@@ -100,8 +101,12 @@ async function moveTo(body, tx, ty, targetAngle, ms = NHIP.bay) {
   });
 }
 
+/** Món đang được giữ góc sau khi người chơi xoay (đứng yên trên khay) thì thả ra trước khi máy nhấc */
+function boGiu(b) { if (b.giuToi) { b.giuToi = 0; if (b.isStatic) Body.setStatic(b, false); } }
+
 /** Nhấc một món lên, bay tới chỗ, thả xuống, chờ lắng */
 async function datMon(body, step) {
+  boGiu(body);
   await tayToi(body);
   World.remove(S.world, body);                       // nhấc lên: tạm rời khỏi thế giới vật lý
   Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
@@ -114,6 +119,27 @@ async function datMon(body, step) {
   Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
   if (S.showFinger && S.finger) S.finger = { ...S.finger, down: false, y: S.finger.y - 4 };
   await choLang(body);                               // chờ nằm yên rồi mới sang món sau
+  nanLai(body, step);
+}
+
+/**
+ * Món vừa đặt nằm xuống lệch kế hoạch chút xíu (vài độ, vài đơn vị) thì nắn về đúng chỗ,
+ * như người chơi đẩy nhẹ cho ngay, nếu đúng chỗ đó vẫn trống. Đo trên máy: áo mưa nằm
+ * nghiêng 2° là món thứ hai hết vừa chỗ đã định, phải tính lại cả ván bằng kế hoạch kém hơn.
+ */
+const NAN_GOC = 6 * Math.PI / 180, NAN_XA = 5;
+function nanLai(body, step) {
+  if (!song() || !S.bodies.includes(body) || body.isStatic || isHeld(body)) return;
+  const g = gocHinh(body), goc = step.angle || 0;
+  const lechGoc = Math.abs(Math.atan2(Math.sin(body.angle - goc), Math.cos(body.angle - goc)));
+  const lechXa = Math.hypot(g.x - step.x, g.y - step.y);
+  if (lechGoc < .004 && lechXa < .6) return;                 // đã đúng chỗ
+  if (lechGoc > NAN_GOC || lechXa > NAN_XA) return;          // lệch nhiều: để vật lý quyết
+  if (!choHopLe(body, step.x, step.y, goc)) return;
+  Body.setAngle(body, goc);
+  Body.setPosition(body, viTriThan(body, step.x, step.y, goc));
+  Body.setVelocity(body, { x: 0, y: 0 }); Body.setAngularVelocity(body, 0);
+  ghi(`  nắn ${body.label} về đúng kế hoạch (lệch ${lechXa.toFixed(1)}, ${(lechGoc * 180 / Math.PI).toFixed(1)}°)`);
 }
 
 const ngoaiTui = step => step.x < BAG.left - 40 || step.x > BAG.right + 40 || step.y < BAG.top - 40 || step.y > BAG.bottom + 40;
@@ -200,7 +226,17 @@ let keHoach = [];
 export const autoLog = [];
 const ghi = (...a) => { if (autoLog.length > 400) autoLog.shift(); autoLog.push(`${(performance.now() / 1000).toFixed(1)}s ` + a.join(' ')); };
 
+// Tìm kỹ (hai hạt giống, không bỏ ngang) chỉ khi lập kế hoạch cho CẢ ván: lúc bắt đầu và
+// ngay sau khi tháo đồ ra xếp lại. Tính lại giữa chừng chỉ cần nhanh, lần đo trên máy tốn
+// tới 12 giây mỗi lần tính lại vì tìm kỹ cả lúc không cần.
+let timKy = false;
+let khongTron = 0;   // số lần tìm kỹ liền nhau mà không ra kế hoạch trọn
 async function lapKeHoach(ungVien) {
+  S.mayNghi = true;
+  try { return await lapKeHoachThat(ungVien); } finally { S.mayNghi = false; }
+}
+async function lapKeHoachThat(ungVien) {
+  const ky = timKy; timKy = false;
   const tt = hienTrang(ungVien);
   let best = null;
   const t0 = performance.now();
@@ -209,7 +245,7 @@ async function lapKeHoach(ungVien) {
   // Không tìm ra kế hoạch trọn với hạt giống mới thì quay về hạt giống gốc: kế hoạch gốc
   // thường vẫn đúng, lần trước hỏng là do đồ rơi lệch chứ không phải do kế hoạch.
   const n = DANH_MUC.length, ds = [];
-  for (const seed of lanThu ? [1 + lanThu * 7919, 1] : [1]) for (let i = 0; i < n; i++) ds.push({ ...DANH_MUC[(i + lanThu) % n], seed });
+  for (const seed of ky && lanThu ? [1 + lanThu * 7919, 1] : [1 + lanThu * 7919]) for (let i = 0; i < n; i++) ds.push({ ...DANH_MUC[(i + lanThu) % n], seed });
   for (let i = 0; i < ds.length; i++) {
     const ch = ds[i];
     if (!song()) break;
@@ -219,9 +255,10 @@ async function lapKeHoach(ungVien) {
     const hon = !best || sol.placedCount > best.placedCount;
     if (!best || sol.solvable || hon) best = sol;
     if (sol.solvable) break;                    // có kế hoạch trọn thì thôi, không thử tiếp
-    if (i >= 1 && !hon && lanThu === 0) break;  // lần đầu: hai cấu hình liền không nhích được thì thôi, cho nhanh
+    if (i >= 1 && !hon && !ky) break;           // tính lại giữa chừng: hai cấu hình liền không nhích được thì thôi, cho nhanh
   }
   cauHinhDangDung = best?.cauHinh || DANH_MUC[0];
+  if (ky) { if (best?.solvable) khongTron = 0; else khongTron++; }
   keHoach = (best?.plan || []).filter(st => !ngoaiTui(st) && st.ref && S.bodies.includes(st.ref));
   ghi(`lập kế hoạch: ứng viên [${ungVien.map(b => b.label).join(' ')}], vật cản ${tt.items.filter(i => i.inBag).length}, kế hoạch ${keHoach.length} bước [${keHoach.map(st => st.ref.label).join(' ')}], ${Math.round(performance.now() - t0)}ms`);
   return best;
@@ -278,7 +315,8 @@ export async function chanDoan() {
 const LECH_Y = [0, -2, -4, -7, -10, 2], LECH_X = [0, -2, 2, -4, 4, -7, 7];
 function timChoGan(body, st) {
   const buocGoc = Math.PI / cauHinhDangDung.goc;
-  for (const da of [0, -buocGoc / 2, buocGoc / 2]) for (const dy of LECH_Y) for (const dx of LECH_X) {
+  const nhe = 3 * Math.PI / 180;       // xoay nhẹ vài độ: đủ lách qua món bên dưới nằm hơi nghiêng
+  for (const da of [0, -nhe, nhe, -buocGoc / 2, buocGoc / 2]) for (const dy of LECH_Y) for (const dx of LECH_X) {
     const goc = (st.angle || 0) + da;
     if (choHopLe(body, st.x + dx, st.y + dy, goc)) return { ...st, x: st.x + dx, y: st.y + dy, angle: goc, lech: Math.abs(dx) + Math.abs(dy), xoay: da !== 0 };
   }
@@ -311,6 +349,7 @@ async function buocTiepTheo(ungVien) {
  */
 async function moKhoa(hop, chia) {
   ghi(`mở khoá: kéo ${hop.label} (${Math.round(hop.position.x)},${Math.round(hop.position.y)}) tới chìa (${Math.round(chia.position.x)},${Math.round(chia.position.y)})`);
+  boGiu(hop);
   await tayToi(hop);
   World.remove(S.world, hop);
   Body.setVelocity(hop, { x: 0, y: 0 }); Body.setAngularVelocity(hop, 0);
@@ -357,12 +396,12 @@ export async function autoplay({ mode: m = 'full' } = {}) {
   if (song()) return;                                 // đang chơi chính ván này rồi
   if (dangChay) { stopAutoplay(); await dangChay; }   // máy của ván cũ còn dở: chờ nó thoát hẳn
   if (running || S.won || S.lost || !S.LEVEL) return;
-  running = true; vanMay = S.phienVan; mode = m; daXepMon = 0; waitingStep = false; keHoach = []; lanThu = 0;
+  running = true; vanMay = S.phienVan; mode = m; daXepMon = 0; waitingStep = false; keHoach = []; lanThu = 0; timKy = true; lacCon = SO_LAN_LAC; khongTron = 0;
   S.selected = null; S.drag = null;
   dangChay = (async () => {
     try { await chayTuChoi(); }
     catch (e) { console.error('autoplay:', e); ghi('LỖI ' + (e?.message || e)); }
-    finally { S.finger = null; running = false; waitingStep = false; }
+    finally { S.finger = null; running = false; waitingStep = false; S.mayNghi = false; }
   })();
   await dangChay; dangChay = null;
 }
@@ -371,13 +410,30 @@ export async function autoplay({ mode: m = 'full' } = {}) {
  * Hết chỗ mà còn lượt xếp lại: tháo hết đồ đã xếp ra khay rồi báo vòng chính lập kế hoạch mới.
  * Trả về false khi đã xếp lại đủ số lần.
  */
+/**
+ * Lắc túi như người chơi lắc điện thoại: vài cú qua lại, đồ trong túi nới ra rồi lún xuống
+ * khít hơn, thường mở ra đủ chỗ cho món cuối. Rẻ hơn nhiều so với tháo hết ra xếp lại.
+ */
+let lacCon = 0;
+const SO_LAN_LAC = 2;
+async function lacTuiThu() {
+  ghi('lắc túi cho đồ lún xuống');
+  for (const a of [9, -9, 8, -8]) { if (!song()) return; shakeImpulse(a, 150); await waitGame(190); }
+  for (let i = 0; i < 40 && song() && S.bodies.some(b => !b.isStatic && b.speed > .4); i++) await waitGame(50);
+  keHoach = [];
+}
+
 async function xepLai() {
   if (lanThu + 1 >= SO_LAN_XEP || !song()) return false;
+  // Tìm kỹ hai lần liền (hai hạt giống khác nhau) vẫn không ra cách xếp trọn: màn này khó
+  // quá sức máy hoặc cần booster. Tháo ra xếp lại nữa chỉ phí thời gian.
+  if (khongTron >= 2) { ghi('dừng xếp lại: hai lần tìm kỹ đều không ra kế hoạch trọn'); return false; }
   lanThu++;
   ghi(`XẾP LẠI lần ${lanThu + 1}/${SO_LAN_XEP}`);
   note(t('autoRetry', { a: lanThu + 1, b: SO_LAN_XEP }), 2200);
-  await thaoHet();
-  keHoach = [];
+  S.mayNghi = true;
+  try { await thaoHet(); } finally { S.mayNghi = false; }
+  keHoach = []; timKy = true; lacCon = SO_LAN_LAC;
   return song();
 }
 
@@ -417,6 +473,7 @@ async function thaoHet() {
     if (!S.bodies.includes(b)) continue;
     const goc = S.LEVEL.items.find(it => it.id === b.itemId && !it.inBag);
     const cho = choTrongKhay(b, goc?.x ?? W / 2, goc?.y ?? TABLE_Y + 30, goc?.angle || 0);
+    boGiu(b);
     await tayToi(b);
     World.remove(S.world, b);
     Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
@@ -472,6 +529,7 @@ async function chayTuChoi() {
     const buoc = await buocTiepTheo(ungVien);
     if (!song()) break;
     if (!buoc) {
+      if (lacCon > 0) { lacCon--; await lacTuiThu(); continue; } // lắc cho đồ lún xuống, tìm chỗ lại
       if (await xepLai()) continue;                              // tháo ra, xếp lại theo cách khác
       if (dungBoosterKhiKet && await dungBooster()) continue;   // đã dùng booster, tính lại
       note(t('autoStuck', { n: ungVien.length }), 3200);
