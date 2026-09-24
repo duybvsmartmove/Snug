@@ -390,13 +390,14 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
 
   // ---------- palette ----------
   let chapterItems = null, chapterOwn = null;
+  let tuKhoa = '';   // chữ người dùng gõ vào ô tìm kho đồ
   async function computeChapterItems() {
     ({ all: chapterItems, own: chapterOwn } = await chapterItemIds(E));
     refreshPalette();
   }
 
   function refreshPalette() {
-    const pal = $('palette'), q = ($('palSearch').value || '').toLowerCase(); pal.innerHTML = '';
+    const pal = $('palette'), q = tuKhoa.toLowerCase(); pal.innerHTML = '';
     const scope = $('palScope').value;
     // Món riêng của chương lên trước, món mượn từ chương khác xuống sau
     const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
@@ -422,16 +423,23 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
       if (q) {   // lọc nhầm thì một nút là về lại đủ kho
         const b = document.createElement('button');
         b.className = 'ghost'; b.textContent = 'Xoá lọc';
-        b.addEventListener('click', () => { $('palSearch').value = ''; refreshPalette(); });
+        b.addEventListener('click', () => { tuKhoa = ''; $('palSearch').value = ''; refreshPalette(); });
         p.appendChild(b);
       }
       pal.appendChild(p);
     }
   }
-  $('palSearch').value = '';    // không nhận giá trị trình duyệt tự điền lại lúc tải trang
-  $('palSearch').addEventListener('input', refreshPalette);
-  // quay lại trang bằng nút Back (trang lấy từ bộ nhớ đệm, không chạy lại script) cũng xoá ô tìm
-  window.addEventListener('pageshow', e => { if (e.persisted && $('palSearch').value) { $('palSearch').value = ''; refreshPalette(); } });
+  // Kho đồ chỉ lọc theo chữ người dùng TỰ GÕ (sự kiện input), không đọc thẳng giá trị trong ô.
+  // Chrome điền lại giá trị cũ vào ô SAU khi trang tải xong, và thường lờ autocomplete="off":
+  // từng có số giây 120 của ô Thời gian rơi vào đây, kho đồ lọc sạch không còn món nào.
+  // Giá trị nào chen vào ô mà không qua bàn phím thì bị xoá đi ở các mốc dưới.
+  $('palSearch').addEventListener('input', e => { tuKhoa = e.target.value; refreshPalette(); });
+  const xoaTuDien = () => { if ($('palSearch').value !== tuKhoa) $('palSearch').value = tuKhoa; };
+  xoaTuDien();
+  window.addEventListener('load', xoaTuDien);
+  window.addEventListener('pageshow', xoaTuDien);
+  for (const ms of [300, 1000, 2500]) setTimeout(xoaTuDien, ms);
+  $('palSearch').addEventListener('focus', xoaTuDien);
   $('palScope').addEventListener('change', refreshPalette);
   function addItem(def) {
     const L = E.level;
