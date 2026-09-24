@@ -85,6 +85,9 @@ async function boot() {
   // loadBook có thể đã lùi về cozy nếu bộ được chọn chưa có level: gắn lại bảng màu cho khớp
   document.documentElement.dataset.art = artStyle();
   applyArtIcons();
+  // Cozy: nút tạm dừng nằm cùng hàng với đồng hồ và số món (ba viên kem căn giữa một cụm),
+  // casual giữ nó ở góc phải trên cạnh tên màn.
+  if (artStyle() === 'cozy') document.querySelector('.timerwrap')?.appendChild(document.getElementById('pauseBtn'));
 
   // Live preview từ editor: level gửi qua postMessage, không tải từ content
   window.addEventListener('message', e => {

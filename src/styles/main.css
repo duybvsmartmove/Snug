@@ -575,21 +575,21 @@ html[data-art="casual"] .splash{background:radial-gradient(120% 70% at 50% 0%, #
    tạm dừng / thắng / thua là thẻ kem đổ bóng nhẹ. Không viền tối, không bóng cứng.
    Viết sau khối cozy phía trên nên đè được các luật cùng độ ưu tiên ở đó.
    ========================================================================== */
-html[data-art="cozy"]{--pill:#FFF6E4;--pill-shadow:0 4px 14px rgba(90,58,34,.14), 0 1px 0 rgba(255,255,255,.7) inset;--red:#E8574C}
+html[data-art="cozy"]{--pill:#FFF9EE;--pill-shadow:0 4px 14px rgba(90,58,34,.14), 0 1px 0 rgba(255,255,255,.7) inset;--red:#E8574C}
 
 /* tên màn: giữa màn, không khung; gạch vàng cong bên dưới, hai vệt vàng nhỏ hai bên */
 html[data-art="cozy"] .top{justify-content:center;padding-top:calc(3.2% + var(--sat))}
 html[data-art="cozy"] .titleblock{margin:0;background:none;border:0;box-shadow:none;padding:.2em 1.9em .55em;text-align:center;flex:0 1 auto;position:relative}
-html[data-art="cozy"] .eyebrow{font-size:.56em;color:#A88B6E;letter-spacing:.12em}
-html[data-art="cozy"] .title{font-size:1.95em;color:#5A3A22;text-shadow:none;position:relative;padding-bottom:.16em;
+html[data-art="cozy"] .eyebrow{font-size:.62em;color:#A88B6E;letter-spacing:.12em;margin-bottom:.1em}
+html[data-art="cozy"] .title{font-size:2.7em;color:#5A3A22;text-shadow:none;position:relative;padding-bottom:.14em;line-height:1.05;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 8'><path d='M3 5 Q30 1 60 4.5 T117 3.5' fill='none' stroke='%23F2C14E' stroke-width='3.2' stroke-linecap='round'/></svg>") center bottom/78% .42em no-repeat}
-html[data-art="cozy"] .titleblock::before,html[data-art="cozy"] .titleblock::after{content:"";position:absolute;top:1.15em;width:1.1em;height:1.1em;
+html[data-art="cozy"] .titleblock::before,html[data-art="cozy"] .titleblock::after{content:"";position:absolute;top:1.5em;width:1.3em;height:1.3em;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g stroke='%23F2C14E' stroke-width='3' stroke-linecap='round'><path d='M4 8l6 3M3 15l7-1M6 21l5-4'/></g></svg>") center/contain no-repeat}
 html[data-art="cozy"] .titleblock::before{left:.2em}
 html[data-art="cozy"] .titleblock::after{right:.2em;transform:scaleX(-1)}
 
 /* hàng đồng hồ · số món · tạm dừng: ba viên kem, cùng chiều cao, chừa chỗ bên phải cho nút tạm dừng */
-html[data-art="cozy"] .timerwrap{top:calc(5.9em + var(--sat));gap:.55em;padding:0 calc(4.2% + var(--sar) + 3.4em) 0 calc(4.2% + var(--sal))}
+html[data-art="cozy"] .timerwrap{top:calc(6.9em + var(--sat));gap:.6em;padding:0 calc(4.2% + var(--sar)) 0 calc(4.2% + var(--sal) + 1em)}
 html[data-art="cozy"] .timer,html[data-art="cozy"] .timer.has-art{
   background:var(--pill);border:0;border-radius:999px;box-shadow:var(--pill-shadow);width:auto;height:2.75em;aspect-ratio:auto;
   padding:0 1em 0 3.05em;display:flex;align-items:center;font:700 1.2em "Baloo 2";font-variant-numeric:tabular-nums;color:#5A3A22;position:relative;line-height:1}
@@ -600,20 +600,20 @@ html[data-art="cozy"] .timer.urgent,html[data-art="cozy"] .timer.has-art.urgent{
 html[data-art="cozy"] .counter{background:var(--pill);border:0;border-radius:999px;box-shadow:var(--pill-shadow);height:2.75em;padding:0 1em;gap:.35em}
 html[data-art="cozy"] .counter b{color:var(--red);font-size:1.5em}
 html[data-art="cozy"] .counter span{color:#5A3A22;font-size:.62em;letter-spacing:.04em;line-height:1.05}
-html[data-art="cozy"] .pause,html[data-art="cozy"] .pause.has-art{position:absolute;top:calc(5.9em + var(--sat));right:calc(4.2% + var(--sar));
+html[data-art="cozy"] .pause,html[data-art="cozy"] .pause.has-art{position:static;flex:none;
   width:2.75em;height:2.75em;border-radius:.85em;background:var(--pill) var(--art) center/78% no-repeat;box-shadow:var(--pill-shadow)}
 html[data-art="cozy"] .pause svg{display:none}
 
 /* thanh booster: một viên kem dài, ba icon không khung, vạch chia mỏng, nhãn ẩn */
-html[data-art="cozy"] .dock{gap:0;padding-bottom:calc(3.6% + var(--sab))}
-html[data-art="cozy"] .dock::before{content:"";position:absolute;left:calc(3.5% + var(--sal));right:calc(3.5% + var(--sar));bottom:calc(3.6% + var(--sab));height:5.3em;
+html[data-art="cozy"] .dock{gap:0;padding-bottom:calc(2.2em + var(--sab))}
+html[data-art="cozy"] .dock::before{content:"";position:absolute;left:calc(3.5% + var(--sal));right:calc(3.5% + var(--sar));top:0;height:4.6em;
   border-radius:999px;background:var(--pill);box-shadow:var(--pill-shadow)}
-html[data-art="cozy"] .boost,html[data-art="cozy"] .boost.has-art{position:relative;height:5.3em;padding:0;gap:0;background:none;box-shadow:none;border:0;justify-content:center}
-/* cắt bỏ khung kem của icon: phóng ảnh 150% để mép khung nằm ngoài ô, phần còn lại trùng màu kem của thanh */
-html[data-art="cozy"] .boost .ic,html[data-art="cozy"] .boost.has-art .ic{width:3.9em;height:3.9em;background-size:150%}
+html[data-art="cozy"] .boost,html[data-art="cozy"] .boost.has-art{position:relative;height:4.6em;padding:0;gap:0;background:none;box-shadow:none;border:0;justify-content:center}
+/* icon đã cắt bỏ khung kem ngay trong file ảnh (tools: cắt phần khác màu kem), chỉ còn hình */
+html[data-art="cozy"] .boost .ic,html[data-art="cozy"] .boost.has-art .ic{width:2.5em;height:2.5em;background-size:contain}
 html[data-art="cozy"] .boost .nm{display:none}
-html[data-art="cozy"] .boost + .boost::before{content:"";position:absolute;left:0;top:1.1em;bottom:1.1em;width:1.5px;background:rgba(90,58,34,.16)}
-html[data-art="cozy"] .boost .badge,html[data-art="cozy"] .boost.has-art .badge{top:.35em;right:calc(50% - 2.35em);background:var(--red);color:#fff;border:2px solid var(--pill);min-width:1.6em;height:1.6em;font-size:.74em}
+html[data-art="cozy"] .boost + .boost::before{content:"";position:absolute;left:0;top:1em;bottom:1em;width:1.5px;background:rgba(90,58,34,.16)}
+html[data-art="cozy"] .boost .badge,html[data-art="cozy"] .boost.has-art .badge{top:.55em;right:calc(50% - 1.75em);background:var(--red);color:#fff;border:2px solid var(--pill);min-width:1.6em;height:1.6em;font-size:.74em}
 html[data-art="cozy"] .boost:disabled{filter:grayscale(.8);opacity:.45}
 html[data-art="cozy"] .b-freeze.has-art.on .ic{animation:frostPulse 1.1s ease-in-out infinite alternate}
 
