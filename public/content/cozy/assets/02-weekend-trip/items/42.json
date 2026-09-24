@@ -1,0 +1,55 @@
+{
+  "id": 42,
+  "slug": "crackers",
+  "code": "ITM_042",
+  "name": "Gói bánh quy",
+  "meta": {
+    "size": "Small",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -34.5,
+        -19.88
+      ],
+      [
+        -21,
+        -17.13
+      ],
+      [
+        18,
+        -16.88
+      ],
+      [
+        36,
+        -19.63
+      ],
+      [
+        36.75,
+        18.63
+      ],
+      [
+        -20.75,
+        17.63
+      ],
+      [
+        -35.75,
+        19.88
+      ],
+      [
+        -36.75,
+        -18.13
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/42.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": 56,
+  "slug": "sandals",
+  "code": "ITM_056",
+  "name": "Dép xăng đan",
+  "nameEn": "Sandals",
+  "meta": {
+    "size": "Medium",
+    "shape": "Irregular",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -2.88,
+        -45.75
+      ],
+      [
+        7.88,
+        -42.75
+      ],
+      [
+        20.63,
+        -26.5
+      ],
+      [
+        21.63,
+        -18.75
+      ],
+      [
+        15.88,
+        -7
+      ],
+      [
+        19.88,
+        20.25
+      ],
+      [
+        10.88,
+        39.5
+      ],
+      [
+        -8.63,
+        45.75
+      ],
+      [
+        -19.13,
+        38.5
+      ],
+      [
+        -21.63,
+        18.25
+      ],
+      [
+        -17.13,
+        -3.25
+      ],
+      [
+        -17.13,
+        -30.25
+      ],
+      [
+        -11.88,
+        -40.75
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/03-beach-vacation/items/56.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "id": 48,
+  "slug": "guidebook",
+  "code": "ITM_048",
+  "name": "Sách hướng dẫn",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        16.63,
+        -44.13
+      ],
+      [
+        27.38,
+        -44.13
+      ],
+      [
+        30.63,
+        -40.63
+      ],
+      [
+        35.13,
+        28.88
+      ],
+      [
+        33.38,
+        42.63
+      ],
+      [
+        31.88,
+        43.88
+      ],
+      [
+        -32.38,
+        43.63
+      ],
+      [
+        -35.13,
+        38.88
+      ],
+      [
+        -33.13,
+        -41.38
+      ],
+      [
+        -30.63,
+        -43.13
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/48.png",
+    "pixelsPerUnit": 4
+  }
+}

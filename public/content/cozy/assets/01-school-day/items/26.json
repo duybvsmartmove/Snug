@@ -1,0 +1,67 @@
+{
+  "id": 26,
+  "slug": "textbook",
+  "code": "ITM_026",
+  "name": "Sách giáo khoa",
+  "meta": {
+    "size": "Large",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 3,
+    "canLink": false,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -36.88,
+        -54.38
+      ],
+      [
+        37.88,
+        -54.38
+      ],
+      [
+        41.13,
+        -52.63
+      ],
+      [
+        42.63,
+        -47.13
+      ],
+      [
+        43.88,
+        43.63
+      ],
+      [
+        40.38,
+        53.63
+      ],
+      [
+        -37.38,
+        54.38
+      ],
+      [
+        -42.63,
+        52.38
+      ],
+      [
+        -43.88,
+        48.13
+      ],
+      [
+        -42.88,
+        -50.38
+      ],
+      [
+        -40.88,
+        -53.13
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/26.png",
+    "pixelsPerUnit": 4
+  }
+}

@@ -4,7 +4,7 @@
 //   không có --ghi thì chỉ in bảng xem trước, không sửa file nào
 //
 // Mỗi ảnh:
-//   1. Nhận món theo mã trong tên file: ITM_011_tablet.png → món có code ITM_011.
+//   1. Nhận món theo mã trong tên file: ITM_011_tablet.png hay 011-tablet.png → món có code ITM_011.
 //   2. Làm sạch nền: ảnh xoá nền bằng AI hay để lại hàng nghìn điểm gần trong suốt rải khắp
 //      khung, mắt không thấy nhưng làm khung ảnh phình ra gần hết tấm. Chỉ giữ mảng liền lớn
 //      nhất cùng viền khử răng cưa quanh nó, còn lại xoá sạch.
@@ -58,7 +58,8 @@ function dienTich(c) {
 // ---------- chạy ----------
 const bang = [], daNhap = [];
 for (const f of files) {
-  const ma = (basename(f).match(/ITM_(\d+)/i) || [])[1];
+  // Tên file kiểu ITM_021_cap.png hay 021-baseball-cap.png đều nhận
+  const ma = (basename(f).match(/ITM_(\d+)/i) || basename(f).match(/^(\d{3})[-_]/) || [])[1];
   const mon = ma && theoMa[`ITM_${ma.padStart(3, '0')}`];
   if (!mon) { bang.push({ file: basename(f), ghiChu: 'không tìm thấy món theo mã trong tên file' }); continue; }
   const { id, man } = mon;

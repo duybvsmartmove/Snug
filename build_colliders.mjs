@@ -80,9 +80,10 @@ function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
   const rong = Math.max(...xs) - Math.min(...xs), cao = Math.max(...ys) - Math.min(...ys);
 
   // Món vốn là hình tròn thì giữ hình tròn: lăn đúng chất hơn và rẻ hơn nhiều.
-  // Chỉ khi ảnh vẫn tròn thật: art mới có thể vẽ lại dáng khác (hộp tai nghe tròn → viên thuốc).
-  // Quả táo hơi dẹt (0,84) vẫn tính là tròn; viên thuốc (1,34) thì không.
-  const tronThat = Math.abs(Math.log(rong / cao)) < Math.log(1.25) && Math.abs(dienTich(pts)) / (Math.PI * (rong + cao) ** 2 / 16) > .85;
+  // Chỉ khi ảnh TRÒN THẬT (gần vuông khung, lấp ≥ 95% hình tròn nội tiếp): cuộn tất tròn đạt,
+  // còn quả táo có núm và lá (lấp 89%) thì không — vòng tròn bao quanh sẽ hở ở vai táo và
+  // chọc qua cái lá, người chơi thấy viền không bám hình. Táo dùng đa giác, vẫn lăn được.
+  const tronThat = Math.abs(Math.log(rong / cao)) < Math.log(1.08) && Math.abs(dienTich(pts)) / (Math.PI * (rong + cao) ** 2 / 16) > .95;
   if (buocLaCircle && tronThat) {
     // Hình tròn thì tâm đặt tại tâm ảnh: cách đo bán kính theo gốc chỉ đúng khi món nằm giữa ảnh,
     // mà ảnh đã cắt sát viền nên đúng.

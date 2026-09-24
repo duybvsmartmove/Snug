@@ -1,0 +1,84 @@
+{
+  "id": 54,
+  "slug": "boardshorts",
+  "code": "ITM_054",
+  "name": "Quần bơi gấp",
+  "nameEn": "Folded board shorts",
+  "meta": {
+    "size": "Large",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        26.13,
+        -35.5
+      ],
+      [
+        31.88,
+        -34.5
+      ],
+      [
+        34.88,
+        -20.25
+      ],
+      [
+        37.88,
+        18
+      ],
+      [
+        36.88,
+        31
+      ],
+      [
+        33.38,
+        33.75
+      ],
+      [
+        6.63,
+        35.5
+      ],
+      [
+        1.88,
+        35.25
+      ],
+      [
+        0.13,
+        29
+      ],
+      [
+        -2.13,
+        35.25
+      ],
+      [
+        -36.13,
+        32.25
+      ],
+      [
+        -37.88,
+        22.25
+      ],
+      [
+        -35.88,
+        -2.25
+      ],
+      [
+        -30.38,
+        -34.25
+      ],
+      [
+        0.13,
+        -33.75
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/03-beach-vacation/items/54.png",
+    "pixelsPerUnit": 4
+  }
+}

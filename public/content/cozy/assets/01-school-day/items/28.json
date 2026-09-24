@@ -1,0 +1,59 @@
+{
+  "id": 28,
+  "slug": "pencil",
+  "code": "ITM_028",
+  "name": "Bút chì",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "rolling",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        28.5,
+        -37.5
+      ],
+      [
+        32.5,
+        -36.5
+      ],
+      [
+        38.25,
+        -29.75
+      ],
+      [
+        37.75,
+        -26.25
+      ],
+      [
+        32.25,
+        -19.75
+      ],
+      [
+        -19,
+        28.75
+      ],
+      [
+        -38,
+        37.5
+      ],
+      [
+        -29.25,
+        19
+      ],
+      [
+        20.5,
+        -31.5
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/28.png",
+    "pixelsPerUnit": 4
+  }
+}

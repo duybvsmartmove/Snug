@@ -1,0 +1,76 @@
+{
+  "id": 58,
+  "slug": "sunscreen",
+  "code": "ITM_058",
+  "name": "Kem chống nắng",
+  "nameEn": "Sunscreen tube",
+  "meta": {
+    "size": "Small",
+    "shape": "Long",
+    "physics": "rolling",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -18.75,
+        -38.88
+      ],
+      [
+        18.5,
+        -38.88
+      ],
+      [
+        19.75,
+        -37.63
+      ],
+      [
+        13.75,
+        17.63
+      ],
+      [
+        12.25,
+        23.13
+      ],
+      [
+        12.25,
+        33.38
+      ],
+      [
+        11,
+        36.63
+      ],
+      [
+        8.75,
+        37.88
+      ],
+      [
+        -5.5,
+        38.63
+      ],
+      [
+        -10.5,
+        37.13
+      ],
+      [
+        -12,
+        35.13
+      ],
+      [
+        -12.5,
+        22.88
+      ],
+      [
+        -19.75,
+        -34.63
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/03-beach-vacation/items/58.png",
+    "pixelsPerUnit": 4
+  }
+}

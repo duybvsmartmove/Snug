@@ -1,0 +1,75 @@
+{
+  "id": 31,
+  "slug": "jacket",
+  "code": "ITM_031",
+  "name": "Áo khoác gấp",
+  "meta": {
+    "size": "Large",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 3,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -12.5,
+        -49.5
+      ],
+      [
+        17,
+        -48.75
+      ],
+      [
+        29.5,
+        -36.5
+      ],
+      [
+        41.75,
+        -34
+      ],
+      [
+        49.5,
+        -27.5
+      ],
+      [
+        50.25,
+        40.75
+      ],
+      [
+        43.75,
+        48.5
+      ],
+      [
+        -39.25,
+        49.5
+      ],
+      [
+        -49.25,
+        43
+      ],
+      [
+        -50,
+        -26.25
+      ],
+      [
+        -42.75,
+        -33.5
+      ],
+      [
+        -29,
+        -37
+      ],
+      [
+        -21.5,
+        -45.5
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/31.png",
+    "pixelsPerUnit": 4
+  }
+}
