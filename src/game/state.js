@@ -5,7 +5,7 @@ import { bbox } from '../util/geom.js';
 export const W = 420;
 export const H = 760;
 export const TABLE_Y = 452;        // mép sàn (đồ nằm rải bên dưới)
-export const FLOOR_Y = H - 108;    // sàn vật lý, ngay trên hàng booster
+export const FLOOR_Y = H - 140;    // sàn vật lý, cách thanh booster một khoảng (thanh cozy cao 5em, đỉnh ở ~H-117)
 export const PAD = 14;             // độ dày thành túi
 
 // Túi. Lòng túi là POLYGON (BAG.poly, toạ độ tuyệt đối). left/right/top/bottom là bbox của polygon.

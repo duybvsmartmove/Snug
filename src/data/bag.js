@@ -13,12 +13,14 @@ export const isFixedSkin = skin => !!(skin?.fixed && skin.inner?.length >= 3);
 export function resolveContainer(c, skins) {
   const skin = skins?.[c?.skin];
   if (!isFixedSkin(skin)) return c;
-  return { ...c, shape: fixedShape(skin, c.scale || 1), closed: true };
+  const s = c.scale || 1;
+  // chỗ đặt túi cũng tính lúc chạy: đổi mốc BAG_FLOOR là mọi level dời theo, không phải dựng lại
+  return { ...c, scale: s, bottom: +(BAG_FLOOR - (skin.image.y + skin.image.h) * s).toFixed(1), shape: fixedShape(skin, s), closed: true };
 }
 
 // Chỗ đặt túi trên màn: đáy ẢNH túi luôn ngay trên mép bàn (TABLE_Y 452), túi to thì nhô lên
 // phía trên, không được cao quá dòng BAG_CEIL (vùng đồng hồ và số món).
-export const BAG_FLOOR = 446, BAG_CEIL = 150;
+export const BAG_FLOOR = 436, BAG_CEIL = 150;
 /** Cỡ lớn nhất túi còn nằm gọn giữa đồng hồ và mép bàn */
 export const maxScale = skin => (BAG_FLOOR - BAG_CEIL) / skin.image.h;
 export const MIN_SCALE = .5;
