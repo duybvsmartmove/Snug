@@ -38,8 +38,12 @@ export function hetSplashBoot() {
 /**
  * Mở màn Splash. Trả về Promise xong khi màn đã khép lại (hết giờ hoặc người chơi chạm).
  * Không có món nào có ảnh (content lỗi) thì bỏ qua luôn.
+ *
+ * `khiKhep` (tuỳ chọn) được gọi đúng lúc màn BẮT ĐẦU khép, trước quãng mờ dần 380ms —
+ * để ai muốn che tấm màn chuyển cảnh lên thì che kịp trong lúc Splash còn đang mờ.
+ * Chờ Promise trả về mới che thì Splash đã tan hẳn, sân trống lộ ra một nhịp.
  */
-export function showSplash() {
+export function showSplash({ khiKhep } = {}) {
   const defs = ITEM_DEFS.filter(d => d.id > 0 && d.sprite?.ready);
   const el = $('splash'), cv = $('splashCv');
   if (!defs.length || !el) { hetSplashBoot(); if (el) el.classList.remove('show'); return Promise.resolve(); }
@@ -142,6 +146,9 @@ export function showSplash() {
       el.removeEventListener('pointerdown', khep);
       el.classList.remove('show');
       hetSplashBoot();
+      // Gọi SAU hetSplashBoot: hàm đó vừa đặt tấm màn về trạng thái "mở" (lớp off), gọi trước
+      // thì ai kéo màn che vào sẽ bị nó mở toang lại ngay lập tức.
+      try { khiKhep?.(); } catch (e) { console.warn('splash khiKhep', e); }
       await new Promise(res => setTimeout(res, 380));   // chờ màn mờ hẳn rồi mới dọn
       window.removeEventListener('resize', doCo);
       cancelAnimationFrame(r.raf);

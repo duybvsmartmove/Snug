@@ -11,6 +11,9 @@
   --shadow:0 12px 28px rgba(59,42,74,.18);
 }
 *{box-sizing:border-box}
+/* hidden phải thắng mọi display khai riêng (.lvnav{display:flex}, .linkbtn{display:block}…),
+   không thì đặt el.hidden = true mà nút vẫn hiện nguyên trên màn. */
+[hidden]{display:none !important}
 /* Lề an toàn của bốn cạnh màn hình: chỗ bị thanh trạng thái, thanh điều hướng hay tai
    thỏ chiếm. Trên web và iOS thì env() đã cho số đúng. Trên Android env() CHỈ tính tai
    thỏ, hai thanh hệ thống luôn bằng 0, nên MainActivity đọc insets rồi ghi đè bốn biến

@@ -10,7 +10,7 @@ import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
 import { bindImpacts } from './game/rules.js';
 import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady, setArtStyle, artStyle, applyArtIcons, loadConfig } from './content/loader.js';
-import { useArtProgress } from './game/progress.js';
+import { useArtProgress, getSpot } from './game/progress.js';
 import { autoplay, stopAutoplay, autoState, autoLog, chanDoan } from './game/autoplay.js';
 import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
@@ -23,6 +23,11 @@ import { setSilent, unlockOnFirstGesture, initAudio, startMusic, duckMusic } fro
 import { chuyenMan, moMan } from './ui/veil.js';
 
 const params = new URLSearchParams(location.search);
+
+// TẠM THỜI: bỏ qua trang chủ. Splash tắt là vào thẳng ván đang chơi dở, mạch chơi liền
+// một hơi, không có nút nào đưa người chơi về Home hay nhảy màn. Trang chủ vẫn còn nguyên
+// trong mã — muốn trả lại thì đổi cờ này về false.
+const BO_QUA_HOME = true;
 
 // Bộ art: ?art=casual đổi thư mục ảnh và bảng màu HUD. Không ghi trên địa chỉ thì theo
 // config.json (editor đặt bằng nút "Game dùng"), đọc trong boot() trước mọi lượt nạp ảnh.
@@ -102,7 +107,7 @@ async function boot() {
     const ch = chapterById(params.get('map') || chapters()[0]?.id);
     S.mapId = ch.id; S.map = ch;
     await loadChapterAssets(ch);
-    donNutKhongDungCho();
+    anNutDieuHuong();
     window.parent.postMessage({ type: 'ready' }, '*');
     moMan();
     return;
@@ -113,10 +118,23 @@ async function boot() {
 
   // Mở thẳng một level qua địa chỉ (?level=… hoặc ?i=…) thì bỏ qua trang chủ
   const byId = params.get('level'), byIdx = params.get('i');
+  const spot = getSpot(chapters());
   if (byId != null || byIdx != null) {
     const ch = chapterById(params.get('map') || chapters()[0]?.id);
     const idx = byId ? Math.max(0, ch.levels.findIndex(l => l.id === byId)) : Number(byIdx || 0);
     await startLevel(ch, idx);
+  } else if (BO_QUA_HOME && !isCreative && spot) {
+    // Splash → thẳng vào ván đang chơi dở, không qua trang chủ.
+    // "Level tiếp" ở bảng thắng vẫn giữ: đó là đường đi duy nhất còn lại sang màn sau.
+    anNutDieuHuong({ giuLevelTiep: true });
+    try {
+      await loadChapterAssets(chapters()[0]);
+      // Kéo màn che ngay lúc Splash BẮT ĐẦU mờ: chờ nó tan hẳn rồi mới che là hở sân trống.
+      showSplash({ khiKhep: () => startLevel(spot.chapter, spot.index).catch(e => console.warn('vào ván', e)) });
+    } catch (e) {
+      console.warn('splash', e); hetSplashBoot();
+      await startLevel(spot.chapter, spot.index);
+    }
   } else {
     showHome();
     // Splash phủ trên trang chủ: đồ của chương đầu rơi thành đống, bấm Chơi là lộ trang chủ.
@@ -150,13 +168,20 @@ async function startLevel(ch, idx) {
 }
 
 /**
- * Khung xem thử trong editor chỉ có MỘT level: cái đang sửa, do editor gửi sang.
- * Những nút đưa người chơi đi chỗ khác không có chỗ ở đây — "Về trang chủ" mở ra một
- * màn Home rỗng vì danh sách chương chưa bao giờ được dựng, còn "Level tiếp" thì nhảy
- * sang một level đã lưu, người dựng mất luôn thứ đang làm dở.
+ * Ẩn các nút điều hướng: "Về trang chủ" ở ba bảng, hàng "Level trước / Level sau" trong
+ * bảng tạm dừng, và (nếu không giữ) "Level tiếp" ở bảng thắng.
+ *
+ * Dùng ở hai chỗ:
+ *  - Khung xem thử trong editor chỉ có MỘT level, cái đang sửa do editor gửi sang. "Về trang
+ *    chủ" mở ra một màn Home rỗng vì danh sách chương chưa bao giờ được dựng, còn "Level tiếp"
+ *    nhảy sang một level đã lưu, người dựng mất luôn thứ đang làm dở → ẩn hết.
+ *  - Game bỏ qua trang chủ (BO_QUA_HOME): không có Home để về, không cho nhảy màn tuỳ ý,
+ *    nhưng "Level tiếp" là đường đi duy nhất sang màn sau nên phải giữ.
  */
-function donNutKhongDungCho() {
-  for (const id of ['homeBtn', 'winHome', 'loseHome', 'next']) {
+function anNutDieuHuong({ giuLevelTiep = false } = {}) {
+  const ids = ['homeBtn', 'winHome', 'loseHome'];
+  if (!giuLevelTiep) ids.push('next');
+  for (const id of ids) {
     const el = document.getElementById(id); if (el) el.hidden = true;
   }
   document.querySelectorAll('.lvnav').forEach(el => { el.hidden = true; });
