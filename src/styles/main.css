@@ -614,12 +614,12 @@ html[data-art="cozy"] .pause::before{content:none;width:72%;height:72%;
 html[data-art="cozy"] .dock{gap:0;padding:0 calc(6% + var(--sar)) calc(1.9em + var(--sab)) calc(6% + var(--sal))}
 html[data-art="cozy"] .dock::before{content:"";position:absolute;left:calc(3.5% + var(--sal));right:calc(6% + var(--sar));left:calc(6% + var(--sal));top:0;height:5em;
   border-radius:999px;background:var(--pill);box-shadow:0 8px 20px rgba(90,58,34,.16), inset 0 -3px 0 rgba(90,58,34,.07)}
-html[data-art="cozy"] .boost,html[data-art="cozy"] .boost.has-art{position:relative;height:5em;padding:0;gap:0;background:none;box-shadow:none;border:0;justify-content:center}
+html[data-art="cozy"] .boost,html[data-art="cozy"] .boost.has-art{position:relative;font-size:inherit;height:5em;padding:0;gap:0;background:none;box-shadow:none;border:0;justify-content:center}
 /* icon đã cắt bỏ khung kem ngay trong file ảnh (tools: cắt phần khác màu kem), chỉ còn hình */
-html[data-art="cozy"] .boost .ic,html[data-art="cozy"] .boost.has-art .ic{width:2.9em;height:2.9em;background-size:contain}
+html[data-art="cozy"] .boost .ic,html[data-art="cozy"] .boost.has-art .ic{width:3.2em;height:3.2em;background-size:contain}
 html[data-art="cozy"] .boost .nm{display:none}
 html[data-art="cozy"] .boost + .boost::before{content:"";position:absolute;left:0;top:1.35em;bottom:1.35em;width:1.5px;background:rgba(90,58,34,.12)}
-html[data-art="cozy"] .boost .badge,html[data-art="cozy"] .boost.has-art .badge{top:.55em;right:calc(50% - 2.3em);background:#F0524D;color:#fff;border:2px solid #fff;min-width:1.5em;height:1.5em;font-size:.9em;box-shadow:none}
+html[data-art="cozy"] .boost .badge,html[data-art="cozy"] .boost.has-art .badge{top:.35em;right:calc(50% - 2.75em);background:#F0524D;color:#fff;border:2px solid #fff;min-width:1.5em;height:1.5em;font-size:.9em;line-height:1;box-shadow:none}
 html[data-art="cozy"] .boost:disabled{filter:grayscale(.8);opacity:.45}
 html[data-art="cozy"] .b-freeze.has-art.on .ic{animation:frostPulse 1.1s ease-in-out infinite alternate}
 
