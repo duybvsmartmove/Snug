@@ -41,6 +41,7 @@ const D = {
     autoNoPlan: 'No packing plan found', autoAll: 'Autoplay: everything fits', autoSome: 'Autoplay: only {a}/{b} fit',
     autoDoneLeft: 'Autoplay done · {n} items left', autoDoneFit: 'Autoplay done · snug fit!',
     autoStuck: 'No room for {n} more — this level needs a booster',
+    autoRetry: 'Not a fit · unpacking to try again ({a}/{b})',
     // Difficulty tiers (content stays in English)
     Easy: 'Easy', Medium: 'Medium', Hard: 'Hard', 'Very Hard': 'Very Hard', Challenge: 'Challenge',
   },
@@ -68,6 +69,7 @@ const D = {
     autoNoPlan: 'Không tìm được cách xếp nào', autoAll: 'Tự chơi: máy xếp được hết', autoSome: 'Tự chơi: máy chỉ xếp được {a}/{b}',
     autoDoneLeft: 'Tự chơi xong · còn {n} món chưa vào túi', autoDoneFit: 'Tự chơi xong · vừa khít!',
     autoStuck: 'Hết chỗ cho {n} món — màn này cần booster',
+    autoRetry: 'Chưa vừa · tháo ra xếp lại ({a}/{b})',
     Easy: 'Dễ', Medium: 'Vừa', Hard: 'Khó', 'Very Hard': 'Rất khó', Challenge: 'Thách đấu',
   },
 };

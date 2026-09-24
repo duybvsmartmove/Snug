@@ -8,7 +8,7 @@
 //          đúng khung hình: túi đầy một nửa, món cuối đang bay…
 import Matter from 'matter-js';
 import { thaVaoSan } from './level.js';
-import { S, BAG, isHeld } from './state.js';
+import { S, BAG, isHeld, TABLE_Y, W } from './state.js';
 import { KEY_ID, MYSTERY } from '../data/items.js';
 import { makeItem } from './physics.js';
 import { solve, solveAsync } from '../gen/solver.js';
@@ -24,6 +24,12 @@ const { Body, World, Bounds, Collision, Vector } = Matter;
 const NHIP = { moDau: 300, bay: 210, nghi: 60, ketThuc: 420, langToiDa: 620, tayToi: 260, tayNhac: 120 };
 
 let running = false;
+// Ván mà máy đang chơi. Chơi lại / đổi màn là dựng ván mới (S.phienVan tăng): mọi vòng lặp
+// của máy hỏi song() thay vì chỉ hỏi running, nên máy của ván cũ thôi ngay chứ không chạy
+// song song với máy mới, cùng nhấc cùng đặt một món.
+let vanMay = -1;
+const song = () => running && S.phienVan === vanMay;
+let dangChay = null;            // Promise của lượt chạy hiện tại, lượt mới chờ nó thoát hẳn
 let mode = 'full';
 let waitingStep = false;        // step: đang đứng chờ lệnh xếp món tiếp
 let releaseStep = null;         // hàm mở khoá cho lần chờ hiện tại
@@ -55,7 +61,7 @@ const note = (msg, ms) => { if (!quiet) toast(msg, ms); };
 async function choLang(body) {
   const t0 = performance.now();
   await wait(NHIP.nghi);
-  while (running && performance.now() - t0 < NHIP.langToiDa / heSo()) {
+  while (song() && performance.now() - t0 < NHIP.langToiDa / heSo()) {
     if (body.speed < .35 && body.angularSpeed < .06) break;
     await wait(32);
   }
@@ -69,7 +75,7 @@ async function animate(ms, fn) {
     fn(k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
     if (k >= 1) break;
     await wait(16 * heSo());
-    if (!running) return;
+    if (!song()) return;
   }
 }
 
@@ -137,6 +143,11 @@ const DANH_MUC = [
 ];
 const MOI_CAU_HINH = { tries: 20000, budgetMs: 1500 };
 let cauHinhDangDung = DANH_MUC[0];
+// Kẹt giữa chừng (còn món mà hết chỗ) thì tháo hết đồ ra khay, tính lại từ đầu bằng kế hoạch
+// khác rồi xếp lại, tối đa chừng này lần. Kế hoạch trên lưới là ước lượng, đồ rơi thật lệch
+// vài px là món cuối có thể hết chỗ; đổi cách xếp thường là qua.
+const SO_LAN_XEP = 5;
+let lanThu = 0;
 
 // Có được dùng booster khi hết chỗ không. Mặc định KHÔNG: video quảng cáo cần cảnh xếp
 // vừa bằng tay. Bật lên thì máy dùng như người chơi: lắc → thu nhỏ → bỏ.
@@ -193,16 +204,22 @@ async function lapKeHoach(ungVien) {
   const tt = hienTrang(ungVien);
   let best = null;
   const t0 = performance.now();
-  for (let i = 0; i < DANH_MUC.length; i++) {
-    const ch = DANH_MUC[i];
-    if (!running) break;
-    const sol = await solveAsync(tt, { ...MOI_CAU_HINH, ...ch });
+  // Mỗi lần xếp lại bắt đầu từ một cấu hình khác và gieo ngẫu nhiên khác: lặp lại đúng
+  // kế hoạch vừa thất bại thì chỉ thất bại y như cũ.
+  // Không tìm ra kế hoạch trọn với hạt giống mới thì quay về hạt giống gốc: kế hoạch gốc
+  // thường vẫn đúng, lần trước hỏng là do đồ rơi lệch chứ không phải do kế hoạch.
+  const n = DANH_MUC.length, ds = [];
+  for (const seed of lanThu ? [1 + lanThu * 7919, 1] : [1]) for (let i = 0; i < n; i++) ds.push({ ...DANH_MUC[(i + lanThu) % n], seed });
+  for (let i = 0; i < ds.length; i++) {
+    const ch = ds[i];
+    if (!song()) break;
+    const sol = await solveAsync(tt, { ...MOI_CAU_HINH, ...ch, huy: () => !song() });
     sol.cauHinh = ch;
-    ghi(`  thử cell${ch.cell}/${ch.mask}/${ch.goc}: ${sol.placedCount}/${sol.needCount} ${sol.solvable ? 'TRỌN' : ''} (${sol.tries} lần)`);
+    ghi(`  thử cell${ch.cell}/${ch.mask}/${ch.goc}#${ch.seed}: ${sol.placedCount}/${sol.needCount} ${sol.solvable ? 'TRỌN' : ''} (${sol.tries} lần)`);
     const hon = !best || sol.placedCount > best.placedCount;
     if (!best || sol.solvable || hon) best = sol;
     if (sol.solvable) break;                    // có kế hoạch trọn thì thôi, không thử tiếp
-    if (i >= 1 && !hon) break;                  // hai cấu hình liền không nhích được thì lưới không phải chỗ nghẽn
+    if (i >= 1 && !hon && lanThu === 0) break;  // lần đầu: hai cấu hình liền không nhích được thì thôi, cho nhanh
   }
   cauHinhDangDung = best?.cauHinh || DANH_MUC[0];
   keHoach = (best?.plan || []).filter(st => !ngoaiTui(st) && st.ref && S.bodies.includes(st.ref));
@@ -300,7 +317,7 @@ async function moKhoa(hop, chia) {
   await moveTo(hop, chia.position.x, chia.position.y - 4, hop.angle);
   // chờ vài bước vật lý cho checkUnlock bắt va chạm
   const t0 = performance.now();
-  while (running && S.bodies.includes(hop) && hop.locked && performance.now() - t0 < 700) await wait(32);
+  while (song() && S.bodies.includes(hop) && hop.locked && performance.now() - t0 < 700) await wait(32);
   if (S.bodies.includes(hop)) { World.add(S.world, hop); ghi('  mở khoá KHÔNG thành, thả hộp tại chỗ'); }
   else { const moi = S.bodies.find(b => b.itemId === hop.itemId); ghi(`  đã mở: ${moi?.label} giờ ở (${Math.round(moi?.position.x)},${Math.round(moi?.position.y)}), ${moi && bagZone(moi).inZone ? 'trong vùng túi' : 'ngoài khay'}`); }
   if (S.finger) S.finger = { ...S.finger, down: false };
@@ -308,8 +325,18 @@ async function moKhoa(hop, chia) {
 }
 
 /** Những món còn phải xếp: đang ở khay, chưa vào túi, không buộc dây (xếp tay khó mô phỏng) */
+// Cộng thêm món KẸT: đã nằm trong vùng túi mà mãi không được tính là vào (lòi nửa ra ngoài
+// miệng túi, chèn lệch). Người chơi thấy thì nhấc lên đặt lại; máy cũng vậy: kẹt quá KET_LAU
+// thì món đó thành ứng viên, được nhấc ra và tìm chỗ khác, không đứng chờ nó tự trả về khay.
+const KET_LAU = 1500;
+function ketLau(b) {
+  const now = performance.now();
+  if (b.isStatic || S.checked.has(b.itemId) || !bagZone(b).inZone || b.speed > .4) { b.ketTu = null; return false; }
+  if (b.ketTu == null) b.ketTu = now;
+  return now - b.ketTu > KET_LAU / (S.timeScale || 1);
+}
 const conOKhay = () => S.bodies.filter(b => !b.chuaVao && !b.tether && b.itemId !== KEY_ID
-  && !S.checked.has(b.itemId) && !S.gone.has(b.itemId) && !isHeld(b) && !bagZone(b).inZone);
+  && !S.checked.has(b.itemId) && !S.gone.has(b.itemId) && !isHeld(b) && (!bagZone(b).inZone || ketLau(b)));
 
 /**
  * Hết chỗ mà đồ còn ở khay: làm đúng việc người chơi làm, theo thứ tự nhẹ tay trước.
@@ -327,12 +354,82 @@ async function dungBooster() {
 
 /** Chạy tự chơi cho level đang mở */
 export async function autoplay({ mode: m = 'full' } = {}) {
+  if (song()) return;                                 // đang chơi chính ván này rồi
+  if (dangChay) { stopAutoplay(); await dangChay; }   // máy của ván cũ còn dở: chờ nó thoát hẳn
   if (running || S.won || S.lost || !S.LEVEL) return;
-  running = true; mode = m; daXepMon = 0; waitingStep = false; keHoach = [];
+  running = true; vanMay = S.phienVan; mode = m; daXepMon = 0; waitingStep = false; keHoach = []; lanThu = 0;
   S.selected = null; S.drag = null;
-  try { await chayTuChoi(); }
-  catch (e) { console.error('autoplay:', e); ghi('LỖI ' + (e?.message || e)); }
-  finally { S.finger = null; running = false; waitingStep = false; }
+  dangChay = (async () => {
+    try { await chayTuChoi(); }
+    catch (e) { console.error('autoplay:', e); ghi('LỖI ' + (e?.message || e)); }
+    finally { S.finger = null; running = false; waitingStep = false; }
+  })();
+  await dangChay; dangChay = null;
+}
+
+/**
+ * Hết chỗ mà còn lượt xếp lại: tháo hết đồ đã xếp ra khay rồi báo vòng chính lập kế hoạch mới.
+ * Trả về false khi đã xếp lại đủ số lần.
+ */
+async function xepLai() {
+  if (lanThu + 1 >= SO_LAN_XEP || !song()) return false;
+  lanThu++;
+  ghi(`XẾP LẠI lần ${lanThu + 1}/${SO_LAN_XEP}`);
+  note(t('autoRetry', { a: lanThu + 1, b: SO_LAN_XEP }), 2200);
+  await thaoHet();
+  keHoach = [];
+  return song();
+}
+
+/** Chỗ trống trên khay gần (x, y): thử dần lên cao và sang hai bên, không lún vào ai, không chạm túi */
+function choTrongKhay(body, x, y, goc) {
+  const def = body.locked ? MYSTERY : (body.realDef || body.def);
+  const tam = makeItem(def, x, y);
+  const k = body.artScale || 1;
+  if (k !== 1) { Body.scale(tam, k, k); tam.artScale = k; }
+  Body.setAngle(tam, goc);
+  const khac = S.bodies.filter(o => o !== body && !o.chuaVao && !isHeld(o)).concat(S.staticBodies);
+  const vuong = () => {
+    const bb = tam.bounds;
+    if (bb.min.x < 4 || bb.max.x > W - 4 || bagZone(tam).inZone) return true;
+    const manhTam = tam.parts.length > 1 ? tam.parts.slice(1) : [tam];
+    for (const o of khac) {
+      if (!Bounds.overlaps(o.bounds, bb)) continue;
+      const manhO = o.parts.length > 1 ? o.parts.slice(1) : [o];
+      for (const a of manhTam) for (const b of manhO) { const c = Collision.collides(a, b); if (c && c.collided && c.depth > 1) return true; }
+    }
+    return false;
+  };
+  for (let dy = 0; dy >= -120; dy -= 20) for (const dx of [0, -36, 36, -72, 72, -110, 110]) {
+    Body.setPosition(tam, { x: Math.max(30, Math.min(W - 30, x + dx)), y: y + dy });
+    if (!vuong()) return { x: tam.position.x, y: tam.position.y };
+  }
+  return { x, y: y - 60 };   // chật quá: thả từ trên cao xuống, vật lý tự dàn
+}
+
+/** Nhấc từng món trong túi (từ trên xuống) đặt về khay, rồi chờ đống lắng và game gỡ khỏi danh sách đã xếp */
+async function thaoHet() {
+  const trongTui = S.bodies.filter(b => !b.chuaVao && !b.isStatic && !isHeld(b) && !b.datSan
+    && !b.tether && b.itemId !== KEY_ID && bagZone(b).inZone);
+  trongTui.sort((a, b) => a.position.y - b.position.y);   // món trên cùng trước, không rút chân đống đồ
+  for (const b of trongTui) {
+    if (!song()) return;
+    if (!S.bodies.includes(b)) continue;
+    const goc = S.LEVEL.items.find(it => it.id === b.itemId && !it.inBag);
+    const cho = choTrongKhay(b, goc?.x ?? W / 2, goc?.y ?? TABLE_Y + 30, goc?.angle || 0);
+    await tayToi(b);
+    World.remove(S.world, b);
+    Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
+    await moveTo(b, cho.x, cho.y, goc?.angle || 0, NHIP.bay * .75);
+    if (!song()) { World.add(S.world, b); return; }
+    World.add(S.world, b);
+    Body.setVelocity(b, { x: 0, y: 0 }); Body.setAngularVelocity(b, 0);
+    if (S.finger) S.finger = { ...S.finger, down: false };
+    await wait(NHIP.nghi);
+  }
+  const ids = trongTui.map(b => b.itemId);
+  for (let i = 0; i < 80 && song() && (ids.some(id => S.checked.has(id)) || S.bodies.some(b => !b.isStatic && b.speed > .6)); i++) await waitGame(50);
+  ghi(`đã tháo ${trongTui.length} món ra khay`);
 }
 
 async function chayTuChoi() {
@@ -343,7 +440,7 @@ async function chayTuChoi() {
   // xuyên trần rồi rơi xuống — add thẳng vào thế giới là nó kẹt trên trần mãi.
   for (const b of S.bodies) if (b.chuaVao) thaVaoSan(b);
   // rồi chờ cả đống rơi xuống sân nằm yên, không thì máy nhấc món đang lơ lửng giữa trời
-  for (let i = 0; i < 200 && (!S.tuiDaDung || S.bodies.some(b => b.dangRoi || b.speed > .6)); i++) await waitGame(50);
+  for (let i = 0; i < 200 && song() && (!S.tuiDaDung || S.bodies.some(b => b.dangRoi || b.speed > .6)); i++) await waitGame(50);
 
   const uocLuong = solve(S.LEVEL, { tries: 120, budgetMs: 120 });
   note(uocLuong.solvable ? t('autoAll') : t('autoSome', { a: uocLuong.placedCount, b: uocLuong.needCount }), 2600);
@@ -352,10 +449,10 @@ async function chayTuChoi() {
   // Vòng chính: mỗi lượt tính lại từ hiện trạng, đặt một món, chờ lắng. Kẹt thì booster.
   // Món bị hất ra khay (luật đẩy-ra-khỏi-túi) tự quay lại danh sách ứng viên ở lượt sau.
   let ketKhongLoi = 0;
-  while (running && !S.won && !S.lost) {
+  while (song() && !S.won && !S.lost) {
     // Còn hộp bí ẩn và còn chìa → mở trước
     const hop = S.bodies.find(b => b.locked && !b.chuaVao && !isHeld(b)), chia = S.bodies.find(b => b.itemId === KEY_ID);
-    if (hop && chia) { await cuaCho(); if (!running) break; await moKhoa(hop, chia); daXepMon++; continue; }
+    if (hop && chia) { await cuaCho(); if (!song()) break; await moKhoa(hop, chia); daXepMon++; continue; }
 
     const ungVien = conOKhay();
     if (!ungVien.length) {
@@ -363,25 +460,31 @@ async function chayTuChoi() {
       // của nó? Luật đẩy-ra-khỏi-túi cần chừng 2 giây THỰC (không theo tốc độ game) để
       // trả món về khay, lúc đó nó mới thành ứng viên. Chờ tới 5 giây rồi mới chịu thua.
       const keCon = S.bodies.some(b => !b.chuaVao && !b.tether && b.itemId !== KEY_ID && !S.checked.has(b.itemId) && !S.gone.has(b.itemId));
-      if (!keCon || ++ketKhongLoi > 12) { ghi(keCon ? 'dừng: món kẹt không được trả về khay' : 'dừng: không còn món nào ở khay'); break; }
+      if (!keCon) { ghi('dừng: không còn món nào ở khay'); break; }
+      if (++ketKhongLoi > 12) {
+        ghi('món kẹt không được trả về khay');
+        if (await xepLai()) { ketKhongLoi = 0; continue; }
+        break;
+      }
       await new Promise(r => setTimeout(r, 400)); continue;   // thời gian thực, không chia tốc độ
     }
     ketKhongLoi = 0;
     const buoc = await buocTiepTheo(ungVien);
-    if (!running) break;
+    if (!song()) break;
     if (!buoc) {
+      if (await xepLai()) continue;                              // tháo ra, xếp lại theo cách khác
       if (dungBoosterKhiKet && await dungBooster()) continue;   // đã dùng booster, tính lại
       note(t('autoStuck', { n: ungVien.length }), 3200);
       break;                                                     // hết cách
     }
-    await cuaCho(); if (!running) break;
+    await cuaCho(); if (!song()) break;
     await datMon(buoc.body, buoc.step); daXepMon++;
     const b = buoc.body;
     if (S.bodies.includes(b)) { const gh = gocHinh(b); ghi(`  → ${b.label} gốc hình ở (${Math.round(gh.x)},${Math.round(gh.y)}) ${Math.round(b.angle * 180 / Math.PI)}°, kế hoạch (${buoc.step.x},${buoc.step.y}) ${Math.round((buoc.step.angle || 0) * 180 / Math.PI)}°`); }
   }
 
   await wait(NHIP.ketThuc);
-  if (running) {
+  if (song()) {
     const left = S.ITEMS.filter(d => !S.checked.has(d.id)).length;
     note(left ? t('autoDoneLeft', { n: left }) : t('autoDoneFit'), 3000);
   }

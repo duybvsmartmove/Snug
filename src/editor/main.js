@@ -369,6 +369,11 @@ $('autoplayBtn').addEventListener('click', () => {
   frame.contentWindow.postMessage({ type: 'autoplay' }, '*');
   status('Máy đang xếp thử…', '');
 });
+// Chơi lại: dừng máy (nếu đang chạy) rồi dựng lại màn từ đầu, đồ mưa xuống như mở màn
+$('restartBtn').addEventListener('click', () => {
+  frame.contentWindow.postMessage({ type: 'restart' }, '*');
+  status('Đã dựng lại màn', 'ok');
+});
 
 // ---------- hộp thoại máy chọn đồ ----------
 const genModal = $('genModal');

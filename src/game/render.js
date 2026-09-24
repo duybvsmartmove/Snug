@@ -191,6 +191,8 @@ function step(dt) {
 }
 
 let last = performance.now();
+const BUOC = 1000 / 60;   // độ dài một bước vật lý, luôn bằng nhau
+let du = 0;               // thời gian thực dồn lại chưa chạy thành bước
 function frame(now) {
   const dt = Math.min(now - last, 33); last = now;
   const active = !S.won && !S.lost && !S.paused && S.engine;
@@ -211,10 +213,17 @@ function frame(now) {
       // rung mãi không nằm yên. Đã thử chia theo mốc 16,7ms — khung hình dài 17ms bị chia
       // thành hai bước 8,5ms, xen với khung 16,6ms không chia, và ra đúng cái rung đó.
       // Một bước lẻ cực ngắn (0,3ms) còn tệ hơn: nhân 50 lần, đồ bay khỏi sân.
+      //
+      // Nhưng ngay cả "một bước bằng dt" cũng chưa đều: khung hình thật dài 16–18ms (màn
+      // 120Hz thì 8 rồi 16ms), đủ để đồ chèn nhau quanh món nhẹ, dễ xoay như chùm chìa khoá
+      // rung rung mãi. Nên giờ vật lý chạy theo bước CỐ ĐỊNH 1/60 giây, dồn thời gian thực
+      // vào quỹ `du` rồi rút ra từng bước (như màn Splash). Cho phép non 1,5ms để màn 60Hz
+      // có khung 16,4ms vẫn đi đúng một bước, không lúc 0 lúc 2 bước làm hình giật.
       const ts = S.timeScale || 1;
-      const n = Math.max(1, Math.ceil(ts)), d = dt * ts / n;
-      for (let i = 0; i < n; i++) step(d);
-    }
+      const n = Math.max(1, Math.ceil(ts)), d = BUOC * ts / n;
+      du = Math.min(du + dt, BUOC * 3);
+      while (du >= BUOC - 1.5) { du -= BUOC; for (let i = 0; i < n; i++) step(d); }
+    } else du = 0;
     tickFreeze();
     checkEject();
     updateChecked();

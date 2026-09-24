@@ -372,7 +372,7 @@ export function solve(level, opts = {}) {
 export async function solveAsync(level, opts = {}) {
   const o = { ...MAC_DINH, ...opts };
   const t0 = performance.now();
-  const hetGio = () => performance.now() - t0 > o.budgetMs;
+  const hetGio = () => performance.now() - t0 > o.budgetMs || !!o.huy?.();   // huy: người gọi đã bỏ cuộc
   const nha = () => new Promise(r => setTimeout(r, 0));
   const { g, mon, CELL } = chuanBi(level, o);
   const needCount = mon.length;

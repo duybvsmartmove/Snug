@@ -24,6 +24,7 @@ const SCENE_CLS = {};
 /** Dựng level từ object JSON */
 export function build(level) {
   S.LEVEL = level;
+  S.phienVan = (S.phienVan || 0) + 1;   // máy tự chơi đang chạy cho ván cũ thấy số này đổi thì tự dừng
   setContainer(resolveContainer(level.container || {}, BAG_SKINS));
   theme.ink = level.ink || SCENE_INK[Number(level.background)] || '#3B2A4A';
   // Chìa khoá là công cụ mở hộp bí ẩn, không phải món phải xếp → không tính vào packing list
