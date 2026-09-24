@@ -9,8 +9,9 @@
 import Matter from 'matter-js';
 import { ITEM_DEFS } from '../data/items.js';
 import { makeItem } from '../game/physics.js';
+import { sfx, initAudio } from './sfx.js';
 
-const { Engine, World, Bodies, Body } = Matter;
+const { Engine, World, Bodies, Body, Events } = Matter;
 const $ = id => document.getElementById(id);
 
 const W = 420;                 // bề ngang logic, như sân chơi; chiều cao theo màn thật
@@ -60,6 +61,21 @@ export function showSplash({ khiKhep } = {}) {
 
   const engine = Engine.create({ positionIterations: 6, velocityIterations: 4 });
   engine.gravity.y = 1.05;
+  // Tiếng đồ rơi chạm nhau như trong ván: dựng AudioContext ngay (trên app Android phát được
+  // từ đầu; trên web trình duyệt chỉ mở tiếng sau lần chạm đầu, chạm bỏ qua Splash cũng là chạm).
+  initAudio();
+  let tiengMoc = 0, tiengDem = 0;
+  Events.on(engine, 'collisionStart', e => {
+    const now = performance.now();
+    if (now - tiengMoc > 90) { tiengMoc = now; tiengDem = 0; }
+    for (const { bodyA, bodyB } of e.pairs) {
+      const mon = bodyA.isStatic ? bodyB : bodyA;
+      const v = Math.max(bodyA.speed, bodyB.speed);
+      if (v < 2 || mon.moTu != null || ++tiengDem > 2) continue;
+      const manh = Math.min(1, (v - 2) / 5);
+      sfx('land', { gain: .18 + manh * .35, rate: 1.1 + (Math.random() - .5) * .25 });
+    }
+  });
   const r = { engine, bodies: [], raf: 0, H: 760, k: 1, dpr: 1, t: 0, next: 0, spawned: 0, walls: [] };
   run = r;
 
