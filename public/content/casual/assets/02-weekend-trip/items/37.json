@@ -1,0 +1,64 @@
+{
+  "id": 37,
+  "slug": "shorts2",
+  "code": "ITM_037",
+  "name": "Quần short (đi chơi)",
+  "nameEn": "Shorts (trip)",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -23.5,
+        -35.38
+      ],
+      [
+        37.75,
+        -27.38
+      ],
+      [
+        43.75,
+        -6.13
+      ],
+      [
+        41.25,
+        20.38
+      ],
+      [
+        37,
+        33.13
+      ],
+      [
+        20.5,
+        34.63
+      ],
+      [
+        -40.25,
+        22.63
+      ],
+      [
+        -43.75,
+        17.63
+      ],
+      [
+        -41.25,
+        3.63
+      ],
+      [
+        -31.75,
+        -23.13
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/37.png",
+    "pixelsPerUnit": 4
+  }
+}

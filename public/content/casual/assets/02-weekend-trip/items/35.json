@@ -1,0 +1,80 @@
+{
+  "id": 35,
+  "slug": "tshirt2",
+  "code": "ITM_035",
+  "name": "Áo phông (đi chơi)",
+  "nameEn": "T-shirt (trip)",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -20,
+        -34.63
+      ],
+      [
+        -1.5,
+        -28.88
+      ],
+      [
+        10.25,
+        -29.63
+      ],
+      [
+        19.75,
+        -33.88
+      ],
+      [
+        40.5,
+        -25.38
+      ],
+      [
+        44.25,
+        -15.13
+      ],
+      [
+        41,
+        24.38
+      ],
+      [
+        38,
+        33.88
+      ],
+      [
+        -13.25,
+        31.88
+      ],
+      [
+        -37.75,
+        29.13
+      ],
+      [
+        -43,
+        26.13
+      ],
+      [
+        -43,
+        -4.38
+      ],
+      [
+        -38.75,
+        -27.63
+      ],
+      [
+        -35.5,
+        -30.38
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/35.png",
+    "pixelsPerUnit": 4
+  }
+}

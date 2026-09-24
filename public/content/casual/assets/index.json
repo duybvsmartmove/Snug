@@ -40,7 +40,11 @@
     "47": "assets/02-weekend-trip/items/47.json",
     "48": "assets/02-weekend-trip/items/48.json",
     "49": "assets/02-weekend-trip/items/49.json",
-    "50": "assets/02-weekend-trip/items/50.json"
+    "50": "assets/02-weekend-trip/items/50.json",
+    "35": "assets/02-weekend-trip/items/35.json",
+    "36": "assets/02-weekend-trip/items/36.json",
+    "37": "assets/02-weekend-trip/items/37.json",
+    "38": "assets/02-weekend-trip/items/38.json"
   },
   "backgrounds": {
     "1": "assets/01-school-day/backgrounds/1.json"
