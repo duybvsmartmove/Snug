@@ -603,8 +603,8 @@ html[data-art="cozy"] .counter{background:var(--pill);border:0;border-radius:999
 html[data-art="cozy"] .counter b{color:var(--red);font-size:1.9em}
 html[data-art="cozy"] .counter span{color:#5A3A22;font:800 .74em "Nunito";letter-spacing:.03em;text-transform:uppercase}
 html[data-art="cozy"] .pause,html[data-art="cozy"] .pause.has-art{position:static;flex:none;font-size:inherit;box-sizing:border-box;width:2.3em;height:var(--pillh);border-radius:.6em;
-  background:var(--pill) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3.5' y='3' width='7' height='18' rx='3.5' fill='%23B0622F'/><rect x='13.5' y='3' width='7' height='18' rx='3.5' fill='%23B0622F'/></svg>") center/58% no-repeat;
-  border:2px solid #E2C59F;box-shadow:var(--pill-shadow);color:#B0622F}
+  background:#FBEBD3 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2.5' y='2' width='8' height='20' rx='4' fill='%23B5633A'/><rect x='13.5' y='2' width='8' height='20' rx='4' fill='%23B5633A'/></svg>") center/54% no-repeat;
+  border:2.5px solid #D9B48C;box-shadow:var(--pill-shadow);color:#B5633A}
 /* hai gạch tạm dừng vẽ lại to và bo tròn như mẫu (svg gốc trong HTML mảnh quá) */
 html[data-art="cozy"] .pause svg{display:none}
 html[data-art="cozy"] .pause::before{content:none;width:72%;height:72%;
@@ -618,8 +618,8 @@ html[data-art="cozy"] .boost,html[data-art="cozy"] .boost.has-art{position:relat
 /* icon đã cắt bỏ khung kem ngay trong file ảnh (tools: cắt phần khác màu kem), chỉ còn hình */
 html[data-art="cozy"] .boost .ic,html[data-art="cozy"] .boost.has-art .ic{width:2.9em;height:2.9em;background-size:contain}
 html[data-art="cozy"] .boost .nm{display:none}
-html[data-art="cozy"] .boost + .boost::before{content:"";position:absolute;left:0;top:1.15em;bottom:1.15em;width:1.5px;background:rgba(90,58,34,.13)}
-html[data-art="cozy"] .boost .badge,html[data-art="cozy"] .boost.has-art .badge{top:.7em;right:calc(50% - 2em);background:#F0524D;color:#fff;border:2px solid #fff;min-width:1.55em;height:1.55em;font-size:.9em;box-shadow:none}
+html[data-art="cozy"] .boost + .boost::before{content:"";position:absolute;left:0;top:1.35em;bottom:1.35em;width:1.5px;background:rgba(90,58,34,.12)}
+html[data-art="cozy"] .boost .badge,html[data-art="cozy"] .boost.has-art .badge{top:.55em;right:calc(50% - 2.3em);background:#F0524D;color:#fff;border:2px solid #fff;min-width:1.5em;height:1.5em;font-size:.9em;box-shadow:none}
 html[data-art="cozy"] .boost:disabled{filter:grayscale(.8);opacity:.45}
 html[data-art="cozy"] .b-freeze.has-art.on .ic{animation:frostPulse 1.1s ease-in-out infinite alternate}
 
