@@ -3,7 +3,7 @@ import Matter from 'matter-js';
 import { S, BAG, setContainer, toAbs, W, TABLE_Y } from './state.js';
 import { MYSTERY, defById, KEY_ID } from '../data/items.js';
 import { theme } from '../art/helpers.js';
-import { makeItem, createWorld, NHOM_TUI } from './physics.js';
+import { makeItem, createWorld, NHOM_TRAN } from './physics.js';
 import { resolveContainer } from '../data/bag.js';
 import { BAG_SKINS } from '../art/scene-registry.js';
 import { createTethers } from './mechanics.js';
@@ -80,11 +80,13 @@ onLangChange(veThanhTen);
 
 // Mở màn: đồ mưa từ trên đỉnh màn xuống sân, lần lượt chứ không đổ ụp một lúc.
 // Rơi cùng lúc thì mấy chục cú va chạm dồn vào một phần tư giây, nghe thành một tiếng ù
-// và mắt cũng không kịp thấy gì. Món giữ đúng cột x người thiết kế đặt, chỉ khởi hành từ
-// trên cao; lúc rơi qua vùng túi thì không va vào túi (xem tickEntrance), tới sân mới va.
+// và mắt cũng không kịp thấy gì. Món giữ cột x người thiết kế đặt, chỉ khởi hành từ trên
+// cao và va vào túi như thật: trúng vai túi thì trượt xuống hai bên. Món nào xuất phát ngay
+// trên chóp túi thì dời sang bên một chút, không thì nó nằm cân bằng trên chóp.
 const NHIP_THA = 110;         // mili giây giữa hai món
 const CHO_DAU = 150;          // nghỉ một nhịp trước khi món đầu tiên rơi
 const CAO_ROI = 90;           // món xuất phát cách đỉnh màn chừng này phía trên
+const TRANH_CHOP = 62;        // không thả món trong dải rộng chừng này hai bên tâm túi
 
 function thaDoVaoSan() {
   const datSan = S.bodies.filter(b => b.datSan);
@@ -93,8 +95,11 @@ function thaDoVaoSan() {
   const t0 = S.clock + CHO_DAU;
   roiXuong.forEach((b, i) => {
     b.chuaVao = true; b.vaoLuc = t0 + i * NHIP_THA;
-    // đưa lên trên đỉnh màn, giữ cột x; góc xoay như người thiết kế đặt
-    Body.setPosition(b, { x: b.position.x, y: -CAO_ROI - Math.random() * 40 });
+    // đưa lên trên đỉnh màn, giữ cột x (tránh dải ngay trên chóp túi); góc xoay như người thiết kế đặt
+    let x = b.position.x;
+    const lech = x - BAG.cx;
+    if (Math.abs(lech) < TRANH_CHOP) x = BAG.cx + (lech === 0 ? (i % 2 ? 1 : -1) : Math.sign(lech)) * TRANH_CHOP;
+    Body.setPosition(b, { x, y: -CAO_ROI - Math.random() * 40 });
   });
 }
 
@@ -105,9 +110,9 @@ export function tickEntrance() {
   for (const b of S.bodies) {
     if (!b.chuaVao || now < b.vaoLuc) continue;
     b.chuaVao = false;
-    // Đang rơi qua vùng túi thì xuyên qua túi và vật cản; qua khỏi đáy túi mới va như thường
+    // Xuyên qua trần vô hình ở ngoài màn; vào tới màn rồi thì va chạm bình thường (kể cả với túi)
     b.dangRoi = true;
-    b.collisionFilter = { ...b.collisionFilter, mask: (b.collisionFilter.mask ?? 0xFFFFFFFF) & ~NHOM_TUI };
+    b.collisionFilter = { ...b.collisionFilter, mask: (b.collisionFilter.mask ?? 0xFFFFFFFF) & ~NHOM_TRAN };
     for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: b.collisionFilter.mask };
     Body.setVelocity(b, { x: (Math.random() - .5) * 1.2, y: 2 + Math.random() * 2 });
     Body.setAngularVelocity(b, (Math.random() - .5) * .08);
@@ -115,7 +120,7 @@ export function tickEntrance() {
   }
   for (const b of S.bodies) {
     if (!b.dangRoi) continue;
-    if (b.bounds.min.y > BAG.BB + 4 || b.position.y > TABLE_Y) {
+    if (b.bounds.min.y > 0) {
       b.dangRoi = false;
       b.collisionFilter = { ...b.collisionFilter, mask: 0xFFFFFFFF };
       for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: 0xFFFFFFFF };
