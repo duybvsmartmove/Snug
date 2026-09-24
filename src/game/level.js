@@ -95,6 +95,9 @@ function thaDoVaoSan() {
   const t0 = S.clock + CHO_DAU;
   roiXuong.forEach((b, i) => {
     b.chuaVao = true; b.vaoLuc = t0 + i * NHIP_THA;
+    // Khung xem thử của editor: đồ nằm đúng chỗ người dựng đặt, không mưa từ trên đỉnh —
+    // mỗi lần chỉnh một chi tiết là khung dựng lại, mưa lại một lượt thì không nhìn được gì.
+    if (S.preview) return;
     // đưa lên trên đỉnh màn, giữ cột x (tránh dải ngay trên chóp túi); góc xoay như người thiết kế đặt
     let x = b.position.x;
     const lech = x - BAG.cx;
@@ -103,20 +106,25 @@ function thaDoVaoSan() {
   });
 }
 
+/** Thả một món đang chờ vào thế giới vật lý ngay lúc này (mở màn dùng lần lượt, máy tự chơi dùng một lượt) */
+export function thaVaoSan(b) {
+  b.chuaVao = false;
+  // Xuyên qua trần vô hình ở ngoài màn; vào tới màn rồi thì va chạm bình thường (kể cả với túi)
+  b.dangRoi = true;
+  b.collisionFilter = { ...b.collisionFilter, mask: (b.collisionFilter.mask ?? 0xFFFFFFFF) & ~NHOM_TRAN };
+  for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: b.collisionFilter.mask };
+  Body.setVelocity(b, { x: (Math.random() - .5) * 1.2, y: 2 + Math.random() * 2 });
+  Body.setAngularVelocity(b, (Math.random() - .5) * .08);
+  World.add(S.world, b);
+}
+
 /** Gọi mỗi khung hình: thả những món đã tới lượt vào thế giới vật lý */
 export function tickEntrance() {
   if (!S.world) return;
   const now = S.clock;
   for (const b of S.bodies) {
     if (!b.chuaVao || now < b.vaoLuc) continue;
-    b.chuaVao = false;
-    // Xuyên qua trần vô hình ở ngoài màn; vào tới màn rồi thì va chạm bình thường (kể cả với túi)
-    b.dangRoi = true;
-    b.collisionFilter = { ...b.collisionFilter, mask: (b.collisionFilter.mask ?? 0xFFFFFFFF) & ~NHOM_TRAN };
-    for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: b.collisionFilter.mask };
-    Body.setVelocity(b, { x: (Math.random() - .5) * 1.2, y: 2 + Math.random() * 2 });
-    Body.setAngularVelocity(b, (Math.random() - .5) * .08);
-    World.add(S.world, b);
+    thaVaoSan(b);
   }
   for (const b of S.bodies) {
     if (!b.dangRoi) continue;

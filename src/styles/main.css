@@ -409,7 +409,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 /* ==========================================================================
    CREATIVE TOOL: ẩn từng phần HUD để lấy ảnh nền sạch. Mặc định hiện đủ như game.
    ========================================================================== */
-#phone.hide-timer .timerwrap{display:none}
+#phone.hide-timer .timer,#phone.hide-timer .counter{display:none}   /* nút tạm dừng cùng hàng, có công tắc riêng */
 #phone.hide-dock .dock{display:none}
 #phone.hide-title .titleblock{visibility:hidden}
 #phone.hide-pause .pause{visibility:hidden}

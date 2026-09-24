@@ -7,6 +7,7 @@
 //   step   xếp MỘT món rồi đứng chờ; gọi autoStep() thì xếp món tiếp. Dùng khi cần canh
 //          đúng khung hình: túi đầy một nửa, món cuối đang bay…
 import Matter from 'matter-js';
+import { thaVaoSan } from './level.js';
 import { S, BAG, isHeld } from './state.js';
 import { KEY_ID, MYSTERY } from '../data/items.js';
 import { makeItem } from './physics.js';
@@ -338,7 +339,11 @@ async function chayTuChoi() {
 
   // Đầu màn đồ vào sân lần lượt. Bấm tự chơi ngay lúc đó thì món chưa tới lượt vẫn bị
   // máy nhấc đi đặt, mà nó chưa được vẽ nên nhìn như biến mất. Cho vào sân hết trước đã.
-  for (const b of S.bodies) if (b.chuaVao) { b.chuaVao = false; World.add(S.world, b); }
+  // Thả bằng đúng hàm của mở màn: món đang chờ nằm trên đỉnh màn, ngoài trần, phải được cho
+  // xuyên trần rồi rơi xuống — add thẳng vào thế giới là nó kẹt trên trần mãi.
+  for (const b of S.bodies) if (b.chuaVao) thaVaoSan(b);
+  // rồi chờ cả đống rơi xuống sân nằm yên, không thì máy nhấc món đang lơ lửng giữa trời
+  for (let i = 0; i < 200 && S.bodies.some(b => b.dangRoi || b.speed > .6); i++) await waitGame(50);
 
   const uocLuong = solve(S.LEVEL, { tries: 120, budgetMs: 120 });
   note(uocLuong.solvable ? t('autoAll') : t('autoSome', { a: uocLuong.placedCount, b: uocLuong.needCount }), 2600);
