@@ -184,12 +184,10 @@ function play(ch, idx) {
 }
 
 // ---------- nút bật tắt tiếng ----------
+// Hai bộ nút: trên trang chủ và trong bảng tạm dừng (trang chủ đang tắt nên bảng tạm dừng là chỗ chính)
 function paintAudioButtons() {
-  const s = $('sfxBtn'), m = $('musicBtn');
-  s.innerHTML = isSfxOn() ? ICON.sfxOn : ICON.sfxOff;
-  s.classList.toggle('off', !isSfxOn());
-  m.innerHTML = isMusicOn() ? ICON.musOn : ICON.musOff;
-  m.classList.toggle('off', !isMusicOn());
+  for (const id of ['sfxBtn', 'pSfxBtn']) { const s = $(id); if (!s) continue; s.innerHTML = isSfxOn() ? ICON.sfxOn : ICON.sfxOff; s.classList.toggle('off', !isSfxOn()); }
+  for (const id of ['musicBtn', 'pMusicBtn']) { const m = $(id); if (!m) continue; m.innerHTML = isMusicOn() ? ICON.musOn : ICON.musOff; m.classList.toggle('off', !isMusicOn()); }
 }
 
 export function initHome({ chapters, onPlay: cb }) {
@@ -205,7 +203,7 @@ export function initHome({ chapters, onPlay: cb }) {
 
   // Đổi ngôn ngữ thì vẽ lại màn đang mở: chữ trên thẻ chương và bản đồ đều sinh bằng JS
   onLangChange(() => { paintAudioButtons(); if (shown.has('home')) drawHome(); if (shown.has('mapscr')) drawMap(); });
-  $('sfxBtn').addEventListener('click', () => { setSfxOn(!isSfxOn()); paintAudioButtons(); });
-  $('musicBtn').addEventListener('click', () => { setMusicOn(!isMusicOn()); paintAudioButtons(); });
+  for (const id of ['sfxBtn', 'pSfxBtn']) $(id)?.addEventListener('click', () => { setSfxOn(!isSfxOn()); paintAudioButtons(); });
+  for (const id of ['musicBtn', 'pMusicBtn']) $(id)?.addEventListener('click', () => { setMusicOn(!isMusicOn()); paintAudioButtons(); });
   paintAudioButtons();
 }

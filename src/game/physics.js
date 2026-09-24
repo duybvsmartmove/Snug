@@ -13,6 +13,8 @@ import { blockPoly, blocksArea } from '../data/blocks.js';
 const { Engine, World, Bodies, Body, Vertices, Events } = Matter;
 
 const MAT = { friction: .6, frictionStatic: .8, restitution: .26, density: .0018 };
+/** Nhóm va chạm của thành túi và vật cản (mặc định của Matter là 1) */
+export const NHOM_TUI = 0x0002;
 
 function makePart(p, x, y) {
   const o = { ...MAT };
@@ -137,13 +139,16 @@ export function createWorld() {
   // Thành túi thì trơn. Để dính như sàn thì món bị ép vào thành là ma sát ghì cứng luôn,
   // treo lơ lửng giữa túi không chịu tụt xuống, nhìn như kẹt. Trơn thì nó trượt xuống
   // lấp chỗ trống bên dưới, đống đồ cũng xẹp lại nên đỡ chòi ra khỏi miệng túi.
-  const tuiOpt = { ...wallOpt, friction: .04, frictionStatic: .06 };
+  // Thành túi và vật cản mang nhóm va chạm riêng: đồ đang rơi xuống sân lúc mở màn được phép
+  // xuyên qua túi (xem level.js), rơi qua rồi mới va chạm với túi như thường.
+  const tuiOpt = { ...wallOpt, friction: .04, frictionStatic: .06, collisionFilter: { category: NHOM_TUI } };
   const t = 60;
   const walls = [
     Bodies.rectangle(W / 2, FLOOR_Y + t / 2, W + 200, t, wallOpt),
     Bodies.rectangle(-t / 2, H / 2, t, H * 2, wallOpt),
     Bodies.rectangle(W + t / 2, H / 2, t, H * 2, wallOpt),
-    Bodies.rectangle(W / 2, -t, W * 2, t, wallOpt),
+    // trần: cùng nhóm với túi để đồ mưa từ trên đỉnh màn lúc mở màn xuyên qua được (level.js)
+    Bodies.rectangle(W / 2, -t, W * 2, t, { ...wallOpt, collisionFilter: { category: NHOM_TUI } }),
     ...polygonWalls(BAG.poly, tuiOpt, BAG.closed),
     ...BAG.blocks.map(blockBody(tuiOpt)),
   ];

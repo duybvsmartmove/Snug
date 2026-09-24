@@ -44,9 +44,18 @@ export function hetSplashBoot() {
  * Chờ Promise trả về mới che thì Splash đã tan hẳn, sân trống lộ ra một nhịp.
  */
 export function showSplash({ khiKhep } = {}) {
-  const defs = ITEM_DEFS.filter(d => d.id > 0 && d.sprite?.ready);
+  // Món có ảnh sẵn lúc này (ít nhất là chương đầu); những món khác của bộ art đang nạp dở
+  // sẽ được góp vào lúc rút, xem rutMon.
+  const sanSang = () => ITEM_DEFS.filter(d => d.id > 0 && d.sprite?.ready);
   const el = $('splash'), cv = $('splashCv');
-  if (!defs.length || !el) { hetSplashBoot(); if (el) el.classList.remove('show'); return Promise.resolve(); }
+  if (!sanSang().length || !el) { hetSplashBoot(); if (el) el.classList.remove('show'); return Promise.resolve(); }
+  // Rút món theo bộ đã xáo: dùng hết cả bộ mới xáo lại, nên không món nào rơi hai lần khi
+  // còn món chưa rơi. Mỗi lần xáo lấy lại danh sách để món vừa nạp xong cũng được góp mặt.
+  let tui = [];
+  const rutMon = () => {
+    if (!tui.length) { tui = sanSang(); for (let i = tui.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [tui[i], tui[j]] = [tui[j], tui[i]]; } }
+    return tui.pop();
+  };
   const ctx = cv.getContext('2d');
 
   const engine = Engine.create({ positionIterations: 6, velocityIterations: 4 });
@@ -78,7 +87,7 @@ export function showSplash({ khiKhep } = {}) {
   doCo();
 
   function tha() {
-    const def = defs[Math.floor(Math.random() * defs.length)];
+    const def = rutMon(); if (!def) return;
     // thả ngay trên mép trên màn, món vào khung hình trong vài khung đầu chứ không rơi mất nửa giây
     const b = makeItem(def, 40 + Math.random() * (W - 80), -40 - Math.random() * 60);
     Body.scale(b, CO, CO); b.artScale = CO;

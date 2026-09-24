@@ -1,9 +1,9 @@
 // Dựng level từ JSON (content pack): túi polygon, block, rải đồ, dây buộc, hộp bí ẩn, chìa trong túi, HUD.
 import Matter from 'matter-js';
-import { S, setContainer, toAbs, W, TABLE_Y } from './state.js';
+import { S, BAG, setContainer, toAbs, W, TABLE_Y } from './state.js';
 import { MYSTERY, defById, KEY_ID } from '../data/items.js';
 import { theme } from '../art/helpers.js';
-import { makeItem, createWorld } from './physics.js';
+import { makeItem, createWorld, NHOM_TUI } from './physics.js';
 import { resolveContainer } from '../data/bag.js';
 import { BAG_SKINS } from '../art/scene-registry.js';
 import { createTethers } from './mechanics.js';
@@ -78,19 +78,24 @@ function veThanhTen() {
 }
 onLangChange(veThanhTen);
 
-// Mở màn: đồ rơi xuống lần lượt chứ không đổ ụp một lúc.
+// Mở màn: đồ mưa từ trên đỉnh màn xuống sân, lần lượt chứ không đổ ụp một lúc.
 // Rơi cùng lúc thì mấy chục cú va chạm dồn vào một phần tư giây, nghe thành một tiếng ù
-// và mắt cũng không kịp thấy gì. Thả từ món gần sàn nhất trở lên để món phía trên rơi
-// xuống chồng lên món đã nằm yên, đúng thứ tự người thiết kế xếp.
-const NHIP_THA = 75;          // mili giây giữa hai món
-const CHO_DAU = 120;          // nghỉ một nhịp trước khi món đầu tiên rơi
+// và mắt cũng không kịp thấy gì. Món giữ đúng cột x người thiết kế đặt, chỉ khởi hành từ
+// trên cao; lúc rơi qua vùng túi thì không va vào túi (xem tickEntrance), tới sân mới va.
+const NHIP_THA = 110;         // mili giây giữa hai món
+const CHO_DAU = 150;          // nghỉ một nhịp trước khi món đầu tiên rơi
+const CAO_ROI = 90;           // món xuất phát cách đỉnh màn chừng này phía trên
 
 function thaDoVaoSan() {
   const datSan = S.bodies.filter(b => b.datSan);
   const roiXuong = S.bodies.filter(b => !b.datSan).sort((a, b) => b.position.y - a.position.y);
   World.add(S.world, datSan);                      // món đặt sẵn trong túi có mặt ngay
   const t0 = S.clock + CHO_DAU;
-  roiXuong.forEach((b, i) => { b.chuaVao = true; b.vaoLuc = t0 + i * NHIP_THA; });
+  roiXuong.forEach((b, i) => {
+    b.chuaVao = true; b.vaoLuc = t0 + i * NHIP_THA;
+    // đưa lên trên đỉnh màn, giữ cột x; góc xoay như người thiết kế đặt
+    Body.setPosition(b, { x: b.position.x, y: -CAO_ROI - Math.random() * 40 });
+  });
 }
 
 /** Gọi mỗi khung hình: thả những món đã tới lượt vào thế giới vật lý */
@@ -100,10 +105,21 @@ export function tickEntrance() {
   for (const b of S.bodies) {
     if (!b.chuaVao || now < b.vaoLuc) continue;
     b.chuaVao = false;
-    // Ném nhẹ xuống thay vì thả rơi từ đứng yên: hàng đồ dưới cùng chỉ cách sàn vài chục
-    // pixel, buông không thì chạm đất quá nhẹ, không ra tiếng mà cũng không tung bụi.
-    Body.setVelocity(b, { x: (Math.random() - .5) * 1.5, y: 3.2 });
+    // Đang rơi qua vùng túi thì xuyên qua túi và vật cản; qua khỏi đáy túi mới va như thường
+    b.dangRoi = true;
+    b.collisionFilter = { ...b.collisionFilter, mask: (b.collisionFilter.mask ?? 0xFFFFFFFF) & ~NHOM_TUI };
+    for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: b.collisionFilter.mask };
+    Body.setVelocity(b, { x: (Math.random() - .5) * 1.2, y: 2 + Math.random() * 2 });
+    Body.setAngularVelocity(b, (Math.random() - .5) * .08);
     World.add(S.world, b);
+  }
+  for (const b of S.bodies) {
+    if (!b.dangRoi) continue;
+    if (b.bounds.min.y > BAG.BB + 4 || b.position.y > TABLE_Y) {
+      b.dangRoi = false;
+      b.collisionFilter = { ...b.collisionFilter, mask: 0xFFFFFFFF };
+      for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: 0xFFFFFFFF };
+    }
   }
 }
 

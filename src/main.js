@@ -133,6 +133,7 @@ async function boot() {
     try {
       await loadChapterAssets(chapters()[0]);
       // Kéo màn che ngay lúc Splash BẮT ĐẦU mờ: chờ nó tan hẳn rồi mới che là hở sân trống.
+      loadItemManifests().catch(() => {});   // nạp nốt mọi món của bộ art (không chờ): Splash rút dần khi ảnh về
       showSplash({ khiKhep: () => startLevel(spot.chapter, spot.index).catch(e => console.warn('vào ván', e)) });
     } catch (e) {
       console.warn('splash', e); hetSplashBoot();
@@ -144,7 +145,7 @@ async function boot() {
     // Creative Tool tự điều khiển màn hình nên bỏ qua.
     // Logo Splash đã hiện sẵn từ khung đầu (index.html); nạp xong đồ của chương đầu là đồ rơi.
     if (!isCreative) {
-      try { await loadChapterAssets(chapters()[0]); showSplash(); }
+      try { await loadChapterAssets(chapters()[0]); loadItemManifests().catch(() => {}); showSplash(); }
       catch (e) { console.warn('splash', e); hetSplashBoot(); }
     }
   }
