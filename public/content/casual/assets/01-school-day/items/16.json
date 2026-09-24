@@ -1,0 +1,75 @@
+{
+  "id": 16,
+  "slug": "sandwich",
+  "code": "ITM_016",
+  "name": "Hộp bánh mì kẹp",
+  "meta": {
+    "size": "Medium",
+    "shape": "Triangle",
+    "physics": "normal",
+    "cost": 2,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        -5.38,
+        -43
+      ],
+      [
+        -0.38,
+        -42.75
+      ],
+      [
+        2.88,
+        -40
+      ],
+      [
+        41.88,
+        18.5
+      ],
+      [
+        39.88,
+        23.25
+      ],
+      [
+        21.63,
+        39
+      ],
+      [
+        14.88,
+        43
+      ],
+      [
+        -25.63,
+        30.75
+      ],
+      [
+        -39.38,
+        25.25
+      ],
+      [
+        -41.88,
+        22.5
+      ],
+      [
+        -33.13,
+        -4.25
+      ],
+      [
+        -16.38,
+        -36.5
+      ],
+      [
+        -13.13,
+        -40.75
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/01-school-day/items/16.png",
+    "pixelsPerUnit": 4
+  }
+}

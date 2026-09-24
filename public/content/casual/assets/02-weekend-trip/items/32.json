@@ -1,0 +1,63 @@
+{
+  "id": 32,
+  "slug": "pajamas",
+  "code": "ITM_032",
+  "name": "Bộ ngủ gấp",
+  "meta": {
+    "size": "Medium",
+    "shape": "Rectangle",
+    "physics": "normal",
+    "cost": 1,
+    "canLink": true,
+    "canLock": true
+  },
+  "collider": {
+    "kind": "poly",
+    "pts": [
+      [
+        5.5,
+        -39.75
+      ],
+      [
+        22.25,
+        -33
+      ],
+      [
+        26.5,
+        -28
+      ],
+      [
+        44,
+        3
+      ],
+      [
+        44.25,
+        21
+      ],
+      [
+        30.5,
+        27.75
+      ],
+      [
+        -25.5,
+        39.75
+      ],
+      [
+        -44.5,
+        3.5
+      ],
+      [
+        -41.5,
+        -16.75
+      ],
+      [
+        -24.25,
+        -33
+      ]
+    ]
+  },
+  "sprite": {
+    "src": "assets/02-weekend-trip/items/32.png",
+    "pixelsPerUnit": 4
+  }
+}
