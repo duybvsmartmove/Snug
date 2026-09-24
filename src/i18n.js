@@ -12,7 +12,7 @@ export const LANGS = ['en', 'vi'];
 const D = {
   en: {
     // HUD
-    itemsLeft: 'items<br>left', chapter: 'CHAPTER {no}', level: 'LEVEL {n}',
+    itemsLeft: 'left', chapter: 'CHAPTER {no}', level: 'LEVEL {n}',
     eyebrow: 'CHAPTER {no} · {name} — LEVEL {n}',
     boostFreeze: 'Freeze', boostResize: 'Shrink', boostThrow: 'Throw out',
     pauseAria: 'Pause', backAria: 'Back', sfxAria: 'Toggle sound', musicAria: 'Toggle music', langAria: 'Language',
@@ -45,7 +45,7 @@ const D = {
     Easy: 'Easy', Medium: 'Medium', Hard: 'Hard', 'Very Hard': 'Very Hard', Challenge: 'Challenge',
   },
   vi: {
-    itemsLeft: 'món<br>còn lại', chapter: 'CHƯƠNG {no}', level: 'LEVEL {n}',
+    itemsLeft: 'còn lại', chapter: 'CHƯƠNG {no}', level: 'LEVEL {n}',
     eyebrow: 'CHƯƠNG {no} · {name} — LEVEL {n}',
     boostFreeze: 'Đóng băng', boostResize: 'Thu nhỏ', boostThrow: 'Bỏ đi',
     pauseAria: 'Tạm dừng', backAria: 'Quay lại', sfxAria: 'Bật tắt âm thanh', musicAria: 'Bật tắt nhạc nền', langAria: 'Ngôn ngữ',

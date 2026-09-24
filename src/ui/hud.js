@@ -38,7 +38,8 @@ export function repaintSlot() {}
 export function rebuildStrip() { renderList(); }
 
 // ---------- đồng hồ đếm ngược ----------
-const fmt = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+// mm:ss, phút cũng hai chữ số (00:30) như mẫu HUD cozy; casual dùng chung, không sao
+const fmt = sec => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 export function updateClock() {
   const sec = Math.ceil(S.timeLeft / 1000);
   if (sec !== S.shownSec) {
