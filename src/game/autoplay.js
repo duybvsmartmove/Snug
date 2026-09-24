@@ -343,7 +343,7 @@ async function chayTuChoi() {
   // xuyên trần rồi rơi xuống — add thẳng vào thế giới là nó kẹt trên trần mãi.
   for (const b of S.bodies) if (b.chuaVao) thaVaoSan(b);
   // rồi chờ cả đống rơi xuống sân nằm yên, không thì máy nhấc món đang lơ lửng giữa trời
-  for (let i = 0; i < 200 && S.bodies.some(b => b.dangRoi || b.speed > .6); i++) await waitGame(50);
+  for (let i = 0; i < 200 && (!S.tuiDaDung || S.bodies.some(b => b.dangRoi || b.speed > .6)); i++) await waitGame(50);
 
   const uocLuong = solve(S.LEVEL, { tries: 120, budgetMs: 120 });
   note(uocLuong.solvable ? t('autoAll') : t('autoSome', { a: uocLuong.placedCount, b: uocLuong.needCount }), 2600);

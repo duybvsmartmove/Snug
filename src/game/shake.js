@@ -23,10 +23,10 @@ const { Body } = Matter;
 
 const G = 9.81;              // m/s², để đổi gia tốc thật sang đơn vị trọng lực của game
 const VUNG_CHET = .7;        // m/s²: tay cầm run nhẹ dưới mức này thì bỏ qua
-const TRAN = 12;             // m/s²: lắc mạnh hơn nữa cũng chỉ tính bằng chừng này
+const TRAN = 14;             // m/s²: lắc mạnh hơn nữa cũng chỉ tính bằng chừng này
 // Khuếch đại cú lắc: theo tỉ lệ vật lý của game chiếc túi to cỡ 1,6 m ngoài đời, lắc tay thật
 // chỉ làm đồ nhích chưa tới 1 cm, mắt không thấy. Nhân lên cho đồ lắc lư rõ mà không văng.
-const DO_NHAY = 3;
+const DO_NHAY = 4.5;
 const NHAC_TU = 5;           // m/s²: từ mức này trở lên thì thêm lực nhấc cho đồ nới ra
 const NHAC = .22;            // độ mạnh lực nhấc so với lực ngang
 const RUNG = .35;            // rung dọc ngẫu nhiên, theo phần của lực ngang
@@ -78,6 +78,23 @@ export function goiYLacMotLan(toast, text) {
   if (!('ontouchstart' in window) || !window.DeviceMotionEvent) return;
   try { if (localStorage.getItem(KEY)) return; localStorage.setItem(KEY, '1'); } catch { return; }
   setTimeout(() => toast(text, 3200), 1200);
+}
+
+/**
+ * Túi lắc theo tay: hình túi lệch ngược chiều gia tốc (quán tính, như đồ bên trong) và nghiêng
+ * nhẹ, bám theo bằng lò xo có giảm chấn nên lắc nhanh hay chậm đều ra nhịp đúng. Chỉ là hình
+ * vẽ, thành túi vật lý đứng yên; lệch tối đa vài đơn vị nên không thấy đồ hở ra khỏi thành.
+ */
+const tui = { x: 0, v: 0 };
+export function lacTui(dt = 16) {
+  let a = ax;
+  if (giaLapToi > performance.now()) a = giaLap;
+  if (Math.abs(a) < VUNG_CHET) a = 0;
+  const muc = Math.max(-1, Math.min(1, -a / TRAN)) * 12;          // đích: tối đa 12 đơn vị
+  const k = .12, c = .28;                                          // độ cứng, giảm chấn
+  tui.v += (muc - tui.x) * k - tui.v * c;
+  tui.x += tui.v * Math.min(2, dt / 16);
+  return { x: tui.x, rot: tui.x * .0035 };
 }
 
 /** Lắc giả lập: gia tốc a (m/s², dương là giật sang phải) trong ms mili giây */

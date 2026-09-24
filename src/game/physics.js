@@ -131,6 +131,13 @@ const blockBody = opt => b => {
   return body;
 };
 
+/** Đưa thành túi và vật cản vào thế giới: từ lúc này túi có thật với vật lý */
+export function dungTui(world = S.world) {
+  if (S.tuiDaDung || !world) return;
+  World.add(world, S.tuiWalls);
+  S.tuiDaDung = true; S.tuiHienLuc = S.clock;
+}
+
 /** Engine mới + tường quanh màn + thành túi theo polygon + block chặn */
 export function createWorld() {
   const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
@@ -148,10 +155,15 @@ export function createWorld() {
     Bodies.rectangle(W + t / 2, H / 2, t, H * 2, wallOpt),
     // trần: nhóm riêng để đồ mưa từ trên đỉnh màn lúc mở màn xuyên qua được (level.js)
     Bodies.rectangle(W / 2, -t, W * 2, t, { ...wallOpt, collisionFilter: { category: NHOM_TRAN } }),
-    ...polygonWalls(BAG.poly, tuiOpt, BAG.closed),
-    ...BAG.blocks.map(blockBody(tuiOpt)),
   ];
   World.add(engine.world, walls);
+  // Thành túi và vật cản dựng sẵn nhưng CHƯA đưa vào thế giới: túi ẩn lúc mở màn, đồ mưa
+  // xuống sân trước, túi hiện ra rồi mới có thành (dungTui). Khung xem thử của editor thì
+  // túi có ngay.
+  const tuiWalls = [...polygonWalls(BAG.poly, tuiOpt, BAG.closed), ...BAG.blocks.map(blockBody(tuiOpt))];
+  S.tuiWalls = tuiWalls; S.tuiDaDung = false; S.tuiHienLuc = 0;
+  walls.push(...tuiWalls);
+  if (S.preview) dungTui(engine.world);
 
   // Matter báo cặp va chạm ngay khi vừa chạm nhau, lúc này .speed vẫn là tốc độ
   // trước khi bị giải va chạm triệt tiêu — đúng cái cần để biết cú va mạnh hay nhẹ.

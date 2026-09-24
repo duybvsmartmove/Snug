@@ -48,6 +48,8 @@ export const S = {
   tethers: [], gone: new Set(), unlockFrames: 0, unlockHinted: false,
   // booster
   boosts: { freeze: 1, resize: 1, throw: 1 }, freezeUntil: 0,
+  // Túi: lúc mở màn ẩn đi cho đồ mưa xuống trước, đồ nằm yên hết thì túi mới hiện ra (level.js)
+  tuiDaDung: false, tuiWalls: [], tuiHienLuc: 0,
   // tiến độ
   checked: new Set(), winFrames: 0, won: false, lost: false, paused: false,
   // thời gian

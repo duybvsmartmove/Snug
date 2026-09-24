@@ -3,7 +3,8 @@ import Matter from 'matter-js';
 import { S, BAG, setContainer, toAbs, W, TABLE_Y } from './state.js';
 import { MYSTERY, defById, KEY_ID } from '../data/items.js';
 import { theme } from '../art/helpers.js';
-import { makeItem, createWorld, NHOM_TRAN } from './physics.js';
+import { makeItem, createWorld, dungTui, NHOM_TRAN } from './physics.js';
+import { dust, ring } from './fx.js';
 import { resolveContainer } from '../data/bag.js';
 import { BAG_SKINS } from '../art/scene-registry.js';
 import { createTethers } from './mechanics.js';
@@ -126,6 +127,7 @@ export function tickEntrance() {
     if (!b.chuaVao || now < b.vaoLuc) continue;
     thaVaoSan(b);
   }
+  tickTuiHien();
   for (const b of S.bodies) {
     if (!b.dangRoi) continue;
     if (b.bounds.min.y > 0) {
@@ -134,6 +136,22 @@ export function tickEntrance() {
       for (const p of b.parts) if (p !== b) p.collisionFilter = { ...p.collisionFilter, mask: 0xFFFFFFFF };
     }
   }
+}
+
+// Túi hiện ra khi cả đống đồ đã xuống sân và nằm yên (hoặc quá CHO_TUI_TOI_DA sau món cuối,
+// kẻo một món lăn mãi giữ túi ẩn hoài). Hiệu ứng nảy lên và bụi vẽ ở art/bags.js + render.js.
+const YEN = .7, CHO_TUI_TOI_DA = 2600;
+function tickTuiHien() {
+  if (S.tuiDaDung || !S.bodies.length) return;
+  const conRoi = S.bodies.some(b => b.chuaVao || b.dangRoi || b.speed > YEN);
+  const cuoi = Math.max(0, ...S.bodies.map(b => b.vaoLuc || 0));
+  if (conRoi && S.clock < cuoi + CHO_TUI_TOI_DA) return;
+  dungTui();
+  sfx('whoosh', { gain: .45, rate: 1.05 });
+  sfx('land', { gain: .5, rate: .7, delay: .22 });      // đúng lúc túi chạm đáy ở cuối cú nảy
+  const y = BAG.bottom + 8;
+  dust(BAG.cx - 40, y, { n: 6, manh: .8 }); dust(BAG.cx + 40, y, { n: 6, manh: .8 });
+  ring(BAG.cx, (BAG.top + BAG.bottom) / 2, { color: 'rgba(255,255,255,.7)', r0: 20, r1: 130, life: 520, width: 3 });
 }
 
 /** Tải level thứ idx của map hiện tại rồi dựng */

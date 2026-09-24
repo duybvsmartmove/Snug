@@ -1,6 +1,6 @@
 // Vòng lặp game: cập nhật vật lý + cơ chế + timer, rồi vẽ bối cảnh → túi → đồ → dây → khung túi → hiệu ứng.
 import Matter from 'matter-js';
-import { S, partsOf, isHeld } from './state.js';
+import { S, BAG, partsOf, isHeld } from './state.js';
 import { ctx, VIEW } from './canvas.js';
 import { drawScene } from '../art/scenes.js';
 import { drawBag, drawBagFront } from '../art/bags.js';
@@ -8,7 +8,7 @@ import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js'
 import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
 import { tickFreeze } from './boosters.js';
-import { tickShake } from './shake.js';
+import { tickShake, lacTui } from './shake.js';
 import { updateClock, showLose } from '../ui/hud.js';
 import { drawFx } from './fx.js';
 import { tickEntrance } from './level.js';
@@ -222,11 +222,28 @@ function frame(now) {
 
     drawScene();          // phủ kín canvas, không cần xoá trước
 
-    drawBag();
+    // Túi: ẩn tới khi đồ nằm yên hết (level.js dungTui), rồi nảy lên như đặt xuống bàn;
+    // đang chơi thì lệch và nghiêng theo cú lắc điện thoại.
+    const veTui = draw => {
+      if (!S.tuiDaDung) return;
+      const p = Math.min(1, (S.clock - S.tuiHienLuc) / 520);
+      const nay = 1 + Math.sin(p * Math.PI) * .12 * (1 - p);        // phồng lên rồi về cỡ thật
+      const co = p < 1 ? .55 + .45 * (1 - Math.pow(1 - p, 3)) : 1;  // từ 55% nở ra
+      const lac = active ? lacTui(dt) : { x: 0, rot: 0 };
+      ctx.save();
+      if (p < 1) ctx.globalAlpha = Math.min(1, p * 3);
+      ctx.translate(BAG.cx + lac.x, BAG.bottom - (1 - p) * 26);
+      ctx.rotate(lac.rot);
+      ctx.scale(co * nay, co * nay);
+      ctx.translate(-BAG.cx, -BAG.bottom);
+      draw();
+      ctx.restore();
+    };
+    veTui(drawBag);
     const order = S.bodies.slice().sort((a, b) => (isHeld(a) ? 1 : isHeld(b) ? -1 : 0));
     for (const b of order) drawBody(b);
     drawStrings();
-    drawBagFront();
+    veTui(drawBagFront);
     drawSelection();
     drawPuffs(dt);
     drawFx(dt);
