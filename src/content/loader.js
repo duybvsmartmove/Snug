@@ -47,8 +47,8 @@ const base = () => `${ROOT}${ART}/`;
 /** Địa chỉ đầy đủ của một file art, dùng cả ở trang chủ (thẻ <img>, background) */
 // Số bản của levels.json gắn vào địa chỉ mọi ảnh và file mô tả. GitHub Pages cho trình duyệt giữ
 // file tới 10 phút theo tên, mà đổi art thì tên file giữ nguyên (1.png vẫn là 1.png): không có số
-// này, người chơi thấy level mới mà đồ vẫn là ảnh cũ cho tới khi hết hạn cache. Mỗi lần dựng
-// lại art đều đi kèm lưu level nên số bản đổi là đủ.
+// này, người chơi thấy level mới mà đồ vẫn là ảnh cũ cho tới khi hết hạn cache. Kèm thêm mốc
+// build (vite.config.js) để đổi ảnh mà không đổi level cũng được tải mới sau mỗi lần deploy.
 let STAMP = '';
 const dauBan = () => (STAMP ? `?v=${STAMP}` : '');
 export const artUrl = p => (/^(https?:)?\/\//.test(p) ? p : base() + p + dauBan());
@@ -84,7 +84,7 @@ export async function loadBook(opts) {
     setArtStyle('cozy');
     BOOK = await getJSON('levels.json', { ...opts, noStore: true });
   }
-  STAMP = `${ART}-${BOOK?.version || 0}`;
+  STAMP = `${ART}-${BOOK?.version || 0}-${typeof __BUILD_STAMP__ !== 'undefined' ? __BUILD_STAMP__ : 'dev'}`;
   return BOOK;
 }
 export const book = () => BOOK;

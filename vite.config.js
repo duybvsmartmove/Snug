@@ -56,6 +56,10 @@ function contentBridge() {
 
 export default defineConfig({
   base: './',
+  // Mốc build gắn vào địa chỉ mọi ảnh và file mô tả (content/loader.js): đổi ảnh mà giữ tên file
+  // thì trình duyệt vẫn giữ bản cũ 10 phút (GitHub Pages max-age=600); mỗi lần build có mốc mới
+  // nên deploy xong là người chơi tải ảnh mới ngay.
+  define: { __BUILD_STAMP__: JSON.stringify(Date.now().toString(36)) },
   plugins: [contentBridge()],
   server: { port: 5173, open: false },
   build: {
