@@ -201,14 +201,22 @@ function goHome() {
 }
 
 /** Dựng level trong khung xem thử, nạp trước ảnh của những món chưa có */
+// Editor gửi level liên tục mỗi lần sửa. Lần gửi cũ còn đang chờ nạp ảnh mà lần mới đã tới
+// thì lần cũ không được dựng đè lên lần mới, kẻo xem thử hiện lại túi / món của lúc trước.
+let lanGui = 0;
 async function buildWithArt(level) {
+  const lan = ++lanGui;
   const missing = [...new Set((level.items || []).map(it => Number(it.id)))]
     .filter(id => { const d = defById(id); return !d || !d.sprite; });
   if (missing.length) await loadItemManifests(missing);
   // Editor vừa đổi sang kiểu túi chương này chưa dùng: nạp ảnh túi đó trước, không thì túi
   // vẽ ra là túi cũ / túi vẽ bằng code, lòng túi cũng sai hình
   const skin = level.container?.skin;
-  if (skin && !BAG_SKINS[skin]) await loadBags([skin]);
+  if (skin && !BAG_SKINS[skin]) {
+    await loadBags([skin]);
+    if (!BAG_SKINS[skin]) console.warn(`Xem thử: không nạp được ảnh túi "${skin}", đang vẽ tạm túi mặc định`);
+  }
+  if (lan !== lanGui) return;   // đã có level mới hơn gửi tới
   build(level);
 }
 
