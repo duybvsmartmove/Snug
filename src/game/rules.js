@@ -239,7 +239,7 @@ export function updateChecked() {
   const now = performance.now();
   for (const b of S.bodies) {
     if (b.itemId === KEY_ID || b.chuaVao) continue;
-    const was = S.checked.has(b.itemId);
+    const was = S.checked.has(b.khoa);
     const roiTay = isHeld(b) || b.locked;
     const inside = !roiTay && bagZone(b).fullyInside;
 
@@ -256,7 +256,7 @@ export function updateChecked() {
                    : inside && b.inN >= VAO_TUI && (b.speed < .9 || b.isStatic);
     if (ok !== was) {
       if (ok) {
-        S.checked.add(b.itemId);
+        S.checked.add(b.khoa);
         // vừa khít: tiếng chuông cao dần theo số món đã xếp, kèm vòng sáng và tia.
         // Chặn thêm một nhịp nghỉ phòng khi món nằm đúng sát mép dung sai của lòng túi
         // và trạng thái "nằm gọn" tự chớp tắt.
@@ -267,7 +267,7 @@ export function updateChecked() {
           ring(b.position.x, b.position.y, { color: '#5FBF9B', r1: 46 });
           sparkle(b.position.x, b.position.y, { n: 10, color: '#8FE0C1', life: 520 });
         }
-      } else S.checked.delete(b.itemId);
+      } else S.checked.delete(b.khoa);
       changed = true;
     }
   }

@@ -223,7 +223,7 @@ if (import.meta.env?.DEV) {
       await wait(200);
       const ghost = S.drag ? S.drag.ghost : null;
       send('pointerup', tx, ty); await wait(700);
-      return { id, ghostBeforeDrop: ghost, checked: S.checked.has(id), pos: [Math.round(b.position.x), Math.round(b.position.y)] };
+      return { id, ghostBeforeDrop: ghost, checked: S.checked.has(b.khoa), pos: [Math.round(b.position.x), Math.round(b.position.y)] };
     },
   };
 }

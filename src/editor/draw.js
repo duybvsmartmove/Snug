@@ -66,6 +66,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     ctx.restore();
   }
   function render() {
+    demSoCai();
     const L = E.level; if (!L) return;
     theme.ink = L.ink || INK[Number(L.background)] || '#3B2A4A';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -396,6 +397,18 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     refreshPalette();
   }
 
+  /** Dấu trên ô kho đồ: ✓ khi level có một cái, ×2 ×3… khi có nhiều cái cùng loại */
+  function demSoCai() {
+    const dem = new Map();
+    for (const it of E.level?.items || []) dem.set(Number(it.id), (dem.get(Number(it.id)) || 0) + 1);
+    for (const b of $('palette').querySelectorAll('button[data-id]')) {
+      const n = dem.get(Number(b.dataset.id)) || 0;
+      let t = b.querySelector('.pal-count');
+      if (!n) { t?.remove(); continue; }
+      if (!t) { t = document.createElement('i'); t.className = 'pal-count'; b.appendChild(t); }
+      t.textContent = n > 1 ? `×${n}` : '✓';
+    }
+  }
   function refreshPalette() {
     const pal = $('palette'), q = tuKhoa.toLowerCase(); pal.innerHTML = '';
     const scope = $('palScope').value;
@@ -413,8 +426,10 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
       const s = document.createElement('span'); s.textContent = def.name;
       if (scope === 'chapter' && chapterOwn && !chapterOwn.has(def.id) && def.id > 0) b.classList.add('borrowed');
       b.append(c, s); pal.appendChild(b);
+      b.dataset.id = def.id;
       b.addEventListener('click', () => addItem(def));
     }
+    demSoCai();
     // Lọc không ra món nào thì nói rõ, chứ để trắng trơn là tưởng hỏng
     if (!pal.children.length) {
       const p = document.createElement('p');
@@ -443,11 +458,15 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   $('palScope').addEventListener('change', refreshPalette);
   function addItem(def) {
     const L = E.level;
-    if (L.items.find(i => i.id === def.id)) return status(`${def.name} đã có trong level`, 'bad');
+    // Một level được có nhiều món cùng loại (hai quả táo, ba đôi tất…). Riêng chìa khoá chỉ
+    // một cái: nó là công cụ mở hộp bí ẩn, hai chìa thì không biết chìa nào mở hộp nào.
+    if (def.id === 0 && L.items.some(i => i.id === 0)) return status('Level chỉ có một chìa khoá', 'bad');
     const n = L.items.filter(i => !i.inBag).length, col = n % 6, row = Math.floor(n / 6);
     const it = { id: def.id, x: 40 + col * 68, y: TABLE_Y + 40 + row * 70, angle: 0 };
     if (def.id === 0) { it.inBag = true; it.x = 0; it.y = -40; }   // chìa khoá luôn nằm sẵn trong túi
     L.items.push(it); sel = it; showSel(); onChange();
+    const n2 = L.items.filter(i => i.id === def.id).length;
+    if (n2 > 1) status(`Đã thêm ${def.name} thứ ${n2}`, 'ok');
   }
 
   refreshPalette();

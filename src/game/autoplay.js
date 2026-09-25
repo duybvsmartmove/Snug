@@ -358,7 +358,7 @@ async function moKhoa(hop, chia) {
   const t0 = performance.now();
   while (song() && S.bodies.includes(hop) && hop.locked && performance.now() - t0 < 700) await wait(32);
   if (S.bodies.includes(hop)) { World.add(S.world, hop); ghi('  mở khoá KHÔNG thành, thả hộp tại chỗ'); }
-  else { const moi = S.bodies.find(b => b.itemId === hop.itemId); ghi(`  đã mở: ${moi?.label} giờ ở (${Math.round(moi?.position.x)},${Math.round(moi?.position.y)}), ${moi && bagZone(moi).inZone ? 'trong vùng túi' : 'ngoài khay'}`); }
+  else { const moi = S.bodies.find(b => b.khoa === hop.khoa); ghi(`  đã mở: ${moi?.label} giờ ở (${Math.round(moi?.position.x)},${Math.round(moi?.position.y)}), ${moi && bagZone(moi).inZone ? 'trong vùng túi' : 'ngoài khay'}`); }
   if (S.finger) S.finger = { ...S.finger, down: false };
   await wait(NHIP.nghi * 4);
 }
@@ -370,12 +370,12 @@ async function moKhoa(hop, chia) {
 const KET_LAU = 1500;
 function ketLau(b) {
   const now = performance.now();
-  if (b.isStatic || S.checked.has(b.itemId) || !bagZone(b).inZone || b.speed > .4) { b.ketTu = null; return false; }
+  if (b.isStatic || S.checked.has(b.khoa) || !bagZone(b).inZone || b.speed > .4) { b.ketTu = null; return false; }
   if (b.ketTu == null) b.ketTu = now;
   return now - b.ketTu > KET_LAU / (S.timeScale || 1);
 }
 const conOKhay = () => S.bodies.filter(b => !b.chuaVao && !b.tether && b.itemId !== KEY_ID
-  && !S.checked.has(b.itemId) && !S.gone.has(b.itemId) && !isHeld(b) && (!bagZone(b).inZone || ketLau(b)));
+  && !S.checked.has(b.khoa) && !S.gone.has(b.khoa) && !isHeld(b) && (!bagZone(b).inZone || ketLau(b)));
 
 /**
  * Hết chỗ mà đồ còn ở khay: làm đúng việc người chơi làm, theo thứ tự nhẹ tay trước.
@@ -471,7 +471,7 @@ async function thaoHet() {
   for (const b of trongTui) {
     if (!song()) return;
     if (!S.bodies.includes(b)) continue;
-    const goc = S.LEVEL.items.find(it => it.id === b.itemId && !it.inBag);
+    const goc0 = S.LEVEL.items[b.khoa], goc = goc0 && !goc0.inBag ? goc0 : null;
     const cho = choTrongKhay(b, goc?.x ?? W / 2, goc?.y ?? TABLE_Y + 30, goc?.angle || 0);
     boGiu(b);
     await tayToi(b);
@@ -484,7 +484,7 @@ async function thaoHet() {
     if (S.finger) S.finger = { ...S.finger, down: false };
     await wait(NHIP.nghi);
   }
-  const ids = trongTui.map(b => b.itemId);
+  const ids = trongTui.map(b => b.khoa);
   for (let i = 0; i < 80 && song() && (ids.some(id => S.checked.has(id)) || S.bodies.some(b => !b.isStatic && b.speed > .6)); i++) await waitGame(50);
   ghi(`đã tháo ${trongTui.length} món ra khay`);
 }
@@ -516,7 +516,7 @@ async function chayTuChoi() {
       // Còn món kẹt nửa trong nửa ngoài, hoặc hộp bí ẩn vừa mở ra thành món to hơn chỗ
       // của nó? Luật đẩy-ra-khỏi-túi cần chừng 2 giây THỰC (không theo tốc độ game) để
       // trả món về khay, lúc đó nó mới thành ứng viên. Chờ tới 5 giây rồi mới chịu thua.
-      const keCon = S.bodies.some(b => !b.chuaVao && !b.tether && b.itemId !== KEY_ID && !S.checked.has(b.itemId) && !S.gone.has(b.itemId));
+      const keCon = S.bodies.some(b => !b.chuaVao && !b.tether && b.itemId !== KEY_ID && !S.checked.has(b.khoa) && !S.gone.has(b.khoa));
       if (!keCon) { ghi('dừng: không còn món nào ở khay'); break; }
       if (++ketKhongLoi > 12) {
         ghi('món kẹt không được trả về khay');
@@ -543,7 +543,7 @@ async function chayTuChoi() {
 
   await wait(NHIP.ketThuc);
   if (song()) {
-    const left = S.ITEMS.filter(d => !S.checked.has(d.id)).length;
+    const left = Math.max(0, S.ITEMS.length - S.checked.size);
     note(left ? t('autoDoneLeft', { n: left }) : t('autoDoneFit'), 3000);
   }
 }

@@ -191,7 +191,7 @@ export function usableArea() {
 export function replaceBody(old, def) {
   const nb = makeItem(def, old.position.x, old.position.y);
   Body.setAngle(nb, old.angle);
-  nb.itemId = old.itemId; nb.label = old.label; nb.realDef = old.realDef;
+  nb.itemId = old.itemId; nb.khoa = old.khoa; nb.label = old.label; nb.realDef = old.realDef;
   if (old.tether) {
     const t = old.tether; nb.tether = t;
     if (t.a === old) { t.a = nb; t.c.bodyA = nb; } else { t.b = nb; t.c.bodyB = nb; }

@@ -63,7 +63,7 @@ function useThrow() {
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
   sfx('trash'); sparkle(b.position.x, b.position.y, { n: 16, color: '#E8434F', speed: 1.3 });
   floatText(b.position.x, b.position.y - 16, t('throwFloat'), { color: '#E8434F' });
-  removeBody(b); S.gone.add(b.itemId);
+  removeBody(b); S.gone.add(b.khoa);
   S.boosts.throw--; renderBoosts();
   toast(t('threw', { name: itemName(b.realDef) }));
 }
