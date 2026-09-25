@@ -4,6 +4,7 @@
 // qua postMessage — xem src/game/creative.js cho danh sách lệnh. Nhờ vậy bảng thắng,
 // bảng thua, HUD, nhạc… đúng y như game người chơi cầm trên tay.
 import { loadBook, loadAssetIndex, artUrl, setArtStyle } from '../content/loader.js';
+import { maxScale, MIN_SCALE, placeFixed } from '../data/bag.js';
 
 const $ = id => document.getElementById(id);
 const frame = $('game');
@@ -48,7 +49,8 @@ window.addEventListener('message', e => {
   const m = e.data || {};
   if (m.type === 'ready') {
     ready = true; pushAll();
-    if (current) post({ type: 'play', chapter: current.chapter, index: current.index });
+    if (current && custom) dayLevel(0);
+    else if (current) post({ type: 'play', chapter: current.chapter, index: current.index });
   }
   if (m.type === 'status') { status = m; paintStatus(); }
   if (m.type === 'key') onKey(m.key);
@@ -96,10 +98,11 @@ function paintStatus() {
   if (s.screen === 'home') tag.innerHTML = '🏠 Trang chủ';
   else if (s.screen === 'map') tag.innerHTML = '🗺 Bản đồ';
   else if (s.levelId) {
-    const ch = book?.chapters.find(c => c.id === s.chapter), lv = ch?.levels[s.index];
+    const ch = book?.chapters.find(c => c.id === (current?.chapter ?? s.chapter)), lv = custom || ch?.levels[s.index];
     const name = cfg.lang === 'vi' ? lv?.name : (lv?.nameEn || lv?.name);
     const tier = lv?.difficulty?.tier;
     tag.innerHTML = `<b>Level ${s.index + 1}</b> · ${esc(name || s.levelId)}${tier ? `<span class="tier ${tier.split(' ')[0]}">${tier} ${lv.difficulty.points ?? ''}</span>` : ''}`
+      + (custom ? ' · <b style="color:var(--gold)">đã sửa</b>' : '')
       + (s.won ? ' · <b style="color:var(--accent2)">WIN</b>' : s.lost ? ' · <b style="color:#FF6B6B">LOSE</b>' : ` · ${s.left}/${s.items}`);
   } else tag.textContent = '—';
 }
@@ -148,12 +151,13 @@ function drawPicker() {
 
 function play(chapter, index) {
   current = { chapter, index };
+  custom = null; paintEdit();
   $('picker').hidden = true;
   post({ type: 'play', chapter, index });
   layoutStage();
 }
 function showScreen(name) {
-  current = null;
+  current = null; custom = null; moSua(false);
   $('picker').hidden = true;
   post({ type: 'screen', name });
   layoutStage();
@@ -161,7 +165,7 @@ function showScreen(name) {
 function backToPicker() {
   post({ type: 'autostop' });
   post({ type: 'screen', name: 'home' });   // game về trang chủ, đứng chờ phía sau
-  current = null;
+  current = null; custom = null; moSua(false);
   drawPicker();
   $('picker').hidden = false;
 }
@@ -221,8 +225,10 @@ $('art').addEventListener('change', e => {
   document.documentElement.dataset.art = cfg.art;
   setArtStyle(cfg.art);
   // Mỗi bộ art có level riêng: nạp lại sắp xếp, rồi nạp lại iframe vì ảnh nạp lúc khởi động
+  custom = null; kho = null;
   loadBook({ fresh: true }).then(b => {
     book = b;
+    if (!$('editPanel').hidden) paintEdit();
     loadFrame();
     if (!$('picker').hidden) drawPicker();
   });
@@ -251,6 +257,7 @@ function onKey(key) {
   else if (k === 's') toggleAuto();
   else if (k === 'd') post({ type: 'auto', mode: 'step' });
   else if (k === 'h') toggleUi();
+  else if (k === 'e') moSua($('editPanel').hidden);
   else if (k === 'f') toggleFinger();
   else if (k === 't') toggleTimer();
   else if (k === 'escape') { if ($('picker').hidden) backToPicker(); }
@@ -294,7 +301,7 @@ function download(blob, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-const fileBase = () => `ef-${current ? `${current.chapter}-L${current.index + 1}` : (status?.screen || 'screen')}-${cfg.aspect.replace(':', 'x')}`;
+const fileBase = () => `ef-${current ? `${current.chapter}-L${current.index + 1}${custom ? '-custom' : ''}` : (status?.screen || 'screen')}-${cfg.aspect.replace(':', 'x')}`;
 
 $('shotBtn').addEventListener('click', async () => {
   try {
@@ -341,6 +348,151 @@ $('recBtn').addEventListener('click', async () => {
   try { rec ? stopRec() : await startRec(); }
   catch (e) { note('Không quay được: ' + e.message, 'bad'); }
 });
+
+// ---------- sửa level ngay trong Creative ----------
+// Đổi túi, cỡ túi, thêm bớt món cho màn đang mở rồi quay luôn, không phải sang editor.
+// Chỉ là bản sao trong phiên này: gửi nguyên level đã sửa vào game (lệnh `level`, như
+// editor đẩy bản xem thử), file levels.json không bị đụng tới. Chọn level khác hay đổi
+// bộ art là bản sửa bỏ đi; nút "Level gốc" cũng bỏ.
+let kho = null;       // món và túi CÓ ẢNH của bộ art đang chọn
+let custom = null;    // bản sửa của level đang mở; null = đang chơi đúng level gốc
+
+async function napKho() {
+  if (kho) return kho;
+  const idx = await loadAssetIndex();
+  const doc = async p => { try { return await (await fetch(artUrl(p))).json(); } catch { return null; } };
+  const items = (await Promise.all(Object.entries(idx.items || {}).map(async ([id, p]) => {
+    const m = await doc(p);
+    return m?.sprite?.src && Number(id) > 0 ? { id: Number(id), name: m.name || m.slug || `#${id}`, slug: m.slug || '', img: artUrl(m.sprite.src) } : null;
+  }))).filter(Boolean).sort((a, b) => a.id - b.id);
+  const bags = (await Promise.all(Object.entries(idx.bags || {}).map(async ([id, p], thuTu) => {
+    const m = await doc(p);
+    return m?.fixed && m.image ? { id: m.id || id, name: m.name || id, img: m.layers?.body ? artUrl(m.layers.body) : null, skin: m, thuTu } : null;
+  }))).filter(Boolean).sort((a, b) => a.thuTu - b.thuTu);
+  kho = { items, bags, mon: new Map(items.map(i => [i.id, i])), tui: new Map(bags.map(b => [b.id, b])) };
+  return kho;
+}
+
+const levelGoc = () => (current ? book?.chapters.find(c => c.id === current.chapter)?.levels[current.index] : null);
+const levelDangSua = () => custom || levelGoc();
+function banSua() {
+  if (!custom) { const g = levelGoc(); if (!g) return null; custom = structuredClone(g); }
+  return custom;
+}
+
+/** Gửi bản sửa vào game. Kéo thanh cỡ túi thì dồn lại một nhịp, không dựng lại màn mỗi pixel */
+let hen = 0;
+function dayLevel(ms = 220) {
+  clearTimeout(hen);
+  hen = setTimeout(() => {
+    if (!custom || !current) return;
+    const ch = book?.chapters.find(c => c.id === current.chapter);
+    post({ type: 'level', level: structuredClone(custom), index: current.index, chapter: { no: ch?.no || 1, name: ch?.name || '' } });
+  }, ms);
+}
+
+/** Đổi danh sách món thì dàn lại khay từ đầu: món mới không có chỗ, để game tự xếp lưới */
+function danLaiKhay(L) { for (const it of L.items) if (!it.inBag) { delete it.x; delete it.y; } }
+
+function chonTui(b) {
+  const L = banSua(); if (!L) return;
+  const cu = L.container || {};
+  const s = Math.min(maxScale(b.skin), Math.max(MIN_SCALE, cu.scale || 1));
+  // vật cản đặt theo túi cũ, sang túi khác dễ nằm lọt ra ngoài lòng túi: bỏ đi.
+  // placeFixed tính hình lòng túi và chỗ đặt như editor, máy xếp cần hình này.
+  L.container = placeFixed({ ...cu, skin: b.id, scale: s, blocks: cu.skin === b.id ? cu.blocks : [] }, b.skin, s);
+  dayLevel(0); paintEdit();
+  if (cu.skin !== b.id && cu.blocks?.length) note(`Đổi túi: bỏ ${cu.blocks.length} vật cản của túi cũ`);
+}
+function datCo(s) {
+  const L = banSua(); if (!L) return;
+  const b = kho?.tui.get(L.container?.skin); if (!b) return;
+  s = Math.min(maxScale(b.skin), Math.max(MIN_SCALE, s));
+  L.container = placeFixed(L.container, b.skin, s);   // vật cản phóng cùng tỉ lệ, hình lòng túi tính lại
+  $('edScaleV').textContent = Math.round(s * 100) + '%';
+  dayLevel(); paintNote();
+}
+function themMon(id) {
+  const L = banSua(); if (!L) return;
+  L.items.push({ id }); danLaiKhay(L);
+  dayLevel(0); paintEdit();
+}
+function boMon(i) {
+  const L = banSua(); if (!L) return;
+  const [it] = L.items.splice(i, 1);
+  for (const j of L.items) if (j.link === it.id && !L.items.some(k => k.id === it.id)) delete j.link;
+  danLaiKhay(L);
+  dayLevel(0); paintEdit();
+}
+
+function paintNote() {
+  const n = $('edNote');
+  n.textContent = custom ? 'Đang quay bản đã sửa. File level của game không bị đổi.' : 'Chỉ đổi màn đang quay trong Creative. File level của game không bị đổi.';
+  n.classList.toggle('dirty', !!custom);
+  $('edReset').disabled = !custom;
+}
+async function paintEdit() {
+  if ($('editPanel').hidden) return;
+  const L = levelDangSua();
+  paintNote();
+  if (!L) { $('edBags').innerHTML = $('edItems').innerHTML = $('edPool').innerHTML = '<p class="ed-empty">Chọn một level để sửa</p>'; return; }
+  const k = await napKho();
+  // túi
+  const skin = L.container?.skin;
+  $('edBags').replaceChildren(...k.bags.map(b => {
+    const el = document.createElement('button'); el.title = b.name; el.className = b.id === skin ? 'on' : '';
+    el.innerHTML = `${b.img ? `<img src="${b.img}" alt="">` : ''}<span>${esc(b.name)}</span>`;
+    el.addEventListener('click', () => chonTui(b));
+    return el;
+  }));
+  if (!k.bags.length) $('edBags').innerHTML = '<p class="ed-empty">Bộ art này chưa có túi ảnh</p>';
+  const b = k.tui.get(skin), sc = $('edScale');
+  sc.disabled = !b;
+  if (b) { sc.min = MIN_SCALE * 100; sc.max = Math.floor(maxScale(b.skin) * 100); }
+  sc.value = Math.round((L.container?.scale || 1) * 100);
+  $('edScaleV').textContent = sc.value + '%';
+  // món đang có
+  const ten = it => it.id === 0 ? 'Chìa khoá' : (k.mon.get(Number(it.id))?.name || `Món #${it.id}`);
+  $('edCount').textContent = `· ${L.items.filter(i => i.id !== 0).length}`;
+  $('edItems').replaceChildren(...L.items.map((it, i) => {
+    const el = document.createElement('button'); el.title = `${ten(it)}${it.locked ? ' (hộp bí ẩn)' : ''} · bấm để bỏ`;
+    const m = k.mon.get(Number(it.id));
+    el.innerHTML = `${m ? `<img src="${m.img}" alt="">` : '<img alt="">'}<span>${it.locked ? '🔒 ' : ''}${esc(ten(it))}</span>`;
+    el.addEventListener('click', () => boMon(i));
+    return el;
+  }));
+  if (!L.items.length) $('edItems').innerHTML = '<p class="ed-empty">Chưa có món nào</p>';
+  // kho để thêm (được thêm trùng: bấm mấy lần là mấy cái)
+  const q = ($('edSearch').value || '').trim().toLowerCase();
+  const dem = new Map(); for (const it of L.items) dem.set(Number(it.id), (dem.get(Number(it.id)) || 0) + 1);
+  const ds = k.items.filter(m => !q || `${m.id} ${m.name} ${m.slug}`.toLowerCase().includes(q));
+  $('edPool').replaceChildren(...ds.map(m => {
+    const el = document.createElement('button'); el.title = `${m.id} · ${m.name} · bấm để thêm`;
+    const n = dem.get(m.id);
+    el.innerHTML = `<img src="${m.img}" alt="" loading="lazy"><span>${esc(m.name)}</span>${n ? `<i>${n > 1 ? '×' + n : '✓'}</i>` : ''}`;
+    el.addEventListener('click', () => themMon(m.id));
+    return el;
+  }));
+  if (!ds.length) $('edPool').innerHTML = `<p class="ed-empty">Không có món nào khớp "${esc(q)}"</p>`;
+}
+
+function moSua(mo) {
+  $('editPanel').hidden = !mo;
+  document.body.classList.toggle('editing', mo);
+  $('editBtn').classList.toggle('on', mo);
+  layoutStage();
+  if (mo) paintEdit();
+}
+$('editBtn').addEventListener('click', () => moSua($('editPanel').hidden));
+$('edClose').addEventListener('click', () => moSua(false));
+$('edReset').addEventListener('click', () => {
+  if (!custom || !current) return;
+  custom = null;
+  post({ type: 'play', chapter: current.chapter, index: current.index });
+  paintEdit(); note('Đã về level gốc');
+});
+$('edScale').addEventListener('input', e => datCo(Number(e.target.value) / 100));
+$('edSearch').addEventListener('input', () => paintEdit());
 
 // ---------- khởi động ----------
 async function boot() {

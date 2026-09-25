@@ -112,3 +112,34 @@ body.hide-ui .peek:hover{opacity:.85}
 .tier{border-radius:999px;padding:.12em .6em;font-weight:800;font-size:.85em;color:#1a1a1a;white-space:nowrap}
 .tier.Easy{background:#8FE0C1} .tier.Medium{background:#FFD166} .tier.Hard{background:#FF9F6B} .tier.Very{background:#FF6B8A} .tier.Challenge{background:#C77DFF}
 .tier.none{background:rgba(255,255,255,.14);color:var(--soft)}
+
+/* ---------- bảng sửa level ---------- */
+.edit{position:fixed;top:0;right:0;bottom:0;width:340px;z-index:12;background:var(--bg2);border-left:var(--border);
+  display:flex;flex-direction:column;gap:8px;padding:14px;overflow:auto;box-shadow:-12px 0 30px rgba(0,0,0,.35)}
+body.editing .stage-wrap{padding-right:354px}
+/* thanh công cụ chừa chỗ cho bảng sửa, không để bảng che các nút chụp, quay */
+body.editing .bar{margin-right:340px}
+body.hide-ui .edit{display:none}
+body.hide-ui.editing .stage-wrap{padding-right:0}
+.ed-head{display:flex;align-items:center;gap:6px}
+.ed-head h2{margin:0 auto 0 0;font:700 1.35em "Baloo 2",sans-serif}
+.ed-note{margin:0;color:var(--soft);font-weight:700;font-size:.92em}
+.ed-note.dirty{color:var(--gold)}
+.edit h3{margin:10px 0 2px;font:800 .8em "Nunito";letter-spacing:.12em;text-transform:uppercase;color:var(--soft);display:flex;align-items:center;gap:8px}
+.edit h3 input{margin-left:auto;width:120px;border:0;border-radius:8px;background:var(--btn);padding:.35em .6em;font-weight:700;text-transform:none;letter-spacing:0}
+.ed-bags{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ed-bags button,.ed-pool button,.ed-items button{position:relative;border:var(--border);background:var(--bg);border-radius:10px;padding:4px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700;font-size:10.5px;line-height:1.1;color:var(--soft);min-width:0}
+.ed-bags button:hover,.ed-pool button:hover,.ed-items button:hover{border-color:var(--accent);background:var(--btn)}
+.ed-bags button.on{border-color:var(--accent2);background:var(--btn);color:var(--ink);box-shadow:0 0 0 2px var(--accent2) inset}
+.ed-bags img{width:100%;aspect-ratio:1;object-fit:contain}
+.ed-bags span,.ed-pool span,.ed-items span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-scale{display:flex;align-items:center;gap:8px;color:var(--soft);font-weight:800;margin-top:4px}
+.ed-scale input{flex:1;accent-color:var(--accent)}
+.ed-scale b{color:var(--ink);min-width:3em;text-align:right}
+.ed-items,.ed-pool{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ed-items img,.ed-pool img{width:100%;aspect-ratio:1;object-fit:contain}
+.ed-items button::after{content:"✕";position:absolute;top:2px;right:4px;font-size:10px;color:#FF6B6B;opacity:0}
+.ed-items button:hover::after{opacity:1}
+.ed-pool i{position:absolute;top:2px;right:3px;min-width:16px;height:16px;border-radius:8px;background:var(--accent2);color:#0F2A22;font:800 10px/16px "Nunito";font-style:normal;text-align:center}
+.ed-empty{grid-column:1/-1;color:var(--soft);font-weight:700;padding:6px 0}

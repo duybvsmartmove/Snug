@@ -23,9 +23,14 @@ const SCENE_CLS = {};
 
 /** Dựng level từ object JSON */
 export function build(level) {
+  // Túi dáng cố định: hình lòng túi và chỗ đặt tính từ ảnh túi lúc chạy. Giữ luôn bản đã tính
+  // trong S.LEVEL để máy xếp, máy tự chơi đọc đúng hình đang vẽ, kể cả level không ghi sẵn
+  // `shape` (Creative đổi túi, level sửa tay).
+  const cTui = resolveContainer(level.container || {}, BAG_SKINS);
+  if (cTui !== level.container) level = { ...level, container: cTui };
   S.LEVEL = level;
   S.phienVan = (S.phienVan || 0) + 1; S.mayNghi = false;   // máy tự chơi đang chạy cho ván cũ thấy số này đổi thì tự dừng
-  setContainer(resolveContainer(level.container || {}, BAG_SKINS));
+  setContainer(level.container);
   theme.ink = level.ink || SCENE_INK[Number(level.background)] || '#3B2A4A';
   // Chìa khoá là công cụ mở hộp bí ẩn, không phải món phải xếp → không tính vào packing list
   const playable = level.items.filter(it => it.id !== KEY_ID);

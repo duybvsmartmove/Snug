@@ -23,6 +23,7 @@
     <div class="grp">
       <button id="backBtn" class="btn" title="Về danh sách level (Esc)">← Levels</button>
       <div class="lvtag" id="lvTag">—</div>
+      <button id="editBtn" class="btn tog" title="Đổi túi, thêm bớt món cho màn đang mở (E)">🛠 Sửa level <kbd>E</kbd></button>
     </div>
 
     <div class="grp">
@@ -78,6 +79,26 @@
   </footer>
   <!-- Mấu kéo lại thanh công cụ khi đã ẩn: chỉ hiện lúc rê chuột vào góc -->
   <button class="peek" id="peek" title="Hiện thanh công cụ (H)">UI</button>
+
+  <!-- Bảng sửa level: đổi túi, cỡ túi, thêm bớt món. Chỉ sửa bản đang quay, không ghi vào file level -->
+  <aside class="edit" id="editPanel" hidden>
+    <header class="ed-head">
+      <h2>Sửa level</h2>
+      <button class="btn" id="edReset" title="Bỏ hết chỗ đã sửa, về đúng level gốc">↺ Level gốc</button>
+      <button class="btn" id="edClose" title="Đóng bảng (E)">✕</button>
+    </header>
+    <p class="ed-note" id="edNote">Chỉ đổi màn đang quay trong Creative. File level của game không bị đổi.</p>
+
+    <h3>Túi</h3>
+    <div class="ed-bags" id="edBags"></div>
+    <label class="ed-scale">Cỡ túi <input id="edScale" type="range" min="50" max="120" step="1"><b id="edScaleV">100%</b></label>
+
+    <h3>Món trong level <span id="edCount"></span></h3>
+    <div class="ed-items" id="edItems"></div>
+
+    <h3>Thêm món <input id="edSearch" type="text" placeholder="tìm…" autocomplete="off" spellcheck="false"></h3>
+    <div class="ed-pool" id="edPool"></div>
+  </aside>
 
   <!-- Màn đầu: chương và level -->
   <section class="picker" id="picker">
