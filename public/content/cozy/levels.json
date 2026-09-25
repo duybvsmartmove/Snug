@@ -1,6 +1,6 @@
 {
-  "version": 48,
-  "publishedAt": "2026-09-25T02:36:51.688Z",
+  "version": 49,
+  "publishedAt": "2026-09-25T03:59:45.112Z",
   "chapters": [
     {
       "id": "school-day",
@@ -363,24 +363,15 @@
         {
           "id": "sd-03",
           "name": "Hộp cơm đầy",
-          "nameEn": "Full lunch box",
+          "nameEn": "Level 3",
           "timer": 100,
           "background": 1,
           "container": {
             "skin": "backpack",
             "scale": 0.951,
-            "blocks": [
-              {
-                "kind": "round",
-                "color": "#8FB9A8",
-                "x": 31,
-                "y": -55,
-                "w": 44,
-                "h": 45
-              }
-            ],
+            "blocks": [],
             "cx": 210,
-            "bottom": 431.3,
+            "bottom": 421.3,
             "shape": [
               [
                 1.8,
@@ -500,39 +491,39 @@
           "items": [
             {
               "id": 16,
-              "x": 48,
-              "y": 509,
+              "x": 50,
+              "y": 185,
               "angle": 0.35
             },
             {
               "id": 17,
-              "x": 156,
-              "y": 510,
+              "x": 291,
+              "y": 50,
               "angle": -0.15
             },
             {
-              "id": 19,
-              "x": 274,
-              "y": 503,
-              "angle": 0.5
-            },
-            {
               "id": 20,
-              "x": 375,
-              "y": 503,
+              "x": 101,
+              "y": 68,
               "angle": 0.48
             },
             {
               "id": 18,
-              "x": 42,
-              "y": 556,
+              "x": 373,
+              "y": 163,
               "angle": 0
             },
             {
-              "id": 15,
-              "x": 157,
-              "y": 562,
-              "angle": -0.25
+              "id": 4,
+              "x": 59,
+              "y": 107,
+              "angle": 0
+            },
+            {
+              "id": 4,
+              "x": 369,
+              "y": 107,
+              "angle": 0.78
             }
           ],
           "reward": {
