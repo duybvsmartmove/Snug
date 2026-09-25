@@ -1,6 +1,6 @@
 {
-  "version": 51,
-  "publishedAt": "2026-09-25T04:05:39.088Z",
+  "version": 52,
+  "publishedAt": "2026-09-25T04:11:25.832Z",
   "chapters": [
     {
       "id": "school-day",
@@ -696,7 +696,7 @@
           "id": "sd-05",
           "name": "Đôi tất đi kèm",
           "nameEn": "Socks and towel",
-          "timer": 95,
+          "timer": 120,
           "background": 1,
           "container": {
             "skin": "backpack",
@@ -825,7 +825,8 @@
               "id": 1,
               "x": 42,
               "y": 507,
-              "angle": 0.48
+              "angle": 0.48,
+              "scale": 0.9
             },
             {
               "id": 3,
@@ -849,7 +850,8 @@
               "id": 21,
               "x": 304,
               "y": 571,
-              "angle": 0
+              "angle": 0,
+              "scale": 0.9
             },
             {
               "id": 27,
@@ -861,17 +863,32 @@
               "id": 28,
               "x": 108,
               "y": 562,
-              "angle": 0
+              "angle": 0.78,
+              "scale": 0.8
             },
             {
               "id": 30,
               "x": 176,
               "y": 562,
+              "angle": 0,
+              "scale": 0.9
+            },
+            {
+              "id": 33,
+              "x": 176,
+              "y": 562,
+              "angle": -1.04,
+              "scale": 0.9
+            },
+            {
+              "id": 51,
+              "x": 244,
+              "y": 562,
               "angle": 0
             }
           ],
           "reward": {
-            "coin": 30
+            "coin": 40
           },
           "difficulty": {
             "points": 5,
@@ -1884,8 +1901,10 @@
           28,
           30,
           32,
+          33,
           37,
-          45
+          45,
+          51
         ],
         "backgrounds": [
           1
