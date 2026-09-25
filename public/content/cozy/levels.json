@@ -1,6 +1,6 @@
 {
-  "version": 55,
-  "publishedAt": "2026-09-25T07:11:41.926Z",
+  "version": 56,
+  "publishedAt": "2026-09-25T08:56:38.330Z",
   "chapters": [
     {
       "id": "school-day",
@@ -912,8 +912,8 @@
         },
         {
           "id": "sd-06",
-          "name": "Túi hơi chật",
-          "nameEn": "A bit tight",
+          "name": "",
+          "nameEn": "Level 6",
           "timer": 90,
           "background": 1,
           "container": {
