@@ -29,6 +29,10 @@
     "32": "assets/02-weekend-trip/items/32.json",
     "33": "assets/02-weekend-trip/items/33.json",
     "34": "assets/02-weekend-trip/items/34.json",
+    "35": "assets/02-weekend-trip/items/35.json",
+    "36": "assets/02-weekend-trip/items/36.json",
+    "37": "assets/02-weekend-trip/items/37.json",
+    "38": "assets/02-weekend-trip/items/38.json",
     "39": "assets/02-weekend-trip/items/39.json",
     "40": "assets/02-weekend-trip/items/40.json",
     "41": "assets/02-weekend-trip/items/41.json",
@@ -40,16 +44,21 @@
     "47": "assets/02-weekend-trip/items/47.json",
     "48": "assets/02-weekend-trip/items/48.json",
     "49": "assets/02-weekend-trip/items/49.json",
-    "50": "assets/02-weekend-trip/items/50.json",
-    "35": "assets/02-weekend-trip/items/35.json",
-    "36": "assets/02-weekend-trip/items/36.json",
-    "37": "assets/02-weekend-trip/items/37.json",
-    "38": "assets/02-weekend-trip/items/38.json"
+    "50": "assets/02-weekend-trip/items/50.json"
   },
   "backgrounds": {
     "1": "assets/01-school-day/backgrounds/1.json"
   },
   "bags": {
-    "backpack": "assets/01-school-day/bags/backpack.json"
+    "backpack": "assets/01-school-day/bags/backpack.json",
+    "suitcase": "assets/01-school-day/bags/suitcase.json",
+    "box": "assets/01-school-day/bags/box.json",
+    "tote": "assets/01-school-day/bags/tote.json",
+    "lunchbox": "assets/01-school-day/bags/lunchbox.json",
+    "duffel": "assets/01-school-day/bags/duffel.json",
+    "basket": "assets/01-school-day/bags/basket.json",
+    "storage": "assets/01-school-day/bags/storage.json",
+    "pouch": "assets/01-school-day/bags/pouch.json",
+    "shopping": "assets/01-school-day/bags/shopping.json"
   }
 }
