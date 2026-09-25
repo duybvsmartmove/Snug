@@ -1,6 +1,6 @@
 {
-  "version": 47,
-  "publishedAt": "2026-09-25T02:32:00.597Z",
+  "version": 48,
+  "publishedAt": "2026-09-25T02:36:51.688Z",
   "chapters": [
     {
       "id": "school-day",
@@ -188,8 +188,8 @@
         },
         {
           "id": "sd-02",
-          "name": "Thêm bình nước",
-          "nameEn": "Grab a bottle",
+          "name": "",
+          "nameEn": "Level 2",
           "timer": 110,
           "background": 1,
           "container": {
@@ -197,7 +197,7 @@
             "scale": 0.85,
             "blocks": [],
             "cx": 210,
-            "bottom": 432.9,
+            "bottom": 422.9,
             "shape": [
               [
                 1.6,
@@ -316,34 +316,40 @@
           "mode": "fixed",
           "items": [
             {
-              "id": 17,
-              "x": 51,
-              "y": 504,
-              "angle": 0.04
+              "id": 3,
+              "x": 40,
+              "y": 492,
+              "angle": 0
             },
             {
-              "id": 19,
-              "x": 153,
-              "y": 501,
-              "angle": -0.17
+              "id": 4,
+              "x": 108,
+              "y": 492,
+              "angle": 0
             },
             {
-              "id": 20,
-              "x": 263,
-              "y": 502,
-              "angle": -0.02
+              "id": 10,
+              "x": 176,
+              "y": 492,
+              "angle": 0
             },
             {
-              "id": 18,
-              "x": 383,
-              "y": 503,
-              "angle": 0.36
+              "id": 16,
+              "x": 244,
+              "y": 492,
+              "angle": 0
             },
             {
-              "id": 15,
-              "x": 46,
-              "y": 556,
-              "angle": -0.51
+              "id": 23,
+              "x": 312,
+              "y": 492,
+              "angle": 0
+            },
+            {
+              "id": 28,
+              "x": 380,
+              "y": 492,
+              "angle": 0
             }
           ],
           "reward": {
