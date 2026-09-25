@@ -9,7 +9,8 @@ import { build, loadAndBuild, restart, nextLevel, prevLevel } from './game/level
 import { startLoop } from './game/render.js';
 import { bindOverlayButtons, hideLose, toast, renderList } from './ui/hud.js';
 import { bindImpacts } from './game/rules.js';
-import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, whenSpriteReady, setArtStyle, artStyle, applyArtIcons, loadConfig } from './content/loader.js';
+import { BAG_SKINS } from './art/scene-registry.js';
+import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, loadBags, whenSpriteReady, setArtStyle, artStyle, applyArtIcons, loadConfig } from './content/loader.js';
 import { useArtProgress, getSpot } from './game/progress.js';
 import { autoplay, stopAutoplay, autoState, autoLog, chanDoan } from './game/autoplay.js';
 import * as FX from './game/fx.js';
@@ -204,6 +205,10 @@ async function buildWithArt(level) {
   const missing = [...new Set((level.items || []).map(it => Number(it.id)))]
     .filter(id => { const d = defById(id); return !d || !d.sprite; });
   if (missing.length) await loadItemManifests(missing);
+  // Editor vừa đổi sang kiểu túi chương này chưa dùng: nạp ảnh túi đó trước, không thì túi
+  // vẽ ra là túi cũ / túi vẽ bằng code, lòng túi cũng sai hình
+  const skin = level.container?.skin;
+  if (skin && !BAG_SKINS[skin]) await loadBags([skin]);
   build(level);
 }
 

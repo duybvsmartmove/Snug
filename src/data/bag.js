@@ -21,8 +21,9 @@ export function resolveContainer(c, skins) {
 // Chỗ đặt túi trên màn: đáy ẢNH túi luôn ngay trên mép bàn (TABLE_Y 452), túi to thì nhô lên
 // phía trên, không được cao quá dòng BAG_CEIL (vùng đồng hồ và số món).
 export const BAG_FLOOR = 436, BAG_CEIL = 150;
-/** Cỡ lớn nhất túi còn nằm gọn giữa đồng hồ và mép bàn */
-export const maxScale = skin => (BAG_FLOOR - BAG_CEIL) / skin.image.h;
+/** Cỡ lớn nhất túi còn nằm gọn giữa đồng hồ và mép bàn, và không tràn hai mép màn (túi bè ngang) */
+export const BAG_MAX_W = 408;
+export const maxScale = skin => Math.min((BAG_FLOOR - BAG_CEIL) / skin.image.h, BAG_MAX_W / skin.image.w);
 export const MIN_SCALE = .5;
 
 /**

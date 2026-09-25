@@ -98,6 +98,8 @@ console.table([{
   'màu lòng túi': `rgb(${mau.join(',')})`,
 }]);
 
+// --xuat file.json: ghi đường viền lòng túi theo toạ độ ẢNH GỐC, để vẽ đè lên ảnh mà soi bằng mắt
+if (opt('xuat')) writeFileSync(opt('xuat'), JSON.stringify({ file: FILE, w, h, poly: gon, mau, seed: [sx, sy] }));
 if (!GHI) { console.log('\nXem trước, chưa ghi gì. Thêm --ghi để ghi thật.'); process.exit(0); }
 const thuMuc = `assets/${CHAPTER}/bags`;
 mkdirSync(resolve(CONTENT, thuMuc), { recursive: true });

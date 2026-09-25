@@ -170,7 +170,7 @@ export async function loadBags(only) {
       const img = {};
       for (const [k, src] of Object.entries(def.layers || {})) img[k] = loadImage(src);
       await Promise.all(Object.values(img).map(whenLoaded));
-      registerBagSkin(def.id, { ...def, img });
+      registerBagSkin(def.id, { ...def, img, thuTu: Object.keys(index.bags).indexOf(kind) });   // thuTu: thứ tự trong mục lục, cho editor xếp danh sách
     } catch (e) { console.warn('túi lỗi', kind, e); }
   }));
   return kinds;

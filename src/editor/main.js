@@ -2,7 +2,7 @@
 import { ITEM_DEFS, defById } from '../data/items.js';
 import { loadBook, loadItemManifests, loadBackgrounds, loadBags, saveContent, whenSpriteReady, setAssetChapter, setArtStyle, artStyle, loadConfig, saveConfig } from '../content/loader.js';
 import { sceneOptions, BAG_KINDS, BAG_SKINS } from '../art/scene-registry.js';
-import { isFixedSkin, placeFixed } from '../data/bag.js';
+import { isFixedSkin, placeFixed, maxScale, MIN_SCALE } from '../data/bag.js';
 import { itemArea } from '../game/physics.js';
 import { difficulty } from '../gen/difficulty.js';
 import { solve } from '../gen/solver.js';
@@ -116,7 +116,8 @@ let draw, gen, pool;
  */
 function dongBoTui(level) {
   const sk = BAG_SKINS[level.container?.skin];
-  if (isFixedSkin(sk)) level.container = placeFixed(level.container, sk, level.container.scale || 1);
+  // Đổi sang túi khác thì cỡ cũ có thể quá to với túi mới (túi bè ngang, túi cao): kẹp lại
+  if (isFixedSkin(sk)) level.container = placeFixed(level.container, sk, Math.min(maxScale(sk), Math.max(MIN_SCALE, level.container.scale || 1)));
 }
 
 export function setLevel(level, { keepId = false } = {}) {
@@ -342,7 +343,13 @@ function metrics() {
 /** Đổ danh sách túi và nền vào hai ô chọn */
 export function refreshPickers() {
   const skin = $('lvSkin');
-  skin.innerHTML = BAG_KINDS.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  // Chỉ những túi CÓ ẢNH trong bộ art đang sửa (theo thứ tự mục lục ảnh). Bộ art chưa có
+  // túi ảnh nào thì mới lùi về danh mục kiểu túi vẽ bằng code.
+  const coAnh = Object.values(BAG_SKINS).filter(isFixedSkin).sort((a, b) => (a.thuTu ?? 99) - (b.thuTu ?? 99));
+  const ds = coAnh.length ? coAnh.map(s => ({ id: s.id, name: s.name || s.id })) : BAG_KINDS;
+  const dangDung = E.level?.container?.skin;
+  if (dangDung && !ds.some(b => b.id === dangDung)) ds.push({ id: dangDung, name: `${dangDung} (chưa có ảnh ở bộ này)` });
+  skin.innerHTML = ds.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const bgs = sceneOptions();
   $('lvBg').innerHTML = bgs.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   if (E.level) { skin.value = E.level.container.skin || 'backpack'; $('lvBg').value = String(E.level.background ?? 1); }

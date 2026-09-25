@@ -64,7 +64,16 @@
     "1": "assets/01-school-day/backgrounds/1.json"
   },
   "bags": {
-    "backpack": "assets/01-school-day/bags/backpack.json"
+    "backpack": "assets/01-school-day/bags/backpack.json",
+    "suitcase": "assets/01-school-day/bags/suitcase.json",
+    "box": "assets/01-school-day/bags/box.json",
+    "tote": "assets/01-school-day/bags/tote.json",
+    "lunchbox": "assets/01-school-day/bags/lunchbox.json",
+    "duffel": "assets/01-school-day/bags/duffel.json",
+    "basket": "assets/01-school-day/bags/basket.json",
+    "storage": "assets/01-school-day/bags/storage.json",
+    "pouch": "assets/01-school-day/bags/pouch.json",
+    "shopping": "assets/01-school-day/bags/shopping.json"
   },
   "ui": {
     "delete": "assets/ui/delete.png",
