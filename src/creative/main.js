@@ -69,6 +69,9 @@ function layoutStage() {
   $('sizeTag').textContent = EXPORT[cfg.aspect].join('×');
 }
 window.addEventListener('resize', layoutStage);
+// Thanh công cụ tự xuống dòng khi hẹp, cao thấp đổi theo mà cửa sổ không đổi cỡ: khung game
+// phải tính lại theo vùng sân khấu thật, không thì nó lố xuống đè lên hàng nút trên cùng.
+if ('ResizeObserver' in window) new ResizeObserver(() => layoutStage()).observe($('stageWrap'));
 
 /** Phần khung thừa ở 1:1 và 4:5 tô bằng bối cảnh của màn đang chơi, làm mờ */
 let lastBg = null;
@@ -250,6 +253,39 @@ function toggleUi() {
 $('hideBtn').addEventListener('click', toggleUi);
 $('peek').addEventListener('click', toggleUi);
 
+// ---------- lắc túi ----------
+// Bản web không cầm máy lắc được. Mỗi lần bấm là một cú lắc ngắn theo hướng đồ bị hất;
+// giữ nút thì lặp đều mỗi 150ms cho tới khi nhả, như giữ phím mũi tên.
+const NHIP_LAC = 150;
+let lacGiu = null;
+function lac(dx, dy) { post({ type: 'shake', dx, dy }); }
+function thoiGiu() {
+  if (!lacGiu) return;
+  clearInterval(lacGiu.timer); lacGiu.el.classList.remove('on'); lacGiu = null;
+}
+document.querySelectorAll('[data-lac]').forEach(el => {
+  const [dx, dy] = el.dataset.lac.split(',').map(Number);
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault(); thoiGiu();
+    try { el.setPointerCapture(e.pointerId); } catch {}
+    lac(dx, dy);
+    el.classList.add('on');
+    lacGiu = { el, timer: setInterval(() => lac(dx, dy), NHIP_LAC) };
+  });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, thoiGiu);
+});
+document.querySelectorAll('[data-burst]').forEach(el => el.addEventListener('click', () => post({ type: 'shakeburst', truc: el.dataset.burst })));
+// Phím mũi tên: giữ hai phím cùng lúc là lắc chéo, giống game (shake.js)
+const MUI_TEN = { arrowleft: [-1, 0], arrowright: [1, 0], arrowup: [0, -1], arrowdown: [0, 1] };
+const phimGiu = new Set();
+window.addEventListener('keyup', e => phimGiu.delete(e.key.toLowerCase()));
+window.addEventListener('blur', () => phimGiu.clear());
+function huongGiu() {
+  let dx = 0, dy = 0;
+  for (const k of phimGiu) { const h = MUI_TEN[k]; if (h) { dx += h[0]; dy += h[1]; } }
+  return [Math.sign(dx), Math.sign(dy)];
+}
+
 // ---------- phím tắt: dùng chung cho tool và cho phím chuyển từ iframe ----------
 function onKey(key) {
   const k = String(key).toLowerCase();
@@ -260,11 +296,14 @@ function onKey(key) {
   else if (k === 'e') moSua($('editPanel').hidden);
   else if (k === 'f') toggleFinger();
   else if (k === 't') toggleTimer();
+  else if (MUI_TEN[k]) { if ($('picker').hidden) { phimGiu.add(k); const [dx, dy] = huongGiu(); if (dx || dy) lac(dx, dy); } }
+  else if (k === 'x' || k === 'y' || k === 'z') { if ($('picker').hidden) post({ type: 'shakeburst', truc: k === 'z' ? 'cheo' : k }); }
   else if (k === 'escape') { if ($('picker').hidden) backToPicker(); }
 }
 window.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (/^(input|select|textarea)$/i.test(e.target.tagName)) return;
+  if (e.key.startsWith('Arrow') && $('picker').hidden) e.preventDefault();   // không cuộn trang
   onKey(e.key);
 });
 

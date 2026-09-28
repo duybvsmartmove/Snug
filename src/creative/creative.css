@@ -41,6 +41,8 @@ kbd{font:800 .72em "Nunito";background:rgba(255,255,255,.14);border-radius:4px;p
 
 /* ---------- thanh công cụ ---------- */
 .bar{
+  /* nằm trên bóng đổ của khung game, không thì hàng nút trên cùng bị phủ tối trông như bị tắt */
+  position:relative;z-index:3;
   flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:9px 14px;
   background:var(--bg2);border-top:var(--border);
 }
@@ -72,6 +74,15 @@ kbd{font:800 .72em "Nunito";background:rgba(255,255,255,.14);border-radius:4px;p
 .size{color:var(--soft);font-weight:800;font-variant-numeric:tabular-nums}
 .status{margin-left:auto;color:var(--soft);font-weight:700;min-width:8em;text-align:right}
 .status.bad{color:#FF6B6B} .status.ok{color:var(--accent2)}
+
+/* Lắc túi: bốn mũi tên xếp hình chữ thập, cạnh đó hai nút lắc qua lại */
+.shake .lbl{color:var(--soft);font-weight:800}
+.dpad{display:grid;grid-template-columns:repeat(3,22px);grid-template-rows:repeat(3,19px);gap:2px}
+.btn.pad{padding:0;justify-content:center;font-size:10px;border-radius:6px;touch-action:none}
+.btn.pad.mid{font-size:11px;color:var(--gold)}
+.btn.pad.on{background:var(--accent);color:#fff}
+.burst{display:flex;flex-direction:column;gap:2px}
+.btn.mini{padding:.12em .55em;font-size:.9em}
 
 /* Ẩn UI: thanh biến mất, sân khấu ăn hết màn, mấu UI chỉ hiện khi rê chuột vào */
 body.hide-ui .bar{display:none}

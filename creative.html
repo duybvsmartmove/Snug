@@ -33,6 +33,27 @@
       <button id="autoBoostBtn" class="btn tog" title="Hết chỗ thì máy được dùng booster (lắc → thu nhỏ → bỏ). Tắt: máy chỉ xếp tay, kẹt thì dừng">🎁 Booster</button>
     </div>
 
+    <!-- Lắc túi: bản web không cầm máy lắc được. Mũi tên là hướng ĐỒ bị hất; giữ nút là lắc liên tục -->
+    <div class="grp shake" title="Lắc túi: mũi tên là hướng đồ bị hất đi, có cả 4 hướng chéo. Giữ nút hoặc giữ phím mũi tên để lắc liên tục; giữ hai phím (← ↑) là lắc chéo">
+      <span class="lbl">Lắc</span>
+      <div class="dpad">
+        <button class="btn pad" data-lac="-1,-1" aria-label="Hất đồ chéo lên trái">◤</button>
+        <button class="btn pad" data-lac="0,-1" aria-label="Hất đồ lên">▲</button>
+        <button class="btn pad" data-lac="1,-1" aria-label="Hất đồ chéo lên phải">◥</button>
+        <button class="btn pad" data-lac="-1,0" aria-label="Hất đồ sang trái">◀</button>
+        <button class="btn pad mid" data-burst="cheo" title="Một tràng lắc chéo theo mọi hướng (Z)">✳</button>
+        <button class="btn pad" data-lac="1,0" aria-label="Hất đồ sang phải">▶</button>
+        <button class="btn pad" data-lac="-1,1" aria-label="Dằn đồ chéo xuống trái">◣</button>
+        <button class="btn pad" data-lac="0,1" aria-label="Dằn đồ xuống">▼</button>
+        <button class="btn pad" data-lac="1,1" aria-label="Dằn đồ chéo xuống phải">◢</button>
+      </div>
+      <div class="burst">
+        <button class="btn mini" data-burst="x" title="Một tràng lắc qua lại trái phải (X)">↔ <kbd>X</kbd></button>
+        <button class="btn mini" data-burst="y" title="Một tràng lắc lên xuống (Y)">↕ <kbd>Y</kbd></button>
+        <button class="btn mini" data-burst="cheo" title="Một tràng lắc chéo theo mọi hướng (Z)">✳ <kbd>Z</kbd></button>
+      </div>
+    </div>
+
     <div class="grp sliders">
       <label class="sl" title="Nhịp tay của máy chơi">Tay <input id="playSpeed" type="range" min="0.25" max="3" step="0.25" value="1"><b id="playSpeedV">1x</b></label>
       <label class="sl" title="Tốc độ thời gian trong game: 0.5x là quay chậm">Time <input id="timeScale" type="range" min="0.25" max="2" step="0.25" value="1"><b id="timeScaleV">1x</b></label>

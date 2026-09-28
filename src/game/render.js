@@ -240,10 +240,10 @@ function frame(now) {
       const p = Math.min(1, (S.clock - S.tuiHienLuc) / 520);
       const nay = 1 + Math.sin(p * Math.PI) * .12 * (1 - p);        // phồng lên rồi về cỡ thật
       const co = p < 1 ? .55 + .45 * (1 - Math.pow(1 - p, 3)) : 1;  // từ 55% nở ra
-      const lac = active ? lacTui(dt) : { x: 0, rot: 0 };
+      const lac = active ? lacTui(dt) : { x: 0, y: 0, rot: 0 };
       ctx.save();
       if (p < 1) ctx.globalAlpha = Math.min(1, p * 3);
-      ctx.translate(BAG.cx + lac.x, BAG.bottom - (1 - p) * 26);
+      ctx.translate(BAG.cx + lac.x, BAG.bottom + (lac.y || 0) - (1 - p) * 26);
       ctx.rotate(lac.rot);
       ctx.scale(co * nay, co * nay);
       ctx.translate(-BAG.cx, -BAG.bottom);

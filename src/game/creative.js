@@ -17,6 +17,8 @@
 //     boosts {n}                   ép số lượt booster, null = theo level
 //     finger {on}                  ngón tay giả khi máy chơi
 //     lang {lang}                  đổi ngôn ngữ
+//     shake {dx, dy}               một cú lắc, (dx,dy) là hướng đồ bị hất: ←(-1,0) ↑(0,-1)…
+//     shakeburst {truc}            một tràng lắc qua lại như tay người: 'x' | 'y' | 'cheo'
 //   game → tool
 //     ready                        đã nạp xong, nhận lệnh được
 //     status {...}                 mỗi 200ms: màn đang mở, thắng/thua, máy đang làm gì, màu nền
@@ -25,6 +27,7 @@ import { autoplay, autoStep, stopAutoplay, autoState, autoMode, setPlaySpeed, se
 import { setBoostOverride, resetBoosts } from './boosters.js';
 import { restart } from './level.js';
 import { setLang, getLang } from '../i18n.js';
+import { lacHuong, lacQuaLai } from './shake.js';
 import { IMAGE_SCENES } from '../art/scene-registry.js';
 import { artUrl } from '../content/loader.js';
 import { currentScreen } from '../ui/home.js';
@@ -67,6 +70,8 @@ export function initCreative({ startLevel, goHome, showMap, chapterById }) {
         case 'boosts': setBoostOverride(m.n); if (S.LEVEL) resetBoosts(); break;
         case 'finger': S.showFinger = !!m.on; if (!m.on) S.finger = null; break;
         case 'lang': setLang(m.lang); break;
+        case 'shake': lacHuong(Math.sign(m.dx || 0), Math.sign(m.dy || 0)); break;
+        case 'shakeburst': lacQuaLai(['x', 'y', 'cheo'].includes(m.truc) ? m.truc : 'x'); break;
       }
     } catch (err) { console.error('creative:', err); }
   });
@@ -74,6 +79,8 @@ export function initCreative({ startLevel, goHome, showMap, chapterById }) {
   // Phím tắt của tool bấm lúc iframe đang giữ focus thì chuyển ra ngoài; tool lo phần còn lại
   window.addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // Phím mũi tên game tự lắc túi (shake.js); chuyển ra ngoài nữa là tool lắc thêm lần hai
+    if (e.key.startsWith('Arrow')) return;
     post({ type: 'key', key: e.key });
   });
 
