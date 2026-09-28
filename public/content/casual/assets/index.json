@@ -65,5 +65,10 @@
     "storage": "assets/01-school-day/bags/storage.json",
     "pouch": "assets/01-school-day/bags/pouch.json",
     "shopping": "assets/01-school-day/bags/shopping.json"
+  },
+  "ui": {
+    "snow": "assets/ui/snow.png",
+    "small": "assets/ui/small.png",
+    "delete": "assets/ui/delete.png"
   }
 }
