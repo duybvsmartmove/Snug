@@ -411,7 +411,8 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   }
   function refreshPalette() {
     const pal = $('palette'), q = tuKhoa.toLowerCase(); pal.innerHTML = '';
-    const scope = $('palScope').value;
+    // Kho đồ luôn hiện CẢ kho: không chia món theo chương (thư mục ảnh của món chỉ để cất file)
+    const scope = 'all';
     // Món riêng của chương lên trước, món mượn từ chương khác xuống sau
     const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
     for (const def of order) {
@@ -455,7 +456,6 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
   window.addEventListener('pageshow', xoaTuDien);
   for (const ms of [300, 1000, 2500]) setTimeout(xoaTuDien, ms);
   $('palSearch').addEventListener('focus', xoaTuDien);
-  $('palScope').addEventListener('change', refreshPalette);
   function addItem(def) {
     const L = E.level;
     // Một level được có nhiều món cùng loại (hai quả táo, ba đôi tất…). Riêng chìa khoá chỉ

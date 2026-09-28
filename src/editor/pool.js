@@ -48,7 +48,7 @@ export function initPool({ E, status, onSaved }) {
 
   function render() {
     const q = ($('poolSearch').value || '').toLowerCase();
-    const scope = $('poolScope').value;
+    const scope = 'all';   // thư viện art luôn hiện cả kho, không lọc theo chương
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     table.innerHTML = '<tr><th></th><th>#</th><th>Tên</th><th>Cỡ</th><th>Hình dáng</th><th>Tính chất</th><th>Khó</th><th>Chương</th><th></th></tr>';
     const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
@@ -75,7 +75,6 @@ export function initPool({ E, status, onSaved }) {
     }
   }
   $('poolSearch').addEventListener('input', render);
-  $('poolScope').addEventListener('change', render);
 
   // ---------- hộp thoại ----------
   function fillSelect(el, opts, val) {
