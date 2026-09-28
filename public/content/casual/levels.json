@@ -1,6 +1,6 @@
 {
-  "version": 50,
-  "publishedAt": "2026-09-28T07:28:22.524Z",
+  "version": 52,
+  "publishedAt": "2026-09-28T07:29:26.013Z",
   "chapters": [
     {
       "id": "school-day",
@@ -1707,16 +1707,7 @@
           "container": {
             "skin": "duffel",
             "scale": 1.03,
-            "blocks": [
-              {
-                "kind": "diamond",
-                "color": "#F7B7D2",
-                "x": 36,
-                "y": -139,
-                "w": 37,
-                "h": 38
-              }
-            ],
+            "blocks": [],
             "cx": 210,
             "bottom": 387.4,
             "shape": [
