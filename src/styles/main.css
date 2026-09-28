@@ -572,6 +572,13 @@ html[data-art="cozy"] .splash{background:#D9CFBE}
 html[data-art="cozy"] .splash.has-art{background:var(--art) center/cover no-repeat}
 html[data-art="casual"] .splash{background:radial-gradient(120% 70% at 50% 0%, #FFF8EC 0%, #FFE3B8 46%, #FFC98A 100%)}
 @media (prefers-reduced-motion: reduce){ .splash-brand{animation:none} }
+/* Splash kiểu Snug gốc: đồ phủ kín màn, logo nằm giữa trên một thẻ kem để đọc được trên nền
+   đồ dày đặc. Không còn thanh chạy: đồ rơi hết là màn tự khép. */
+.splash{justify-content:center}
+.splash-bar{display:none}
+.splash-brand{margin-top:-8%;padding:.8em 1.5em .9em;border-radius:1.6em;
+  background:rgba(255,248,236,.94);box-shadow:0 10px 28px rgba(60,40,20,.22), 0 3px 0 rgba(90,58,34,.18)}
+html[data-art="casual"] .splash-brand{background:rgba(255,255,255,.95);border:3px solid #26203F;box-shadow:0 5px 0 #26203F, 0 12px 26px rgba(38,32,63,.25)}
 
 /* ==========================================================================
    HUD THEO MẪU (cả hai bộ art): tên màn đứng giữa không khung, gạch chân vàng; đồng hồ, số món, tạm dừng

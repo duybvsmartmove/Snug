@@ -36,7 +36,7 @@ export const isCreative = new URLSearchParams(location.search).get('creative') =
 const HUD_PARTS = ['timer', 'dock', 'title', 'pause'];
 const kep = (v, a, b) => Math.max(a, Math.min(b, Number(v) || 1));
 
-export function initCreative({ startLevel, goHome, showMap, chapterById }) {
+export function initCreative({ startLevel, vaoNgay, choiSplash, goHome, showMap, chapterById }) {
   if (!isCreative) return;
   setAutoQuiet(true);
   const phone = document.getElementById('phone');
@@ -49,7 +49,12 @@ export function initCreative({ startLevel, goHome, showMap, chapterById }) {
         case 'play': {
           const ch = chapterById(m.chapter); if (!ch) return;
           stopAutoplay();
-          await startLevel(ch, m.index | 0);
+          await vaoNgay(ch, m.index | 0);   // thẳng vào màn chơi, không lộ trang chủ hay tấm màn
+          break;
+        }
+        case 'splash': {
+          const ch = chapterById(m.chapter); if (!ch) return;
+          await choiSplash(ch, m.index | 0, m.level || null);
           break;
         }
         case 'screen':

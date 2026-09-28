@@ -85,6 +85,7 @@ function paintStageBg() {
 // ---------- vẽ thanh công cụ theo status ----------
 function paintStatus() {
   const s = status; if (!s) return;
+  if (choVao && s.screen === 'level' && (!choVao.id || s.levelId === choVao.id)) xongVao();
   paintStageBg();
   const auto = $('autoBtn'), step = $('stepBtn');
   const fullOn = s.auto !== 'idle' && s.autoMode === 'full';
@@ -152,12 +153,27 @@ function drawPicker() {
   });
 }
 
+// Bấm một level: giữ màn chọn level che khung game cho tới khi game báo đã vào đúng màn đó,
+// rồi mới cất đi. Cất ngay thì người xem thấy trang chủ của game một thoáng trước màn chơi.
+let choVao = null;
 function play(chapter, index) {
   current = { chapter, index };
   custom = null; paintEdit();
-  $('picker').hidden = true;
+  const id = book?.chapters.find(c => c.id === chapter)?.levels[index]?.id;
+  choVao = { id, han: setTimeout(xongVao, 3000) };
   post({ type: 'play', chapter, index });
   layoutStage();
+}
+function xongVao() {
+  if (!choVao) return;
+  clearTimeout(choVao.han); choVao = null;
+  $('picker').hidden = true;
+  layoutStage();
+}
+/** Chạy lại Splash rồi vào lại màn đang quay (bản đã sửa nếu có) */
+function splash() {
+  if (!current) return note('Chọn một level trước đã', 'bad');
+  post({ type: 'splash', chapter: current.chapter, index: current.index, level: custom ? structuredClone(custom) : null });
 }
 function showScreen(name) {
   current = null; custom = null; moSua(false);
@@ -177,6 +193,7 @@ function backToPicker() {
 $('backBtn').addEventListener('click', backToPicker);
 document.querySelectorAll('[data-screen]').forEach(b => b.addEventListener('click', () => showScreen(b.dataset.screen)));
 $('resetBtn').addEventListener('click', () => post({ type: 'restart' }));
+$('splashBtn').addEventListener('click', splash);
 $('autoBtn').addEventListener('click', toggleAuto);
 $('stepBtn').addEventListener('click', () => post({ type: 'auto', mode: 'step' }));
 function toggleAuto() {
@@ -293,6 +310,7 @@ function onKey(key) {
   else if (k === 's') toggleAuto();
   else if (k === 'd') post({ type: 'auto', mode: 'step' });
   else if (k === 'h') toggleUi();
+  else if (k === 'p') splash();
   else if (k === 'e') moSua($('editPanel').hidden);
   else if (k === 'f') toggleFinger();
   else if (k === 't') toggleTimer();

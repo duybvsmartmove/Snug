@@ -117,7 +117,7 @@ async function boot() {
   }
 
   initHome({ chapters: chapters(), onPlay: startLevel });
-  initCreative({ startLevel, goHome, showMap, chapterById });
+  initCreative({ startLevel, vaoNgay, choiSplash, goHome, showMap, chapterById });
 
   // Mở thẳng một level qua địa chỉ (?level=… hoặc ?i=…) thì bỏ qua trang chủ
   const byId = params.get('level'), byIdx = params.get('i');
@@ -169,6 +169,33 @@ async function startLevel(ch, idx) {
     await loadAndBuild(idx);
   });
   goiYLacMotLan(toast, t('shakeHint'));
+}
+
+/**
+ * Creative Tool: vào thẳng màn chơi, không qua tấm màn chuyển cảnh. Nạp ảnh và dựng level
+ * xong mới cất trang chủ, nên khung đầu tiên người xem thấy là màn chơi với đồ đang mưa
+ * xuống, y như game thật sau Splash. Có `level` thì dựng đúng bản đó (level Creative đã sửa).
+ */
+async function vaoNgay(ch, idx, level = null) {
+  if (!S.map || S.mapId !== ch.id) {
+    S.mapId = ch.id; S.map = ch;
+    await loadChapterAssets(ch);
+  }
+  await initAudio();
+  startMusic();
+  if (level) { S.levelIdx = idx; await buildWithArt(level); }
+  else await loadAndBuild(idx);
+  hideHome();
+}
+
+/**
+ * Creative Tool: chạy lại màn Splash như lúc mở app, xong thì vào lại màn đang quay (qua tấm
+ * màn chuyển cảnh như game thật). Đồ của cả bộ art nạp trước một chút cho Splash đủ đồ.
+ */
+async function choiSplash(ch, idx, level = null) {
+  stopAutoplay();
+  await Promise.race([loadItemManifests().catch(() => {}), new Promise(r => setTimeout(r, 1500))]);
+  await showSplash({ khiKhep: () => chuyenMan(() => vaoNgay(ch, idx, level)).catch(e => console.warn('vào ván', e)) });
 }
 
 /**
