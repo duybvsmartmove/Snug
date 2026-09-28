@@ -49,6 +49,13 @@ export function makeItem(def, x, y) {
   body.restitution = bo.restitution;
   body.restGoc = bo.restitution;    // độ nảy gốc, để tắt tạm lúc món nằm trong túi rồi trả lại
   if (def.meta?.physics === 'rolling') { body.friction = .15; body.frictionStatic = .2; }
+  // Bóng bay: nhẹ, trơn, hơi nảy, không khí cản mạnh. Lực nổi đặt mỗi bước ở float.js.
+  if (def.meta?.physics === 'float') {
+    body.bay = true;
+    Body.setDensity(body, body.density * .35);
+    body.friction = .08; body.frictionStatic = .1; body.frictionAir = .06;
+    body.restitution = body.restGoc = .35;
+  }
   body.itemId = def.id;        // khoá chính (số), dùng để so khớp với level JSON
   body.label = def.slug;       // tên ngắn, tiện khi xem log
   body.def = def;

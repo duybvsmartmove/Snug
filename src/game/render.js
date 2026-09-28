@@ -7,6 +7,7 @@ import { drawBag, drawBagFront } from '../art/bags.js';
 import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js';
 import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
+import { tickFloat } from './float.js';
 import { tickFreeze } from './boosters.js';
 import { tickShake, lacTui } from './shake.js';
 import { updateClock, showLose } from '../ui/hud.js';
@@ -188,7 +189,7 @@ function drawFinger() {
  */
 function step(dt) {
   moveHeld(dt);
-  tickEntrance(); tickPhone(dt); tickRotation(dt); tickShake(); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt);
+  tickEntrance(); tickPhone(dt); tickRotation(dt); tickShake(); tickFloat(); Engine.update(S.engine, dt); checkUnlock(); tickTimer(dt);
   S.clock += dt;
 }
 

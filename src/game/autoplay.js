@@ -260,6 +260,9 @@ async function lapKeHoachThat(ungVien) {
   cauHinhDangDung = best?.cauHinh || DANH_MUC[0];
   if (ky) { if (best?.solvable) khongTron = 0; else khongTron++; }
   keHoach = (best?.plan || []).filter(st => !ngoaiTui(st) && st.ref && S.bodies.includes(st.ref));
+  // Bóng bay đặt sau cùng: máy xếp tính đồ rơi xuống, bóng lại bay lên, đặt sớm là nó dâng lên
+  // chiếm chỗ của món sau. Để cuối thì nó dâng vào khoảng trống còn lại phía trên.
+  keHoach.sort((a, b) => (a.ref.bay ? 1 : 0) - (b.ref.bay ? 1 : 0));
   ghi(`lập kế hoạch: ứng viên [${ungVien.map(b => b.label).join(' ')}], vật cản ${tt.items.filter(i => i.inBag).length}, kế hoạch ${keHoach.length} bước [${keHoach.map(st => st.ref.label).join(' ')}], ${Math.round(performance.now() - t0)}ms`);
   return best;
 }

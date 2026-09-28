@@ -14,6 +14,7 @@ const PHYS = [
   { v: 'normal', t: 'Bình thường' },
   { v: 'rolling', t: 'Dễ lăn' },
   { v: 'bouncy', t: 'Nảy' },
+  { v: 'float', t: 'Bay lên (bóng bay)' },
   { v: 'vibrating', t: 'Rung' },
 ];
 const PHYS_TEXT = Object.fromEntries(PHYS.map(p => [p.v, p.t]));
