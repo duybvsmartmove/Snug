@@ -417,7 +417,9 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const order = scope === 'chapter' && chapterOwn ? [...ITEM_DEFS].sort(byChapterFirst(chapterOwn)) : ITEM_DEFS;
     for (const def of order) {
       if (scope === 'chapter' && chapterItems && !chapterItems.has(def.id) && def.id > 0) continue;
-      if (def.id <= 0 && !def.sprite) continue;   // chìa khoá / hộp bí ẩn chưa có ảnh ở bộ art này
+      // Món chưa có ảnh ở bộ art đang sửa thì không hiện: đặt vào level là một ô xám, trong game
+      // thì vô hình. Casual còn thiếu 11–15 và 51–59; nhập ảnh ở Thư viện art là tự hiện ra.
+      if (!def.sprite) continue;
       if (q && !`${def.id} ${def.name} ${def.slug}`.toLowerCase().includes(q)) continue;
       const b = document.createElement('button'); b.title = labelOf(def);
       const c = document.createElement('canvas'); c.width = c.height = 80;
