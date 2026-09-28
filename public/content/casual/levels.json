@@ -1,6 +1,6 @@
 {
-  "version": 39,
-  "publishedAt": "2026-09-28T03:18:12.367Z",
+  "version": 40,
+  "publishedAt": "2026-09-28T03:38:56.021Z",
   "chapters": [
     {
       "id": "school-day",
@@ -13,8 +13,8 @@
       "levels": [
         {
           "id": "sd-01",
-          "name": "Đồ vệ sinh nhỏ",
-          "nameEn": "Little essentials",
+          "name": "",
+          "nameEn": "Level 1",
           "timer": 120,
           "background": 1,
           "container": {
@@ -22,7 +22,7 @@
             "scale": 0.736,
             "blocks": [],
             "cx": 210,
-            "bottom": 430.5,
+            "bottom": 420.5,
             "shape": [
               [
                 -4.4,
@@ -141,12 +141,6 @@
           "mode": "fixed",
           "items": [
             {
-              "id": 6,
-              "x": 35,
-              "y": 506,
-              "angle": 0.37
-            },
-            {
               "id": 7,
               "x": 149,
               "y": 500,
@@ -159,10 +153,28 @@
               "angle": 0.16
             },
             {
-              "id": 10,
-              "x": 374,
-              "y": 504,
-              "angle": 0.65
+              "id": 17,
+              "x": 176,
+              "y": 492,
+              "angle": 0
+            },
+            {
+              "id": 23,
+              "x": 244,
+              "y": 492,
+              "angle": 0
+            },
+            {
+              "id": 18,
+              "x": 312,
+              "y": 492,
+              "angle": 0
+            },
+            {
+              "id": 42,
+              "x": 380,
+              "y": 492,
+              "angle": 0
             }
           ],
           "reward": {
@@ -2078,7 +2090,11 @@
           7,
           8,
           9,
-          10
+          10,
+          17,
+          18,
+          23,
+          42
         ],
         "backgrounds": [
           1
