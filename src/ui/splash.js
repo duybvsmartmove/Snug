@@ -47,7 +47,8 @@ const lech = k => (Math.random() - .5) * 2 * k;
  * `khiKhep` (tuỳ chọn) được gọi đúng lúc màn BẮT ĐẦU khép, trước quãng mờ dần 380ms —
  * để ai muốn che tấm màn chuyển cảnh lên thì che kịp trong lúc Splash còn đang mờ.
  */
-export function showSplash({ khiKhep, logo = true } = {}) {
+// logo: game thật không hiện cụm chữ (chỉ đồ phủ kín màn); Creative có nút bật lại để quay
+export function showSplash({ khiKhep, logo = false } = {}) {
   const sanSang = () => ITEM_DEFS.filter(d => d.id > 0 && d.sprite?.ready);
   const el = $('splash'), cv = $('splashCv');
   if (!sanSang().length || !el) { hetSplashBoot(); if (el) el.classList.remove('show'); return Promise.resolve(); }
@@ -159,7 +160,7 @@ export function showSplash({ khiKhep, logo = true } = {}) {
 
   el.classList.add('show');
   el.classList.remove('go');
-  el.classList.toggle('no-brand', !logo);   // Creative: bản Splash không có cụm chữ logo ở giữa
+  el.classList.toggle('no-brand', !logo);
   return new Promise(xong => {
     let dong = false, han = 0;
     const khep = async () => {
@@ -174,7 +175,7 @@ export function showSplash({ khiKhep, logo = true } = {}) {
       await new Promise(res => setTimeout(res, 380));   // chờ màn mờ hẳn rồi mới dọn
       window.removeEventListener('resize', doCo);
       cancelAnimationFrame(r.raf);
-      el.classList.remove('no-brand');
+      el.classList.add('no-brand');   // trả về mặc định của game: không chữ
       if (run === r) run = null;
       xong();
     };
