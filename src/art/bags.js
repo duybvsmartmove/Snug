@@ -112,8 +112,13 @@ function drawBlocks() {
 }
 
 /** Chữ gợi ý khi túi còn trống */
+// Creative Tool quay video và chụp ảnh store: chữ hướng dẫn trong túi trống là chữ của
+// người chơi mới, lên ảnh quảng cáo chỉ thừa. Đọc thẳng tham số ở đây, không nhập
+// game/creative.js cho khỏi kéo cả máy tự chơi vào module vẽ.
+const AN_CHU_GOI_Y = new URLSearchParams(location.search).get('creative') === '1';
+
 function drawEmptyLabel() {
-  if (!S.LEVEL || S.checked.size > 0) return;
+  if (AN_CHU_GOI_Y || !S.LEVEL || S.checked.size > 0) return;
   const anyInside = S.bodies.some(b => b.bounds.min.y > BAG.top && b.bounds.max.y < BAG.bottom + 4
     && b.bounds.min.x > BAG.left - 4 && b.bounds.max.x < BAG.right + 4 && b.label !== 'key');
   if (anyInside) return;
