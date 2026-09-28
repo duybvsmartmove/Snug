@@ -1,6 +1,6 @@
 {
-  "version": 57,
-  "publishedAt": "2026-09-25T08:59:49.616Z",
+  "version": 58,
+  "publishedAt": "2026-09-28T02:16:58.055Z",
   "chapters": [
     {
       "id": "school-day",
@@ -362,7 +362,7 @@
         },
         {
           "id": "sd-03",
-          "name": "Hộp cơm đầy",
+          "name": "",
           "nameEn": "Level 3",
           "timer": 100,
           "background": 1,
