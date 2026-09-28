@@ -1,6 +1,6 @@
 {
-  "version": 65,
-  "publishedAt": "2026-09-28T03:00:26.502Z",
+  "version": 66,
+  "publishedAt": "2026-09-28T08:33:59.942Z",
   "chapters": [
     {
       "id": "school-day",
@@ -914,7 +914,7 @@
           "id": "sd-06",
           "name": "",
           "nameEn": "Level 6",
-          "timer": 90,
+          "timer": 180,
           "background": 1,
           "container": {
             "skin": "backpack",
@@ -1098,7 +1098,7 @@
             }
           ],
           "reward": {
-            "coin": 35
+            "coin": 40
           },
           "difficulty": {
             "points": 7,
