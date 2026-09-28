@@ -494,7 +494,9 @@ html[data-art="cozy"] button:focus-visible{outline-color:var(--gold)}
 
 /* trang chủ */
 html[data-art="cozy"] .home{background:#D9CFBE}
-html[data-art="cozy"] .home.has-art,html[data-art="cozy"] .mapscr.has-art{background:var(--art) center/cover no-repeat}
+/* ảnh giấy ĐÈ lên màu nền, không thay nó: ảnh chưa tải xong thì màn vẫn kín màu, không trong
+   suốt để lộ màn chơi phía sau (lỗi nhấp nháy lúc mở app) */
+html[data-art="cozy"] .home.has-art,html[data-art="cozy"] .mapscr.has-art{background:#D9CFBE var(--art) center/cover no-repeat}
 html[data-art="cozy"] .home-glow{background:
   radial-gradient(40% 24% at 20% 20%, rgba(255,250,238,.55), transparent 70%),
   radial-gradient(60% 34% at 50% 104%, rgba(233,119,106,.12), transparent 70%)}
@@ -569,7 +571,7 @@ html[data-art="cozy"] .splash-bar i{background:linear-gradient(90deg,#EBB54A,#E9
 @keyframes splashDrop{0%{opacity:0;transform:translateY(-2.4em) scale(.9)}60%{opacity:1}100%{opacity:1;transform:none}}
 @keyframes splashRise{from{opacity:0;transform:translateY(1.4em)}to{opacity:1;transform:none}}
 html[data-art="cozy"] .splash{background:#D9CFBE}
-html[data-art="cozy"] .splash.has-art{background:var(--art) center/cover no-repeat}
+html[data-art="cozy"] .splash.has-art{background:#D9CFBE var(--art) center/cover no-repeat}
 html[data-art="casual"] .splash{background:radial-gradient(120% 70% at 50% 0%, #FFF8EC 0%, #FFE3B8 46%, #FFC98A 100%)}
 @media (prefers-reduced-motion: reduce){ .splash-brand{animation:none} }
 /* Splash kiểu Snug gốc: đồ phủ kín màn, logo nằm giữa trên một thẻ kem để đọc được trên nền

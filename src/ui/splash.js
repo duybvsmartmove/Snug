@@ -167,11 +167,14 @@ export function showSplash({ khiKhep, logo = false } = {}) {
       if (dong) return; dong = true;
       clearTimeout(han);
       el.removeEventListener('pointerdown', cham);
-      el.classList.remove('show');
       hetSplashBoot();
       // Gọi SAU hetSplashBoot: hàm đó vừa đặt tấm màn về trạng thái "mở" (lớp off), gọi trước
       // thì ai kéo màn che vào sẽ bị nó mở toang lại ngay lập tức.
       try { khiKhep?.(); } catch (e) { console.warn('splash khiKhep', e); }
+      // Splash còn nguyên trong lúc tấm màn kéo vào (190ms), đục hẳn rồi mới tắt Splash phía
+      // sau. Tắt cùng lúc thì hai lớp cùng nửa trong suốt, màn chơi lộ ra một thoáng.
+      await new Promise(res => setTimeout(res, khiKhep ? 200 : 0));
+      el.classList.remove('show');
       await new Promise(res => setTimeout(res, 380));   // chờ màn mờ hẳn rồi mới dọn
       window.removeEventListener('resize', doCo);
       cancelAnimationFrame(r.raf);
