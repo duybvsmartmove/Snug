@@ -54,7 +54,7 @@ export function initCreative({ startLevel, vaoNgay, choiSplash, goHome, showMap,
         }
         case 'splash': {
           const ch = chapterById(m.chapter); if (!ch) return;
-          await choiSplash(ch, m.index | 0, m.level || null);
+          await choiSplash(ch, m.index | 0, m.level || null, { logo: m.logo !== false });
           break;
         }
         case 'screen':

@@ -171,9 +171,9 @@ function xongVao() {
   layoutStage();
 }
 /** Chạy lại Splash rồi vào lại màn đang quay (bản đã sửa nếu có) */
-function splash() {
+function splash(logo = true) {
   if (!current) return note('Chọn một level trước đã', 'bad');
-  post({ type: 'splash', chapter: current.chapter, index: current.index, level: custom ? structuredClone(custom) : null });
+  post({ type: 'splash', chapter: current.chapter, index: current.index, level: custom ? structuredClone(custom) : null, logo });
 }
 function showScreen(name) {
   current = null; custom = null; moSua(false);
@@ -193,7 +193,8 @@ function backToPicker() {
 $('backBtn').addEventListener('click', backToPicker);
 document.querySelectorAll('[data-screen]').forEach(b => b.addEventListener('click', () => showScreen(b.dataset.screen)));
 $('resetBtn').addEventListener('click', () => post({ type: 'restart' }));
-$('splashBtn').addEventListener('click', splash);
+$('splashBtn').addEventListener('click', () => splash(true));
+$('splashBareBtn').addEventListener('click', () => splash(false));
 $('autoBtn').addEventListener('click', toggleAuto);
 $('stepBtn').addEventListener('click', () => post({ type: 'auto', mode: 'step' }));
 function toggleAuto() {
@@ -310,7 +311,8 @@ function onKey(key) {
   else if (k === 's') toggleAuto();
   else if (k === 'd') post({ type: 'auto', mode: 'step' });
   else if (k === 'h') toggleUi();
-  else if (k === 'p') splash();
+  else if (k === 'p') splash(true);
+  else if (k === 'o') splash(false);
   else if (k === 'e') moSua($('editPanel').hidden);
   else if (k === 'f') toggleFinger();
   else if (k === 't') toggleTimer();

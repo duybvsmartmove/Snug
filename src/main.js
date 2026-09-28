@@ -192,10 +192,10 @@ async function vaoNgay(ch, idx, level = null) {
  * Creative Tool: chạy lại màn Splash như lúc mở app, xong thì vào lại màn đang quay (qua tấm
  * màn chuyển cảnh như game thật). Đồ của cả bộ art nạp trước một chút cho Splash đủ đồ.
  */
-async function choiSplash(ch, idx, level = null) {
+async function choiSplash(ch, idx, level = null, { logo = true } = {}) {
   stopAutoplay();
   await Promise.race([loadItemManifests().catch(() => {}), new Promise(r => setTimeout(r, 1500))]);
-  await showSplash({ khiKhep: () => chuyenMan(() => vaoNgay(ch, idx, level)).catch(e => console.warn('vào ván', e)) });
+  await showSplash({ logo, khiKhep: () => chuyenMan(() => vaoNgay(ch, idx, level)).catch(e => console.warn('vào ván', e)) });
 }
 
 /**
