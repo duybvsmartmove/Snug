@@ -1,7 +1,7 @@
 // Tab Draw: canvas sắp xếp level. Tool Items (kéo/xoay/buộc dây/khóa), Shape (kéo điểm polygon), Block (vẽ block chặn).
 // Túi dáng cố định (manifest túi có `fixed`) thì không có tool Shape: chỉ đổi cỡ túi bằng thanh kéo,
 // vật cản chọn được hình và màu, bấm vào vật cản đã đặt để chọn, kéo để dời chỗ.
-import { ITEM_DEFS, MYSTERY, defById, labelOf } from '../data/items.js';
+import { ITEM_DEFS, MYSTERY, defById, labelOf, coTrongLevel } from '../data/items.js';
 import { theme } from '../art/helpers.js';
 import { W, H, TABLE_Y, FLOOR_Y } from '../game/state.js';
 import { pointInPolygon, polygonArea } from '../util/geom.js';
@@ -114,10 +114,10 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     for (const it of L.items) {
       const def = defById(it.id); if (!def) continue;
       const p = itemPos(it);
-      drawDef(it.locked ? MYSTERY : def, p.x, p.y, it.angle, it.inBag ? .9 : 1, Number(it.scale) || 1);
+      drawDef(it.locked ? MYSTERY : def, p.x, p.y, it.angle, it.inBag ? .9 : 1, coTrongLevel(L, it));
       if (it.inBag) { ctx.fillStyle = '#E2B04A'; ctx.font = '800 10px Nunito'; ctx.fillText('IN BAG', p.x - 18, p.y - 26); }
       if (sel === it) {
-        const d2 = it.locked ? MYSTERY : def, k = Number(it.scale) || 1;
+        const d2 = it.locked ? MYSTERY : def, k = coTrongLevel(L, it);
         const pts = vienHinh(d2);
         ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(it.angle || 0); ctx.scale(k, k);
         ctx.strokeStyle = '#E2637F'; ctx.lineWidth = 2 / k; ctx.setLineDash([5 / k, 4 / k]); ctx.lineJoin = 'round';
@@ -142,7 +142,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     for (let i = L.items.length - 1; i >= 0; i--) {
       const it = L.items[i], def = it.locked ? MYSTERY : defById(it.id); if (!def) continue;
       const c = itemPos(it), dx = p.x - c.x, dy = p.y - c.y, a = -(it.angle || 0);
-      const k = Number(it.scale) || 1;
+      const k = coTrongLevel(E.level, it);
       const lx = (dx * Math.cos(a) - dy * Math.sin(a)) / k, ly = (dx * Math.sin(a) + dy * Math.cos(a)) / k;
       if (trongHinh(def, lx, ly)) return it;
     }
@@ -300,7 +300,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const L = E.level, want = Math.max(.3, Math.min(.98, (+$('fitDensityFixed').value || 80) / 100));
     const items = L.items.filter(i => i.id !== 0);
     if (!items.length) return status('Chưa có món nào để tính', 'bad');
-    const itemArea = items.reduce((s, it) => { const k = Number(it.scale) || 1; return s + areaOfItem(it.id) * k * k; }, 0);
+    const itemArea = items.reduce((s, it) => { const k = coTrongLevel(L, it); return s + areaOfItem(it.id) * k * k; }, 0);
     // lòng túi và vật cản phóng cùng nhau nên chỗ trống tỉ lệ bình phương cỡ túi
     const s0 = L.container.scale || 1, cur = polygonArea(L.container.shape) - blocksArea(L.container.blocks);
     const s = datCo(s0 * Math.sqrt(itemArea / want / cur));
@@ -329,7 +329,7 @@ export function initDraw({ E, onChange, status, areaOf: areaOfItem }) {
     const want = Math.max(.3, Math.min(.98, (+$('fitDensity').value || 80) / 100));
     const items = L.items.filter(i => i.id !== 'key');
     if (!items.length) return status('Chưa có món nào để tính', 'bad');
-    const itemArea = items.reduce((s, it) => { const k = Number(it.scale) || 1; return s + areaOfItem(it.id) * k * k; }, 0);
+    const itemArea = items.reduce((s, it) => { const k = coTrongLevel(L, it); return s + areaOfItem(it.id) * k * k; }, 0);
     const cur = polygonArea(L.container.shape) - blocksArea(L.container.blocks);
     const target = itemArea / want;
     const k = Math.sqrt(target / cur);

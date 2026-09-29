@@ -156,3 +156,12 @@ body.hide-ui.editing .stage-wrap{padding-right:0}
 .ed-items button:hover::after{opacity:1}
 .ed-pool i{position:absolute;top:2px;right:3px;min-width:16px;height:16px;border-radius:8px;background:var(--accent2);color:#0F2A22;font:800 10px/16px "Nunito";font-style:normal;text-align:center}
 .ed-empty{grid-column:1/-1;color:var(--soft);font-weight:700;padding:6px 0}
+
+.ed-items button.on{border-color:var(--accent2);background:var(--btn);box-shadow:0 0 0 2px var(--accent2) inset}
+.ed-items button::after{content:none}
+.ed-items button i{position:absolute;top:2px;right:3px;font:800 9px/1 "Nunito";font-style:normal;color:var(--gold)}
+.ed-sel{display:flex;align-items:center;gap:6px;background:var(--bg);border:var(--border);border-radius:10px;padding:6px 8px}
+.ed-sel b{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-sel .btn{padding:.3em .6em}
+.ed-sel .bo{color:#FF6B6B}
+.ed-sel span{min-width:3em;text-align:center;font-weight:800}

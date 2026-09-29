@@ -128,8 +128,19 @@ export function setLevel(level, { keepId = false } = {}) {
   $('lvName').value = level.name || ''; $('lvNameEn').value = level.nameEn || ''; $('lvTimer').value = level.timer || 90;
   refreshPickers();
   $('lvCoin').value = level.reward?.coin ?? 20;
+  veCoDo();
   onChange();
 }
+/** Thanh "Cỡ đồ": cỡ chung của mọi món trong level (level.itemScale), 1 thì không ghi vào file */
+function veCoDo() { const v = Math.round((Number(E.level?.itemScale) || 1) * 100); $('itemScale').value = $('itemScaleNum').value = v; }
+function datCoDo(pct) {
+  const v = Math.min(150, Math.max(50, Math.round(pct || 100)));
+  if (v === 100) delete E.level.itemScale; else E.level.itemScale = v / 100;
+  veCoDo(); onChange();
+}
+$('itemScale').addEventListener('input', e => datCoDo(+e.target.value));
+$('itemScaleNum').addEventListener('change', e => datCoDo(+e.target.value));
+$('itemScaleReset').addEventListener('click', () => datCoDo(100));
 /** Gọi sau mỗi thay đổi: vẽ lại, đo lại, đẩy preview */
 export function onChange() {
   draw?.render();

@@ -19,6 +19,7 @@
 //    Người chơi xếp bằng máy là điểm tuyệt đối; xếp hơn máy cũng chỉ tính tối đa.
 import Matter from 'matter-js';
 import { S, BAG, partsOf } from './state.js';
+import { coTrongLevel } from '../data/items.js';
 import { pointInPolygon, pointInPolygonTolerant } from '../util/geom.js';
 import { DEFAULT_BOOSTS } from './boosters.js';
 import { solve, hinhMon, xoay } from '../gen/solver.js';
@@ -66,7 +67,7 @@ function docChuanCuaMan() {
     const sol = solve(S.LEVEL, { tries: 300 });
     if (!sol.plan?.length) return null;
     const theoId = new Map();
-    for (const it of S.LEVEL.items) if (!theoId.has(it.id)) theoId.set(it.id, Number(it.scale) || 1);
+    for (const it of S.LEVEL.items) if (!theoId.has(it.id)) theoId.set(it.id, coTrongLevel(S.LEVEL, it));
     const manh = [];
     for (const p of sol.plan) {
       const hinh = hinhMon(p.id); if (!hinh) continue;

@@ -82,6 +82,14 @@
           <div class="grow"></div>
           <button id="fitBagFixed" title="Chọn cỡ túi cho khớp độ đầy mong muốn">Vừa khít <input id="fitDensityFixed" type="number" value="80" min="40" max="98"> %</button>
         </div>
+        <!-- Cỡ đồ: phóng to hay thu nhỏ MỌI món trong level một lúc. Cỡ riêng từng món (chọn món
+             ở bước 3) nhân thêm với số này. -->
+        <div class="row" id="itemScaleRow">
+          <label class="field">Cỡ đồ <input id="itemScale" type="range" min="50" max="150" step="1" value="100"></label>
+          <input id="itemScaleNum" type="number" min="50" max="150" step="1" value="100" style="width:4.5em"> %
+          <button id="itemScaleReset" class="ghost" title="Về cỡ gốc của món">100%</button>
+          <span class="hint">Cả loạt món. Cỡ riêng một món: bấm vào món đó ở bước 3.</span>
+        </div>
         <div class="row" id="freeRow">
           <div class="seg" id="shapeSeg">
             <button data-preset="rect">Chữ nhật</button>

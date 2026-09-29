@@ -190,3 +190,10 @@ export const labelOf = def => `${def.id} · ${def.name}`;
 
 export const KEY_ID = 0;        // chìa khoá mở hộp bí ẩn
 export const MYSTERY_ID = -1;
+
+/**
+ * Cỡ thật của một món trong level: cỡ riêng của món (it.scale) nhân cỡ chung của cả level
+ * (level.itemScale, thanh "Cỡ đồ" trong editor và Creative). Level cũ không có hai số này
+ * thì là 1, không đổi gì.
+ */
+export const coTrongLevel = (level, it) => (Number(it?.scale) || 1) * (Number(level?.itemScale) || 1);

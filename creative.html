@@ -117,7 +117,17 @@
     <label class="ed-scale">Cỡ túi <input id="edScale" type="range" min="50" max="120" step="1"><b id="edScaleV">100%</b></label>
 
     <h3>Món trong level <span id="edCount"></span></h3>
+    <label class="ed-scale" title="Phóng to hay thu nhỏ mọi món trong level một lúc">Cỡ đồ <input id="edItemScale" type="range" min="50" max="150" step="1"><b id="edItemScaleV">100%</b></label>
     <div class="ed-items" id="edItems"></div>
+    <!-- món đang chọn: chỉnh cỡ riêng hoặc bỏ khỏi level -->
+    <div class="ed-sel" id="edSel" hidden>
+      <b id="edSelName"></b>
+      <button class="btn" data-k="-10" title="Nhỏ đi 10%">−</button>
+      <span id="edSelPct">100%</span>
+      <button class="btn" data-k="10" title="To thêm 10%">+</button>
+      <button class="btn" data-k="reset" title="Về 100%">↺</button>
+      <button class="btn bo" data-k="del" title="Bỏ món khỏi level">✕ Bỏ</button>
+    </div>
 
     <h3>Thêm món <input id="edSearch" type="text" placeholder="tìm…" autocomplete="off" spellcheck="false"></h3>
     <div class="ed-pool" id="edPool"></div>

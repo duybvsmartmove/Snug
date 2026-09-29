@@ -1,5 +1,5 @@
 // Difficulty Point theo bảng trong GDD Level Generation System.
-import { defById } from '../data/items.js';
+import { defById, coTrongLevel } from '../data/items.js';
 import { polygonArea, isConvex } from '../util/geom.js';
 import { blocksArea } from '../data/blocks.js';
 
@@ -38,7 +38,7 @@ export function difficulty(level, areaOf) {
   // phóng 150% là chiếm 2,25 lần chỗ. Bỏ qua thì bảng độ khó không nhúc nhích
   // dù người dựng level vừa phóng to cả đống đồ.
   const itemArea = items.reduce((s, it) => {
-    const k = Number(it.scale) || 1;
+    const k = coTrongLevel(level, it);
     return s + (areaOf(it.id) || 0) * k * k;
   }, 0);
   const density = itemArea / usable;

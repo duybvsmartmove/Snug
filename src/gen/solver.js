@@ -13,6 +13,7 @@
 // Kế hoạch trả về sắp theo MÉP DƯỚI từ thấp lên cao: xếp to trước như cũ thì món to nằm
 // trên rơi xuống khi món dưới chưa có mặt, cả đống trật chỗ.
 import { pointInPolygon, bbox, mulberry32 } from '../util/geom.js';
+import { coTrongLevel } from '../data/items.js';
 import { defById } from '../data/items.js';
 import { blockPoly } from '../data/blocks.js';
 
@@ -278,7 +279,7 @@ function chuanBi(level, { cell, mask, goc }) {
   const GOC = Array.from({ length: goc }, (_, i) => i * 2 * Math.PI / goc);
   const g = rasterize(level.container, CELL);
   const bb = bbox(level.container.shape);
-  const coRieng = it => Number(it.scale) || 1;
+  const coRieng = it => coTrongLevel(level, it);
 
   // Món đặt sẵn trong túi: đánh dấu ô đã bận theo đúng hình và góc của nó
   for (const it of level.items) {

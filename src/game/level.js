@@ -1,7 +1,7 @@
 // Dựng level từ JSON (content pack): túi polygon, block, rải đồ, dây buộc, hộp bí ẩn, chìa trong túi, HUD.
 import Matter from 'matter-js';
 import { S, BAG, setContainer, toAbs, W, TABLE_Y } from './state.js';
-import { MYSTERY, defById, KEY_ID } from '../data/items.js';
+import { MYSTERY, defById, KEY_ID, coTrongLevel } from '../data/items.js';
 import { theme } from '../art/helpers.js';
 import { makeItem, createWorld, dungTui, NHOM_TRAN } from './physics.js';
 import { dust, ring } from './fx.js';
@@ -66,7 +66,7 @@ export function build(level) {
     b.khoa = i;
     b.datSan = !!it.inBag;
     // Cỡ riêng của món trong CHÍNH level này, không đụng tới món ở level khác
-    const k = Number(it.scale) || 1;
+    const k = coTrongLevel(level, it);
     if (k !== 1) { Body.scale(b, k, k); b.artScale *= k; b.levelScale = k; }
     Body.setAngle(b, it.angle || 0);
     S.bodies.push(b);

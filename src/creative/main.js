@@ -158,7 +158,7 @@ function drawPicker() {
 let choVao = null;
 function play(chapter, index) {
   current = { chapter, index };
-  custom = null; paintEdit();
+  custom = null; chonMon = -1; paintEdit();
   const id = book?.chapters.find(c => c.id === chapter)?.levels[index]?.id;
   choVao = { id, han: setTimeout(xongVao, 3000) };
   post({ type: 'play', chapter, index });
@@ -478,8 +478,24 @@ function themMon(id) {
   L.items.push({ id }); danLaiKhay(L);
   dayLevel(0); paintEdit();
 }
+let chonMon = -1;   // thứ tự món đang chọn trong L.items, -1 = chưa chọn
+function coRiengMon(i, v) {
+  const L = banSua(); if (!L) return;
+  const it = L.items[i]; if (!it) return;
+  const k = Math.min(300, Math.max(25, Math.round(v))) / 100;
+  if (k === 1) delete it.scale; else it.scale = +k.toFixed(2);
+  dayLevel(); paintEdit();
+}
+function coDo(pct) {
+  const L = banSua(); if (!L) return;
+  const v = Math.min(150, Math.max(50, Math.round(pct)));
+  if (v === 100) delete L.itemScale; else L.itemScale = v / 100;
+  $('edItemScaleV').textContent = v + '%';
+  dayLevel(); paintNote();
+}
 function boMon(i) {
   const L = banSua(); if (!L) return;
+  chonMon = -1;
   const [it] = L.items.splice(i, 1);
   for (const j of L.items) if (j.link === it.id && !L.items.some(k => k.id === it.id)) delete j.link;
   danLaiKhay(L);
@@ -518,11 +534,20 @@ async function paintEdit() {
   $('edItems').replaceChildren(...L.items.map((it, i) => {
     const el = document.createElement('button'); el.title = `${ten(it)}${it.locked ? ' (hộp bí ẩn)' : ''} · bấm để bỏ`;
     const m = k.mon.get(Number(it.id));
-    el.innerHTML = `${m ? `<img src="${m.img}" alt="">` : '<img alt="">'}<span>${it.locked ? '🔒 ' : ''}${esc(ten(it))}</span>`;
-    el.addEventListener('click', () => boMon(i));
+    const pct = Math.round((Number(it.scale) || 1) * 100);
+    el.className = i === chonMon ? 'on' : '';
+    el.title = `${ten(it)}${it.locked ? ' (hộp bí ẩn)' : ''} · bấm để chọn, chỉnh cỡ hoặc bỏ`;
+    el.innerHTML = `${m ? `<img src="${m.img}" alt="">` : '<img alt="">'}<span>${it.locked ? '🔒 ' : ''}${esc(ten(it))}</span>${pct !== 100 ? `<i>${pct}%</i>` : ''}`;
+    el.addEventListener('click', () => { chonMon = chonMon === i ? -1 : i; paintEdit(); });
     return el;
   }));
   if (!L.items.length) $('edItems').innerHTML = '<p class="ed-empty">Chưa có món nào</p>';
+  // cỡ đồ chung và món đang chọn
+  const coChung = Math.round((Number(L.itemScale) || 1) * 100);
+  $('edItemScale').value = coChung; $('edItemScaleV').textContent = coChung + '%';
+  const chon = L.items[chonMon];
+  $('edSel').hidden = !chon;
+  if (chon) { $('edSelName').textContent = ten(chon); $('edSelPct').textContent = Math.round((Number(chon.scale) || 1) * 100) + '%'; }
   // kho để thêm (được thêm trùng: bấm mấy lần là mấy cái)
   const q = ($('edSearch').value || '').trim().toLowerCase();
   const dem = new Map(); for (const it of L.items) dem.set(Number(it.id), (dem.get(Number(it.id)) || 0) + 1);
@@ -548,11 +573,18 @@ $('editBtn').addEventListener('click', () => moSua($('editPanel').hidden));
 $('edClose').addEventListener('click', () => moSua(false));
 $('edReset').addEventListener('click', () => {
   if (!custom || !current) return;
-  custom = null;
+  custom = null; chonMon = -1;
   post({ type: 'play', chapter: current.chapter, index: current.index });
   paintEdit(); note('Đã về level gốc');
 });
 $('edScale').addEventListener('input', e => datCo(Number(e.target.value) / 100));
+$('edItemScale').addEventListener('input', e => coDo(Number(e.target.value)));
+$('edSel').addEventListener('click', e => {
+  const k = e.target.closest('button')?.dataset.k; if (!k || chonMon < 0) return;
+  if (k === 'del') return boMon(chonMon);
+  const it = levelDangSua()?.items[chonMon]; if (!it) return;
+  coRiengMon(chonMon, k === 'reset' ? 100 : (Number(it.scale) || 1) * 100 + Number(k));
+});
 $('edSearch').addEventListener('input', () => paintEdit());
 
 // ---------- khởi động ----------
