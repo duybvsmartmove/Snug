@@ -1,6 +1,6 @@
 {
-  "version": 68,
-  "publishedAt": "2026-09-29T03:40:14.715Z",
+  "version": 70,
+  "publishedAt": "2026-09-29T03:43:20.887Z",
   "chapters": [
     {
       "id": "school-day",
@@ -14,7 +14,7 @@
         {
           "id": "sd-01",
           "name": "Đi học",
-          "nameEn": "Go to school",
+          "nameEn": "Level 1",
           "timer": 120,
           "background": 1,
           "container": {
@@ -1318,7 +1318,7 @@
         },
         {
           "id": "sd-08",
-          "name": " ",
+          "name": "",
           "nameEn": "Level 8",
           "timer": 140,
           "background": 1,
