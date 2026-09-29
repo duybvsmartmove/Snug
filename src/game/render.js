@@ -26,6 +26,36 @@ export function xoaNen() {
   ctx.fillRect(VIEW.x0, VIEW.y0, VIEW.x1 - VIEW.x0, VIEW.y1 - VIEW.y0);
 }
 
+/**
+ * Vẽ đường viền NGOÀI của món theo đúng hình va chạm gốc (def.pts), không theo từng mảnh.
+ * Món lõm (bịt mắt, chuối, gói bánh…) bị Matter tách thành nhiều mảnh lồi; vẽ theo mảnh là
+ * lộ các đường cắt giữa mảnh chạy ngang qua giữa món. Viền gốc nằm trong hệ toạ độ ảnh
+ * (tâm ảnh), đặt đúng như lúc vẽ ảnh: vị trí thân, góc, lệch gốc, cỡ.
+ * `to` = true thì tô kín (lớp băng), không thì chỉ nét. Món không có viền gốc thì vẽ theo mảnh.
+ */
+function veVien(b, { grow = 0, to = false } = {}) {
+  const d = b.def;
+  const coVien = d && ((d.kind === 'poly' && d.pts?.length > 2) || d.kind === 'circle' || d.kind === 'rect');
+  if (!coVien) {
+    if (to) for (const p of partsOf(b)) { ctx.beginPath(); p.vertices.forEach((v, i) => (i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y))); ctx.closePath(); ctx.fill(); }
+    return strokeShape(b, grow);
+  }
+  const k = b.artScale || 1, o = b.origin || { x: 0, y: 0 };
+  ctx.save();
+  ctx.translate(b.position.x, b.position.y); ctx.rotate(b.angle);
+  ctx.translate(o.x * k, o.y * k); ctx.scale(k, k);
+  ctx.lineWidth /= k;                                          // nét giữ đúng độ dày trên màn
+  const dash = ctx.getLineDash(); if (dash.length) ctx.setLineDash(dash.map(v => v / k));
+  const g = grow / k;
+  ctx.beginPath();
+  if (d.kind === 'circle') ctx.arc(0, 0, d.r + g, 0, Math.PI * 2);
+  else if (d.kind === 'rect') ctx.rect(-d.w / 2 - g, -d.h / 2 - g, d.w + 2 * g, d.h + 2 * g);
+  else { d.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); }
+  if (to) ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
 function strokeShape(b, grow = 1) {
   for (const p of partsOf(b)) {
     ctx.beginPath();
@@ -67,12 +97,7 @@ function drawBody(b) {
   if (b.frozen && !held) {   // đang đóng băng: phủ một lớp băng mỏng theo đúng hình món
     ctx.save(); ctx.lineJoin = 'round';
     ctx.fillStyle = 'rgba(170,222,248,.30)'; ctx.strokeStyle = 'rgba(120,196,240,.9)'; ctx.lineWidth = 2;
-    for (const p of partsOf(b)) {
-      ctx.beginPath();
-      if (p.circleRadius) ctx.arc(p.position.x, p.position.y, p.circleRadius, 0, Math.PI * 2);
-      else { p.vertices.forEach((v, i) => (i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y))); ctx.closePath(); }
-      ctx.fill(); ctx.stroke();
-    }
+    veVien(b, { to: true });
     ctx.restore();
   }
 
@@ -81,7 +106,7 @@ function drawBody(b) {
     // Một nét mảnh liền: xanh là thả được, đỏ là không vừa. Không dùng quầng sáng shadowBlur:
     // đó là lần làm mờ thứ hai trong khung hình, chạy đúng lúc đang kéo, lúc cần mượt nhất.
     ctx.strokeStyle = ghost ? '#E5484D' : '#3DBE78'; ctx.lineWidth = 2;
-    strokeShape(b, 1);
+    veVien(b, { grow: 1 });
     ctx.restore();
   }
   // Món nằm gọn trong túi không có viền "đã vừa" nữa: hình sạch hơn, tiếng và lấp lánh lúc xếp vừa là đủ.
@@ -107,7 +132,7 @@ function drawSelection() {
   if (!b || !S.bodies.includes(b) || isHeld(b)) return;
   ctx.save();
   ctx.strokeStyle = '#E2637F'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.lineJoin = 'round';
-  strokeShape(b, 3);
+  veVien(b, { grow: 3 });
   ctx.setLineDash([]);
   const c = rotateButtonPos(b), R = rotButtonR(b);
   ctx.beginPath(); ctx.arc(c.x, c.y + R * .18, R, 0, Math.PI * 2);
