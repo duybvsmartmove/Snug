@@ -167,7 +167,9 @@ export function createWorld() {
   // Thành túi và vật cản dựng sẵn nhưng CHƯA đưa vào thế giới: túi ẩn lúc mở màn, đồ mưa
   // xuống sân trước, túi hiện ra rồi mới có thành (dungTui). Khung xem thử của editor thì
   // túi có ngay.
-  const tuiWalls = [...polygonWalls(BAG.poly, tuiOpt, BAG.closed), ...BAG.blocks.map(blockBody(tuiOpt))];
+  const thanh = polygonWalls(BAG.poly, tuiOpt, BAG.closed);
+  for (const w of thanh) w.thanhTui = true;   // thành lòng túi (khác vật cản): xem computeGhost
+  const tuiWalls = [...thanh, ...BAG.blocks.map(blockBody(tuiOpt))];
   S.tuiWalls = tuiWalls; S.tuiDaDung = false; S.tuiHienLuc = 0;
   walls.push(...tuiWalls);
   if (S.preview) dungTui(engine.world);

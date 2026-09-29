@@ -634,7 +634,8 @@ html[data-art] .pause::before{content:none;width:72%;height:72%;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3.5' y='3' width='7' height='18' rx='3.5' fill='%23B0622F'/><rect x='13.5' y='3' width='7' height='18' rx='3.5' fill='%23B0622F'/></svg>") center/contain no-repeat}
 
 /* thanh booster: một viên kem dài, ba icon không khung, vạch chia mỏng, nhãn ẩn */
-html[data-art] .dock{gap:0;padding:0 calc(6% + var(--sar)) calc(1.9em + var(--sab)) calc(6% + var(--sal))}
+/* đệm dưới 1.27em: thanh thấp xuống 10 đơn vị sân (10/420 bề ngang ÷ 0.038 = .63em), sàn đỡ đồ xuống theo */
+html[data-art] .dock{gap:0;padding:0 calc(6% + var(--sar)) calc(1.27em + var(--sab)) calc(6% + var(--sal))}
 html[data-art] .dock::before{content:"";position:absolute;left:calc(3.5% + var(--sal));right:calc(6% + var(--sar));left:calc(6% + var(--sal));top:0;height:5em;
   border-radius:999px;background:var(--pill);box-shadow:0 8px 20px rgba(90,58,34,.16), inset 0 -3px 0 rgba(90,58,34,.07)}
 html[data-art] .boost,html[data-art] .boost.has-art{position:relative;font-size:inherit;height:5em;padding:0;gap:0;background:none;box-shadow:none;border:0;justify-content:center}

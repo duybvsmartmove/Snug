@@ -43,12 +43,21 @@ export function bagZone(body) {
 /** Đồ đang cầm có bị "ảo ảnh" không: chòi mép túi, hoặc chồng lên đồ khác / tường / block */
 export function computeGhost(body, group = [body]) {
   const z = bagZone(body);
-  if (z.inZone && !z.fullyInside) return true;
+  // Viền đỏ khi món lấn vào lòng túi mà không nằm gọn. Không dùng z.inZone (hình chữ nhật
+  // bao túi nới mép): túi bầu dục như giỏ picnic có bốn góc chữ nhật trùm ra vành và bóng
+  // đổ bên ngoài, món để ở đó bị báo sai và bị trả về khay.
+  const lan = z.inZone && lanVaoLongTui(body);
+  if (lan && !z.fullyInside) return true;
+  // Món nằm NGOÀI lòng túi chạm vào thành túi (dải mỏng ngay ngoài mép lòng, nằm dưới vành
+  // túi) thì không báo đỏ: người chơi thả cạnh túi, trên vành, vào bóng đổ là chuyện bình
+  // thường; thả ra vật lý tự đẩy món ra ngoài thành.
+  const boQuaThanh = !lan;
   const mine = partsOf(body);
   const others = S.bodies.filter(b => !group.includes(b) && daVao(b)).flatMap(partsOf).concat(S.staticBodies);
   for (const a of mine) {
     for (const b of others) {
       if (!Bounds.overlaps(a.bounds, b.bounds)) continue;
+      if (boQuaThanh && b.thanhTui) continue;
       const c = Collision.collides(a, b);
       const isWall = b.label === 'wall' || b.label === 'block';
       if (c && c.collided && c.depth > (isWall ? 2.5 : 0.5)) return true;
@@ -156,15 +165,19 @@ const YEN_DU_LAU = 75;     // số khung nằm im liên tục, khoảng 1,2 giâ
  * nằm ngoài tựa vào thành túi (áo thả cạnh vai túi, món chạm quai) cũng lọt vào đó; lấy vùng
  * ấy để đẩy ra là đẩy nhầm món người chơi cố ý để ngoài.
  */
-function lanVaoLongTui(b) {
+export function lanVaoLongTui(b) {
   if (!BAG.poly) return false;
   const parts = b.parts.length > 1 ? b.parts.slice(1) : [b];
   for (const p of parts) {
     if (p.circleRadius && pointInPolygon(p.position.x, p.position.y, BAG.poly)) return true;
     for (const v of p.vertices) if (pointInPolygon(v.x, v.y, BAG.poly)) return true;
+    // món dài vắt ngang mép lòng túi cong: không đỉnh nào của món ở trong, nhưng mép lòng
+    // túi chọc vào giữa món
+    if (Matter.Bounds.overlaps(p.bounds, BAG_BB()) && BAG.poly.some(([x, y]) => Matter.Vertices.contains(p.vertices, { x, y }))) return true;
   }
   return false;
 }
+const BAG_BB = () => ({ min: { x: BAG.left, y: BAG.top }, max: { x: BAG.right, y: BAG.bottom } });
 
 export function checkEject() {
   const now = performance.now();

@@ -9,7 +9,7 @@
 import Matter from 'matter-js';
 import { S, partsOf, daVao } from './state.js';
 import { canvas, toLogical } from './canvas.js';
-import { computeGhost, findFreeSpot, bagZone } from './rules.js';
+import { computeGhost, findFreeSpot, bagZone, lanVaoLongTui } from './rules.js';
 import { tetherSuspend, tetherRestore } from './mechanics.js';
 import { isFrozenTime, freezeBody } from './boosters.js';
 import { toast, hideHint } from '../ui/hud.js';
@@ -148,7 +148,7 @@ export function drop() {
       .map(x => ({ b: x, x: x.position.x, y: x.position.y, a: x.angle })),
   };
   if (d.ghost) {
-    if (d.group.some(x => bagZone(x).inZone)) {          // không vừa trong túi → trả ra khay
+    if (d.group.some(x => bagZone(x).inZone && lanVaoLongTui(x))) {   // không vừa trong túi → trả ra khay
       // Món bị dời chỗ tức thì, nên đánh dấu cả nơi nó rời đi lẫn nơi nó hiện ra,
       // không thì người chơi chỉ thấy món tự nhiên biến mất rồi mọc ở chỗ khác.
       S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
