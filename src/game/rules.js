@@ -2,7 +2,7 @@
 import Matter from 'matter-js';
 import { KEY_ID } from '../data/items.js';
 import { S, BAG, PAD, W, TABLE_Y, FLOOR_Y, partsOf, isHeld, daVao } from './state.js';
-import { pointInPolygonTolerant } from '../util/geom.js';
+import { pointInPolygon, pointInPolygonTolerant } from '../util/geom.js';
 import { toast, renderList, showWin } from '../ui/hud.js';
 import { sfx, sfxSeq, duckMusic } from '../ui/sfx.js';
 import { sparkle, ring, confetti, shake, floatText, dust } from './fx.js';
@@ -150,6 +150,22 @@ const YEN_XOAY = .03;
 const YEN_DU_LAU = 75;     // số khung nằm im liên tục, khoảng 1,2 giây
 
 /** Đồ đã nằm hẳn mà vẫn chòi ra khỏi miệng túi → trả lại khay */
+/**
+ * Món có phần nào lấn vào TRONG lòng túi không (một đỉnh của hình va chạm nằm trong đa giác
+ * lòng túi). Vùng túi của bagZone là hình chữ nhật bao quanh túi nới thêm một mép, nên món
+ * nằm ngoài tựa vào thành túi (áo thả cạnh vai túi, món chạm quai) cũng lọt vào đó; lấy vùng
+ * ấy để đẩy ra là đẩy nhầm món người chơi cố ý để ngoài.
+ */
+function lanVaoLongTui(b) {
+  if (!BAG.poly) return false;
+  const parts = b.parts.length > 1 ? b.parts.slice(1) : [b];
+  for (const p of parts) {
+    if (p.circleRadius && pointInPolygon(p.position.x, p.position.y, BAG.poly)) return true;
+    for (const v of p.vertices) if (pointInPolygon(v.x, v.y, BAG.poly)) return true;
+  }
+  return false;
+}
+
 export function checkEject() {
   const now = performance.now();
   theoDoiMonVuaTha(now);
@@ -165,7 +181,9 @@ export function checkEject() {
 
     if (isHeld(b)) continue;
     if (b.thaLuc > now - CHO_SAU_THA) { b.stuck = 0; continue; }   // vừa buông, còn đang rơi
-    if (z.inZone && !z.fullyInside && b.speed < YEN_TOC && b.angularSpeed < YEN_XOAY) {
+    // Chỉ đẩy món KẸT ở miệng túi: có phần lấn vào lòng túi mà không nằm gọn hẳn. Món nằm
+    // ngoài tựa vào thành túi thì để yên chỗ người chơi thả.
+    if (z.inZone && !z.fullyInside && b.speed < YEN_TOC && b.angularSpeed < YEN_XOAY && lanVaoLongTui(b)) {
       if (++b.stuck > YEN_DU_LAU) eject(b);
     } else b.stuck = 0;
   }
