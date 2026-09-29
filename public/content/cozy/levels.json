@@ -1,6 +1,6 @@
 {
-  "version": 71,
-  "publishedAt": "2026-09-29T03:45:54.245Z",
+  "version": 72,
+  "publishedAt": "2026-09-29T03:47:05.025Z",
   "chapters": [
     {
       "id": "school-day",
@@ -1320,7 +1320,7 @@
           "id": "sd-08",
           "name": "",
           "nameEn": "Level 8",
-          "timer": 140,
+          "timer": 180,
           "background": 1,
           "container": {
             "skin": "shopping",
@@ -1428,7 +1428,7 @@
               "id": 19,
               "x": 380,
               "y": 500,
-              "angle": 0.18,
+              "angle": 0.96,
               "scale": 1.2
             },
             {
@@ -1479,8 +1479,8 @@
             },
             {
               "id": 1,
-              "x": 126,
-              "y": 491,
+              "x": 202,
+              "y": 600,
               "angle": 0,
               "scale": 1.5
             },
