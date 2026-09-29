@@ -16,8 +16,15 @@ export function toast(text, ms = 1400) {
 export function showHint(text) { clearTimeout(toastTimer); hint.textContent = text; hint.classList.remove('hide'); }
 export function hideHint() { hint.classList.add('hide'); }
 // ---------- header ----------
+// Chỉ thay class bảng màu theo bối cảnh của chính hàm này. Gán thẳng className thì mọi
+// class khác trên khung game bị xoá theo, trong đó có các class ẩn HUD của Creative Tool:
+// tick ẩn xong, vào màn khác là HUD hiện lại dù ô vẫn đang tick.
+let clsBoiCanh = [];
 export function renderHeader({ eyebrow, title, cls }) {
-  $('phone').className = cls || '';
+  const phone = $('phone');
+  phone.classList.remove(...clsBoiCanh);
+  clsBoiCanh = String(cls || '').split(/\s+/).filter(Boolean);
+  phone.classList.add(...clsBoiCanh);
   $('eyebrow').textContent = eyebrow;
   $('title').textContent = title;
 }

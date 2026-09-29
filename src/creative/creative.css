@@ -33,6 +33,8 @@ kbd{font:800 .72em "Nunito";background:rgba(255,255,255,.14);border-radius:4px;p
 .stage[data-ar="9:16"] .phone{width:100%;height:auto}
 .stage[data-ar="9:16"] .stage-bg{display:none}
 .phone iframe{width:100%;height:100%;border:0;display:block}
+/* Bàn tay giả đang bật: ẩn con trỏ trên cả khung quay, kể cả vùng nền mờ ngoài game ở 1:1 và 4:5 */
+body.tay-gia .stage{cursor:none}
 /* Báo đang quay: nằm NGOÀI khung game (góc trang), vì video chỉ cắt đúng khung game.
    Đặt trong khung là chấm đỏ đi thẳng vào video. */
 .rec-dot{position:fixed;top:10px;left:10px;z-index:8;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:3px 10px 3px 8px;font-weight:800;font-size:12px;pointer-events:none}

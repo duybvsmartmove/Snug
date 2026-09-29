@@ -223,7 +223,8 @@ function bindToggle(id, key, send) {
   el.addEventListener('click', flip);
   return flip;
 }
-const toggleFinger = bindToggle('fingerBtn', 'finger', on => post({ type: 'finger', on }));
+const toggleFinger = bindToggle('fingerBtn', 'finger', on => { post({ type: 'finger', on }); document.body.classList.toggle('tay-gia', on); });
+document.body.classList.toggle('tay-gia', !!cfg.finger);
 const toggleTimer = bindToggle('timerBtn', 'timer', on => post({ type: 'timer', on }));
 bindToggle('autoBoostBtn', 'autoBoost', on => post({ type: 'autoboost', on }));
 
@@ -335,7 +336,8 @@ let tabStream = null, video = null;
 async function tabCapture() {
   if (tabStream?.active) return tabStream;
   tabStream = await navigator.mediaDevices.getDisplayMedia({
-    video: { displaySurface: 'browser', frameRate: 60 },
+    // cursor 'never': xin trình duyệt không quay con trỏ; bàn tay giả trong game thay nó
+    video: { displaySurface: 'browser', frameRate: 60, cursor: 'never' },
     audio: true,
     preferCurrentTab: true, selfBrowserSurface: 'include', surfaceSwitching: 'exclude', systemAudio: 'exclude',
   });

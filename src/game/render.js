@@ -166,14 +166,10 @@ const HAND = new Path2D('M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c
 function drawFinger() {
   const f = S.finger; if (!f || !S.showFinger) return;
   ctx.save();
-  // vòng chạm dưới đầu ngón, chỉ hiện khi đang "ấn"
-  if (f.down) {
-    ctx.beginPath(); ctx.arc(f.x, f.y, 22, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.fill();
-    ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.stroke();
-  }
+  // Không vẽ vòng chạm to quanh đầu ngón: icon đã có sẵn vòng nhỏ, vòng to che mất món đang
+  // nhấc. Ấn thì bàn tay nhún nhẹ, giống bàn tay thay con trỏ chuột (game/creative.js).
   // đầu ngón tay (điểm 11.5,3 của icon) đặt đúng vào toạ độ chạm; ấn thì bàn tay hạ thấp một chút
-  const k = 2.6, lift = f.down ? 0 : 6;
+  const k = 2.6 * (f.down ? .92 : 1), lift = f.down ? 0 : 6;
   ctx.translate(f.x - 11.5 * k, f.y - 3 * k + lift);
   ctx.scale(k, k);
   ctx.shadowColor = 'rgba(59,42,74,.35)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
