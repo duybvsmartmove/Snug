@@ -22,11 +22,11 @@ export function resolveContainer(c, skins) {
 // phía trên, không được cao quá dòng BAG_CEIL (vùng đồng hồ và số món).
 // Dời xuống 30 cùng mép khay (TABLE_Y) để túi phóng to không đè lên cụm tên màn + đồng hồ,
 // cụm đó cũng đã dồn lên trên và nhỏ lại (main.css). BAG_CEIL là mép dưới cụm đó.
-export const BAG_FLOOR = 466, BAG_CEIL = 112;
+export const BAG_FLOOR = 456, BAG_CEIL = 112;   // đáy túi cách mép khay 26, không sát đồ trên khay
 /** Cỡ túi lớn nhất cho chỉnh trong editor và Creative. Trước đây kẹp theo chỗ trống giữa
  *  đồng hồ và mép bàn (thường ~100%); người thiết kế cần phóng tới 200%, túi to quá thì nhô
  *  lên sau HUD hay tràn hai mép màn, tự canh bằng mắt. */
-export const MAX_SCALE = 2;
+export const MAX_SCALE = 1.3;   // người thiết kế chỉ cần tới 130%
 export const maxScale = () => MAX_SCALE;
 /** Cỡ lớn nhất túi còn nằm gọn giữa đồng hồ và mép bàn, không tràn hai mép màn (để tham khảo) */
 export const BAG_MAX_W = 408;

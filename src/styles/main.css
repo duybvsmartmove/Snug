@@ -601,8 +601,8 @@ html[data-art="casual"]{--pill:#FFFFFF;--pill-shadow:0 4px 14px rgba(38,32,63,.1
 /* tên màn: giữa màn, không khung; gạch vàng cong bên dưới, hai vệt vàng nhỏ hai bên */
 /* Cụm tên màn + đồng hồ dồn sát lên trên, chữ tên màn nhỏ lại: nhường chỗ cho túi phóng to
    mà không đè lên chữ (túi và khay cùng dời xuống, xem BAG_FLOOR và TABLE_Y) */
-html[data-art] .top{justify-content:center;padding-top:calc(.7em + var(--sat))}
-html[data-art] .titleblock{margin:0;background:none;border:0;box-shadow:none;padding:.2em 1.9em .55em;text-align:center;flex:0 1 auto;position:relative}
+html[data-art] .top{justify-content:center;padding-top:calc(.5em + var(--sat))}
+html[data-art] .titleblock{margin:0;background:none;border:0;box-shadow:none;padding:.2em 1.9em .35em;text-align:center;flex:0 1 auto;position:relative}
 html[data-art] .eyebrow{display:none}   /* mẫu chỉ có tên màn */
 html[data-art] .title{font-size:2.2em;color:var(--hud-ink);text-shadow:none;position:relative;padding-bottom:.14em;line-height:1.05;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 8'><path d='M3 5 Q30 1 60 4.5 T117 3.5' fill='none' stroke='%23F2C14E' stroke-width='3.2' stroke-linecap='round'/></svg>") center bottom/78% .42em no-repeat}
@@ -614,7 +614,7 @@ html[data-art] .titleblock::after{right:.2em;transform:scaleX(-1)}
 /* hàng đồng hồ · số món · tạm dừng: ba viên kem CÙNG chiều cao (--pillh), căn giữa một cụm.
    Đồng hồ báo thức to hơn viên kem, nhô ra mép trái; nút tạm dừng là ô kem viền mảnh có hai gạch nâu. */
 html[data-art]{--pillh:2.3em}   /* đo từ mẫu: viên cao 61/714 bề ngang */
-html[data-art] .timerwrap{top:calc(4.3em + var(--sat));gap:1.05em;padding:0 calc(4.2% + var(--sar)) 0 calc(4.2% + var(--sal) + 1.1em)}
+html[data-art] .timerwrap{top:calc(3.7em + var(--sat));gap:1.05em;padding:0 calc(4.2% + var(--sar)) 0 calc(4.2% + var(--sal) + 1.1em)}
 html[data-art] .timer,html[data-art] .timer.has-art{
   /* chữ giờ to 1.45em nên mọi số đo bên trong chia lại cho 1.45 để viên cao đúng --pillh như hai viên kia */
   background:var(--pill);border:0;border-radius:999px;box-shadow:var(--pill-shadow);width:auto;height:calc(var(--pillh) / 1.5);aspect-ratio:auto;
