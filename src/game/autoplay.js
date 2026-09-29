@@ -11,6 +11,7 @@ import { thaVaoSan } from './level.js';
 import { S, BAG, isHeld, TABLE_Y, W } from './state.js';
 import { KEY_ID, MYSTERY } from '../data/items.js';
 import { makeItem } from './physics.js';
+import { pickUp, drop } from './input.js';
 import { solve, solveAsync } from '../gen/solver.js';
 import { bagZone } from './rules.js';
 import { toast } from '../ui/hud.js';
@@ -104,8 +105,94 @@ async function moveTo(body, tx, ty, targetAngle, ms = NHIP.bay) {
 /** Món đang được giữ góc sau khi người chơi xoay (đứng yên trên khay) thì thả ra trước khi máy nhấc */
 function boGiu(b) { if (b.giuToi) { b.giuToi = 0; if (b.isStatic) Body.setStatic(b, false); } }
 
+// ---------- KIỂU NGƯỜI ----------
+// Máy chơi như người thật, dùng cho Creative quay video. Khác kiểu máy ở chỗ:
+//   - nhấc, kéo, thả bằng ĐÚNG đường kéo thả của người chơi (pickUp → S.drag → drop), nên món
+//     được nhấc lên cao khỏi ngón, có tiếng nhấc tiếng thả, và thả ra là do vật lý lo: rơi,
+//     lăn, va vào món khác, lún vào khe như người thả tay;
+//   - thả cao hơn chỗ định một chút rồi để rơi, tay không chính xác tuyệt đối, không nắn lại;
+//   - có nhịp nghĩ trước khi nhấc, tay đi đường cong, nhanh chậm theo quãng đường, xoay món
+//     dần trong lúc kéo; chỗ định thả đang vướng thì nhấc cao thêm chút rồi mới thả.
+let kieuNguoi = false;
+export function setAutoHuman(v) { kieuNguoi = !!v; }
+export const autoHuman = () => kieuNguoi;
+
+const ngau = (a, b) => a + Math.random() * (b - a);
+const lechN = k => (Math.random() - .5) * 2 * k;
+const goc0 = a => Math.atan2(Math.sin(a), Math.cos(a));
+
+/** Ngón tay giả đi tới một điểm theo đường cong nhẹ */
+async function tayToiDiem(p) {
+  if (!S.showFinger) return;
+  const from = S.finger || { x: p.x + 40, y: p.y + 140 };
+  const sx = from.x, sy = from.y, cong = lechN(30);
+  await animate(ngau(200, 320), e => {
+    S.finger = { x: sx + (p.x - sx) * e + Math.sin(e * Math.PI) * cong, y: sy + (p.y - sy) * e, down: false };
+  });
+  S.finger = { x: p.x, y: p.y, down: true };
+  await wait(ngau(60, 130));
+}
+
+/**
+ * Kéo một món bằng tay tới chỗ thân món nằm ở `dich` với góc `goc`, rồi thả. Món đi theo ngón
+ * như người chơi kéo (moveHeld đặt món theo d.target mỗi bước vật lý).
+ */
+async function keoNguoi(body, dich, goc) {
+  boGiu(body);
+  const cham = { x: body.position.x + lechN(5), y: body.position.y + lechN(5) };   // chạm gần tâm, không đúng tâm
+  await tayToiDiem(cham);
+  if (!song() || !S.bodies.includes(body) || S.drag) return false;
+  // Cầm kiểu CHUỘT: món chỉ nhích lên chút sát con trỏ, như người chơi kéo bằng chuột trên
+  // máy tính (Creative quay trên máy tính). Kiểu ngón tay nhấc món cao hẳn khỏi ngón, nhìn
+  // như tay và món tách rời nhau.
+  pickUp(body, cham, { touch: false });
+  const d = S.drag; if (!d || d.body !== body) return false;
+  d.target = { ...cham };
+  const a0 = body.angle, da = goc0(goc - a0);
+  // ngón phải ở đâu để THÂN món nằm đúng `dich`: bù chỗ chạm trên món và mức nhấc khỏi ngón
+  const tayCho = () => { const o = Matter.Vector.rotate(d.offsetLocal, body.angle); return { x: dich.x + o.x, y: dich.y + o.y + d.liftTo }; };
+  const s0 = { ...d.target }, e0 = tayCho();
+  const quang = Math.hypot(e0.x - s0.x, e0.y - s0.y);
+  const cong = Math.min(60, quang * .18) * (Math.random() < .5 ? 1 : -1);
+  await animate(260 + quang * 1.15 + ngau(0, 120), e => {
+    Body.setAngle(body, a0 + da * Math.min(1, e * 1.25));       // xoay xong trước khi tới nơi
+    const ee = tayCho();
+    // cong nhẹ sang bên theo quãng, như cổ tay vung
+    const px = s0.x + (ee.x - s0.x) * e, py = s0.y + (ee.y - s0.y) * e;
+    const nx = -(ee.y - s0.y) / (quang || 1), ny = (ee.x - s0.x) / (quang || 1);
+    const k = Math.sin(e * Math.PI) * cong;
+    d.target = { x: px + nx * k, y: py + ny * k };
+    if (S.showFinger) S.finger = { x: d.target.x, y: d.target.y, down: true };
+  });
+  if (!song() || S.drag !== d) return false;
+  Body.setAngle(body, goc);
+  d.target = tayCho();
+  // ngập ngừng canh chỗ; đang vướng (món chồng lên món khác) thì nhấc cao dần rồi mới thả
+  await wait(ngau(70, 160));
+  for (let i = 0; i < 10 && d.ghost && song() && S.drag === d; i++) {
+    d.target = { x: d.target.x + lechN(1.5), y: d.target.y - 4 };
+    if (S.showFinger) S.finger = { x: d.target.x, y: d.target.y, down: true };
+    await wait(45);
+  }
+  if (!song() || S.drag !== d) return false;
+  drop();
+  if (S.finger) S.finger = { ...S.finger, down: false, y: S.finger.y - 4 };
+  return true;
+}
+
+async function datMonNguoi(body, step) {
+  await wait(ngau(160, 520));                       // nhìn túi, chọn chỗ
+  const goc = (step.angle || 0) + lechN(.035);
+  // thả cao hơn chỗ định một chút cho món tự rơi xuống, tay lệch vài đơn vị
+  const dich = viTriThan(body, step.x + lechN(2.5), step.y - ngau(5, 13), goc);
+  if (!await keoNguoi(body, dich, goc)) return;
+  await choLang(body);
+  await wait(ngau(80, 260));                        // để mắt thấy món lắng xuống rồi mới sang món sau
+}
+
 /** Nhấc một món lên, bay tới chỗ, thả xuống, chờ lắng */
 async function datMon(body, step) {
+  if (kieuNguoi) return datMonNguoi(body, step);
   boGiu(body);
   await tayToi(body);
   World.remove(S.world, body);                       // nhấc lên: tạm rời khỏi thế giới vật lý
@@ -476,6 +563,7 @@ async function thaoHet() {
     if (!S.bodies.includes(b)) continue;
     const goc0 = S.LEVEL.items[b.khoa], goc = goc0 && !goc0.inBag ? goc0 : null;
     const cho = choTrongKhay(b, goc?.x ?? W / 2, goc?.y ?? TABLE_Y + 30, goc?.angle || 0);
+    if (kieuNguoi) { await keoNguoi(b, cho, goc?.angle || 0); await wait(ngau(40, 120)); continue; }
     boGiu(b);
     await tayToi(b);
     World.remove(S.world, b);
@@ -561,6 +649,7 @@ export function autoStep() {
 }
 
 export function stopAutoplay() {
+  if (running && kieuNguoi && S.drag) drop();   // đang cầm món giữa chừng thì thả ra, không để treo trên tay
   running = false;
   if (releaseStep) releaseStep();      // đang đứng chờ thì thả ra để vòng lặp thoát
   waitingStep = false;

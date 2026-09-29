@@ -11,6 +11,8 @@
 //     auto {mode:'full'|'step'}    máy chơi một mạch / xếp một món rồi chờ
 //     autostop                     dừng máy
 //     autoboost {on}               máy được dùng booster khi hết chỗ (mặc định không)
+//     human {on}                   máy chơi kiểu người: kéo thả thật, thả cho rơi, có nhịp nghĩ
+//     audio {sfx, music}           bật tắt tiếng hiệu ứng / nhạc nền
 //     speed {play, time}           nhịp máy chơi · tốc độ thời gian game (0.25–3)
 //     hud {hide:{timer,dock,title,pause}}
 //     timer {on}                   đếm giờ hay đóng băng
@@ -23,7 +25,8 @@
 //     ready                        đã nạp xong, nhận lệnh được
 //     status {...}                 mỗi 200ms: màn đang mở, thắng/thua, máy đang làm gì, màu nền
 import { S, W, H } from './state.js';
-import { autoplay, autoStep, stopAutoplay, autoState, autoMode, setPlaySpeed, setAutoQuiet, playSpeed, setAutoBoosters, autoBoosters, isAutoplaying } from './autoplay.js';
+import { autoplay, autoStep, stopAutoplay, autoState, autoMode, setPlaySpeed, setAutoQuiet, playSpeed, setAutoBoosters, autoBoosters, isAutoplaying, setAutoHuman, autoHuman } from './autoplay.js';
+import { setSfxOn, setMusicOn, isSfxOn, isMusicOn, initAudio } from '../ui/sfx.js';
 import { setBoostOverride, resetBoosts } from './boosters.js';
 import { restart } from './level.js';
 import { setLang, getLang } from '../i18n.js';
@@ -67,6 +70,12 @@ export function initCreative({ startLevel, vaoNgay, choiSplash, goHome, showMap,
         case 'auto': m.mode === 'step' ? autoStep() : autoplay({ mode: 'full' }); break;
         case 'autostop': stopAutoplay(); break;
         case 'autoboost': setAutoBoosters(!!m.on); break;
+        case 'human': setAutoHuman(!!m.on); break;
+        case 'audio':   // tiếng hiệu ứng và nhạc nền của game, bật tắt từ thanh công cụ Creative
+          await initAudio();
+          if (m.sfx != null && !!m.sfx !== isSfxOn()) setSfxOn(!!m.sfx);
+          if (m.music != null && !!m.music !== isMusicOn()) setMusicOn(!!m.music);
+          break;
         case 'speed':
           if (m.play != null) setPlaySpeed(kep(m.play, .1, 4));
           if (m.time != null) S.timeScale = kep(m.time, .1, 4);
@@ -112,7 +121,7 @@ function status() {
     won: S.won, lost: S.lost, paused: S.paused, timerOn: S.timerOn,
     items: S.ITEMS.length, left: Math.max(0, S.ITEMS.length - S.checked.size),
     auto: autoState(), autoMode: autoMode(), autoBoost: autoBoosters(), playSpeed, timeScale: S.timeScale,
-    finger: S.showFinger, lang: getLang(),
+    finger: S.showFinger, lang: getLang(), human: autoHuman(), sfx: isSfxOn(), music: isMusicOn(),
     scene: scene(),
   };
 }

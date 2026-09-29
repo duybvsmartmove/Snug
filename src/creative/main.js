@@ -11,7 +11,7 @@ const frame = $('game');
 
 // ---------- cài đặt, nhớ trong trình duyệt ----------
 const KEY = 'snug.creative.v1';
-const DEF = { aspect: '9:16', art: 'cozy', lang: 'en', play: 1, time: 1, finger: true, timer: true, autoBoost: false, boosts: '', hide: {} };
+const DEF = { aspect: '9:16', art: 'cozy', lang: 'en', play: 1, time: 1, finger: true, timer: true, autoBoost: false, human: true, sfx: true, music: true, boosts: '', hide: {} };
 const cfg = { ...DEF, ...(() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })() };
 const saveCfg = () => { try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch {} };
 
@@ -39,6 +39,8 @@ function pushAll() {
   post({ type: 'speed', play: cfg.play, time: cfg.time });
   post({ type: 'finger', on: cfg.finger });
   post({ type: 'autoboost', on: cfg.autoBoost });
+  post({ type: 'human', on: cfg.human });
+  post({ type: 'audio', sfx: cfg.sfx, music: cfg.music });
   post({ type: 'timer', on: cfg.timer });
   post({ type: 'boosts', n: cfg.boosts === '' ? null : Number(cfg.boosts) });
   post({ type: 'hud', hide: cfg.hide });
@@ -227,6 +229,9 @@ const toggleFinger = bindToggle('fingerBtn', 'finger', on => { post({ type: 'fin
 document.body.classList.toggle('tay-gia', !!cfg.finger);
 const toggleTimer = bindToggle('timerBtn', 'timer', on => post({ type: 'timer', on }));
 bindToggle('autoBoostBtn', 'autoBoost', on => post({ type: 'autoboost', on }));
+bindToggle('humanBtn', 'human', on => post({ type: 'human', on }));
+bindToggle('sfxBtn', 'sfx', on => post({ type: 'audio', sfx: on }));
+bindToggle('musicBtn', 'music', on => post({ type: 'audio', music: on }));
 
 $('boosts').value = cfg.boosts;
 $('boosts').addEventListener('change', e => { cfg.boosts = e.target.value; saveCfg(); post({ type: 'boosts', n: cfg.boosts === '' ? null : Number(cfg.boosts) }); });
