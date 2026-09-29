@@ -1,6 +1,6 @@
 {
-  "version": 87,
-  "publishedAt": "2026-09-29T04:25:39.746Z",
+  "version": 88,
+  "publishedAt": "2026-09-29T04:28:42.826Z",
   "chapters": [
     {
       "id": "school-day",
@@ -531,7 +531,7 @@
         {
           "id": "sd-04",
           "name": "",
-          "nameEn": "Gadgets",
+          "nameEn": "Level 4",
           "timer": 180,
           "background": 1,
           "container": {
@@ -539,7 +539,7 @@
             "scale": 1.2,
             "blocks": [],
             "cx": 210,
-            "bottom": 421.9,
+            "bottom": 429.9,
             "shape": [
               [
                 -21.2,
