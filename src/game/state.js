@@ -4,7 +4,7 @@ import { bbox } from '../util/geom.js';
 // Kích thước logic của màn chơi (canvas được scale để vừa màn hình)
 export const W = 420;
 export const H = 760;
-export const TABLE_Y = 452;        // mép sàn (đồ nằm rải bên dưới)
+export const TABLE_Y = 482;        // mép sàn (đồ nằm rải bên dưới)
 export const FLOOR_Y = H - 140;    // sàn vật lý, cách thanh booster một khoảng (thanh cozy cao 5em, đỉnh ở ~H-117)
 export const PAD = 14;             // độ dày thành túi
 

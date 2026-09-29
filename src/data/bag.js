@@ -18,9 +18,11 @@ export function resolveContainer(c, skins) {
   return { ...c, scale: s, bottom: +(BAG_FLOOR - (skin.image.y + skin.image.h) * s).toFixed(1), shape: fixedShape(skin, s), closed: true };
 }
 
-// Chỗ đặt túi trên màn: đáy ẢNH túi luôn ngay trên mép bàn (TABLE_Y 452), túi to thì nhô lên
+// Chỗ đặt túi trên màn: đáy ẢNH túi luôn ngay trên mép bàn (TABLE_Y 482), túi to thì nhô lên
 // phía trên, không được cao quá dòng BAG_CEIL (vùng đồng hồ và số món).
-export const BAG_FLOOR = 436, BAG_CEIL = 150;
+// Dời xuống 30 cùng mép khay (TABLE_Y) để túi phóng to không đè lên cụm tên màn + đồng hồ,
+// cụm đó cũng đã dồn lên trên và nhỏ lại (main.css). BAG_CEIL là mép dưới cụm đó.
+export const BAG_FLOOR = 466, BAG_CEIL = 112;
 /** Cỡ túi lớn nhất cho chỉnh trong editor và Creative. Trước đây kẹp theo chỗ trống giữa
  *  đồng hồ và mép bàn (thường ~100%); người thiết kế cần phóng tới 200%, túi to quá thì nhô
  *  lên sau HUD hay tràn hai mép màn, tự canh bằng mắt. */
