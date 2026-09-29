@@ -36,6 +36,8 @@ export function xoaNen() {
 function veVien(b, { grow = 0, to = false } = {}) {
   const d = b.def;
   const coVien = d && ((d.kind === 'poly' && d.pts?.length > 2) || d.kind === 'circle' || d.kind === 'rect');
+  // có viền vẽ riêng (bám mép ảnh) thì dùng nó cho mọi kiểu hình, kể cả hình tròn
+  const vienRieng = d?.outline;
   if (!coVien) {
     if (to) for (const p of partsOf(b)) { ctx.beginPath(); p.vertices.forEach((v, i) => (i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y))); ctx.closePath(); ctx.fill(); }
     return strokeShape(b, grow);
@@ -48,7 +50,8 @@ function veVien(b, { grow = 0, to = false } = {}) {
   const dash = ctx.getLineDash(); if (dash.length) ctx.setLineDash(dash.map(v => v / k));
   const g = grow / k;
   ctx.beginPath();
-  if (d.kind === 'circle') ctx.arc(0, 0, d.r + g, 0, Math.PI * 2);
+  if (vienRieng) { vienRieng.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); }
+  else if (d.kind === 'circle') ctx.arc(0, 0, d.r + g, 0, Math.PI * 2);
   else if (d.kind === 'rect') ctx.rect(-d.w / 2 - g, -d.h / 2 - g, d.w + 2 * g, d.h + 2 * g);
   else { d.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); }
   if (to) ctx.fill();

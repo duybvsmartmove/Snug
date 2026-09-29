@@ -206,6 +206,7 @@ export function applyManifest(m) {
   if (m.name) def.name = m.name;
   if (m.meta) def.meta = { ...def.meta, ...m.meta };
   applyCollider(def, m.collider);
+  def.outline = m.outline?.length > 2 ? m.outline : null;   // viền để vẽ, bám mép ảnh hơn collider
   if (m.sprite) {
     const img = loadImage(m.sprite.src);
     const sprite = { img, ppu: m.sprite.pixelsPerUnit || 3, ready: false };

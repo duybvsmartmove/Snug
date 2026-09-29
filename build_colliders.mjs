@@ -14,6 +14,9 @@ import { doVien, rutGon, dienTich } from './tools/vien.mjs';
 import { CONTENT, ARGS } from './tools/art.mjs';
 const CHI = new Set(ARGS.filter(a => /^-?\d+$/.test(a)));
 const GHI = process.argv.includes('--ghi');
+// --vien: chỉ sinh ĐƯỜNG VIỀN VẼ (outline), giữ nguyên collider đang có. Dùng cho món đã chỉnh
+// collider bằng tay (bóng bay chỉ ôm quả bóng) hoặc khi chỉ muốn làm lại nét viền.
+const CHI_VIEN = process.argv.includes('--vien');
 
 // ---------------- mặt nạ vùng có màu ----------------
 const NGUONG_ALPHA = 24;
@@ -51,6 +54,7 @@ function matNa(anh) {
 
 // ---------------- sinh collider cho một món ----------------
 const TOI_DA_DINH = 16;
+const TOI_DA_DINH_VIEN = 64;   // đường viền vẽ
 
 function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
   const anh = docPNG(duongDanAnh);
@@ -74,6 +78,16 @@ function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
   // chuối cong thì vùng va chạm trượt hẳn ra ngoài. Giờ renderer vẽ ảnh bù độ lệch trọng tâm
   // (body.origin), đa giác giữ nguyên chỗ trên ảnh.
   const cx = anh.w / 2, cy = anh.h / 2;
+  // Đường viền để VẼ (viền xanh/đỏ khi kéo, viền chọn, lớp băng): bám sát mép ảnh hơn nhiều so
+  // với collider (collider rút còn ≤16 đỉnh cho vật lý nhẹ, vẽ ra thì góc bị gãy, lệch mép).
+  // Chỉ để vẽ, vật lý không dùng.
+  let epsV = Math.max(.9, Math.min(anh.w, anh.h) * 0.004), vienVe = vien;
+  for (let i = 0; i < 24; i++) {
+    vienVe = rutGon([...vien, vien[0]], epsV); vienVe.pop();
+    if (vienVe.length <= TOI_DA_DINH_VIEN) break;
+    epsV *= 1.2;
+  }
+  const outline = vienVe.map(([x, y]) => [+((x + .5 - cx) / ppu).toFixed(2), +((y + .5 - cy) / ppu).toFixed(2)]);
   const pts = gon.map(([x, y]) => [+((x + .5 - cx) / ppu).toFixed(2), +((y + .5 - cy) / ppu).toFixed(2)]);
 
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
@@ -88,9 +102,9 @@ function sinhCollider(duongDanAnh, ppu, buocLaCircle) {
     // Hình tròn thì tâm đặt tại tâm ảnh: cách đo bán kính theo gốc chỉ đúng khi món nằm giữa ảnh,
     // mà ảnh đã cắt sát viền nên đúng.
     const r = +(pts.reduce((s, p) => s + Math.hypot(p[0], p[1]), 0) / pts.length).toFixed(2);
-    return { collider: { kind: 'circle', r }, soDinh: 0, rong, cao, dt: Math.PI * r * r };
+    return { collider: { kind: 'circle', r }, outline, soDinh: 0, rong, cao, dt: Math.PI * r * r };
   }
-  return { collider: { kind: 'poly', pts }, soDinh: pts.length, rong, cao, dt: Math.abs(dienTich(pts)) };
+  return { collider: { kind: 'poly', pts }, outline, soDinh: pts.length, rong, cao, dt: Math.abs(dienTich(pts)) };
 }
 
 // ---------------- chạy ----------------
@@ -110,12 +124,13 @@ for (const [id, duong] of Object.entries(index.items)) {
     const kq = sinhCollider(resolve(CONTENT, man.sprite.src), ppu, cu?.kind === 'circle');
     const cuRong = cu ? cu.box[2] - cu.box[0] : 0, cuCao = cu ? cu.box[3] - cu.box[1] : 0;
     bang.push({
-      id, ten: man.name || cu?.name, kieu: kq.collider.kind, dinh: kq.soDinh,
+      id, ten: man.name || cu?.name, kieu: kq.collider.kind, dinh: kq.soDinh, vien: kq.outline.length,
       cu: `${cuRong}x${cuCao}`, moi: `${kq.rong.toFixed(0)}x${kq.cao.toFixed(0)}`,
       lech: cuRong ? `${((kq.rong / cuRong - 1) * 100).toFixed(0)}% / ${((kq.cao / cuCao - 1) * 100).toFixed(0)}%` : '—',
     });
     if (GHI) {
-      man.collider = kq.collider;
+      if (!CHI_VIEN) man.collider = kq.collider;
+      man.outline = kq.outline;
       writeFileSync(fileManifest, JSON.stringify(man, null, 2) + '\n');
     }
   } catch (e) {
