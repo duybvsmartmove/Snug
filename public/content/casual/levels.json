@@ -1,6 +1,6 @@
 {
-  "version": 58,
-  "publishedAt": "2026-09-29T08:00:30.732Z",
+  "version": 59,
+  "publishedAt": "2026-09-29T08:02:58.216Z",
   "chapters": [
     {
       "id": "school-day",
@@ -333,14 +333,14 @@
               "id": 10,
               "x": 176,
               "y": 492,
-              "angle": 0,
-              "scale": 0.8
+              "angle": 0
             },
             {
               "id": 16,
               "x": 177,
               "y": 581,
-              "angle": 0
+              "angle": 0,
+              "scale": 1.2
             },
             {
               "id": 24,
