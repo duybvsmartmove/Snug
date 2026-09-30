@@ -1,4 +1,4 @@
-package everything.fits.snug.bag.puzzle;
+package everything.fits.packing.puzzle.organize;
 
 import android.os.Bundle;
 import android.view.View;

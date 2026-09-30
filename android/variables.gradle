@@ -13,4 +13,7 @@ ext {
     androidxJunitVersion = '1.3.0'
     androidxEspressoCoreVersion = '3.7.0'
     cordovaAndroidVersion = '14.0.1'
+    // SDK bên thứ ba. Đổi phiên bản ở đây, không sửa rải rác trong app/build.gradle.
+    firebaseBomVersion = '34.19.0'
+    facebookSdkVersion = '18.3.0'
 }

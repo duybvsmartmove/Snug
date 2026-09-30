@@ -2,6 +2,10 @@
 <resources>
     <string name="app_name">Everything Fits</string>
     <string name="title_activity_main">Everything Fits</string>
-    <string name="package_name">everything.fits.snug.bag.puzzle</string>
-    <string name="custom_url_scheme">everything.fits.snug.bag.puzzle</string>
+    <string name="package_name">everything.fits.packing.puzzle.organize</string>
+    <string name="custom_url_scheme">everything.fits.packing.puzzle.organize</string>
+    <!-- Facebook SDK (khai trong AndroidManifest.xml) -->
+    <string name="facebook_app_id" translatable="false">1431838732378090</string>
+    <string name="facebook_client_token" translatable="false">c723ffc9542ed0789724b873afca69b2</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb1431838732378090</string>
 </resources>

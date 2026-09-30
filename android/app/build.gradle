@@ -10,10 +10,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "everything.fits.snug.bag.puzzle"
+    namespace = "everything.fits.packing.puzzle.organize"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "everything.fits.snug.bag.puzzle"
+        applicationId "everything.fits.packing.puzzle.organize"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -75,6 +75,16 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+
+    // ---- Firebase (cấu hình trong app/google-services.json) ----
+    // BoM giữ mọi thư viện Firebase cùng một bộ phiên bản khớp nhau, từng dòng dưới không ghi số.
+    // Analytics: nền để gắn event sau này (và là nguồn dữ liệu cho AppLovin MAX / Firebase A/B).
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
+    implementation "com.google.firebase:firebase-analytics"
+
+    // ---- Facebook SDK: bản core (App Events, đo lượt cài), không kéo phần đăng nhập/chia sẻ ----
+    // App ID và Client Token nằm trong res/values/strings.xml, khai trong AndroidManifest.xml.
+    implementation "com.facebook.android:facebook-core:$facebookSdkVersion"
 }
 
 apply from: 'capacitor.build.gradle'
