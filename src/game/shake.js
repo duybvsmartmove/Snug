@@ -21,7 +21,7 @@
 import Matter from 'matter-js';
 import { S, isHeld, daVao } from './state.js';
 import { bagZone } from './rules.js';
-import { sfx } from '../ui/sfx.js';
+import { Haptics } from '@capacitor/haptics';
 
 const { Body } = Matter;
 
@@ -46,7 +46,6 @@ let ax = 0;                  // gia tốc ngang đã lọc, m/s², dương = má
 let ay = 0;                  // gia tốc dọc đã lọc, m/s², dương = máy giật lên (đồ bị dằn xuống)
 let trongLuc = 0, trongLucY = 0;   // thành phần trọng lực trên hai trục (khi phải tự lọc)
 let giaLap = 0, giaLapY = 0, giaLapToi = 0;   // lắc giả lập (phím, Creative Tool), m/s²
-let tiengLuc = 0;
 let batDau = false;
 
 function onMotion(e) {
@@ -219,9 +218,25 @@ export function tickShake() {
     Body.applyForce(b, b.position, { x: -a * don * b.mass, y: y * don * b.mass });
     co = true;
   }
-  // tiếng sột soạt khi lắc mạnh, không dồn dập
-  if (co && manh > 6 && now > tiengLuc) {
-    tiengLuc = now + 450;
-    sfx('jiggle', { gain: Math.min(.5, manh / 30), rate: .9 + Math.random() * .2 });
-  }
+  // Rung máy như lắc túi thật (thay tiếng sột soạt cũ, nghe rè rè khó chịu): mỗi lần ĐỔI
+  // CHIỀU lắc là lúc đồ trong túi đập vào thành, rung một nhịp ngắn, lắc càng mạnh nhịp càng dài.
+  // Không rung đều liên tục, giữa hai nhịp có quãng nghỉ cho khỏi thành rè rè.
+  if (co) rungTheoLac(a, doc, manh, now);
+}
+
+const RUNG_TU = 3.5;          // m/s²: đổi chiều mạnh hơn mức này mới rung
+const RUNG_NGHI = 85;         // mili giây nghỉ tối thiểu giữa hai nhịp rung
+let chieuNgang = 0, chieuDoc = 0, rungToi = 0;
+function rungTheoLac(a, doc, manh, now) {
+  const cn = Math.sign(a), cd = Math.sign(doc);
+  const doiChieu = (cn && chieuNgang && cn !== chieuNgang) || (cd && chieuDoc && cd !== chieuDoc);
+  if (cn) chieuNgang = cn;
+  if (cd) chieuDoc = cd;
+  if (!doiChieu || manh < RUNG_TU || now < rungToi) return;
+  rungToi = now + RUNG_NGHI;
+  rung(Math.round(Math.min(48, 12 + manh * 2.4)));
+}
+/** Rung máy ms mili giây: app dùng bộ rung thật qua plugin Haptics, web dùng navigator.vibrate */
+function rung(ms) {
+  Haptics.vibrate({ duration: ms }).catch(() => { try { navigator.vibrate?.(ms); } catch {} });
 }
