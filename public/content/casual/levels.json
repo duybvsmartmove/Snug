@@ -1,6 +1,6 @@
 {
-  "version": 70,
-  "publishedAt": "2026-09-29T10:16:38.671Z",
+  "version": 71,
+  "publishedAt": "2026-10-01T08:39:18.685Z",
   "chapters": [
     {
       "id": "school-day",
@@ -2064,7 +2064,7 @@
             "scale": 0.736,
             "blocks": [],
             "cx": 210,
-            "bottom": 420.5,
+            "bottom": 428.5,
             "shape": [
               [
                 -4.4,
