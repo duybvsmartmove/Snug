@@ -5,18 +5,25 @@
 // app mãi chạy đúng bản lúc build. Ở đây, mỗi lần mở game, app hỏi GitHub Pages trước:
 //   - lấy được config.json VÀ levels.json của bộ art trong đó → mọi nội dung (bộ art, level,
 //     ảnh món, túi, nền) đọc từ GitHub Pages, y như bản web;
-//   - không có mạng / chậm quá HAN_CHO / lỗi → dùng bản đóng gói trong APK, vẫn chơi được.
+//   - không có mạng / chậm quá HAN_CHO / lỗi → nội dung (level, ảnh) dùng bản đóng gói trong APK,
+//     còn CẤU HÌNH (bộ art nào) lấy theo bản đã lưu ở lần có mạng gần nhất, để editor đổi sang
+//     casual rồi thì người chơi mất mạng vẫn vào casual. Chưa từng có mạng thì theo bản đóng gói.
 // Ảnh tải về được WebView giữ trong bộ nhớ đệm HTTP như trình duyệt (GitHub Pages: 10 phút rồi
 // hỏi lại bằng ETag), nên mở lại game không phải tải lại từ đầu.
 //
 // Lưu ý: nội dung mới phải chạy được với CODE của bản app đang cài. Level dùng tính năng mới
 // (kiểu vật lý mới, loại vật cản mới…) thì phải phát hành bản app mới cùng lúc.
-import { setContentBase } from './loader.js';
+import { setContentBase, setConfigOverride } from './loader.js';
 
 export const NOI_DUNG_MANG = 'https://duybvsmartmove.github.io/Snug/content/';
 const HAN_CHO = 3000;   // mili giây, cho cả hai lượt hỏi
 
 const laAppNative = () => !!window.Capacitor?.isNativePlatform?.();
+
+// Cấu hình lấy được từ GitHub Pages, lưu trong máy cho lần mất mạng sau
+const KHOA_CFG = 'snug.remoteConfig.v1';
+const luuCfg = cfg => { try { localStorage.setItem(KHOA_CFG, JSON.stringify(cfg)); } catch {} };
+const docCfg = () => { try { return JSON.parse(localStorage.getItem(KHOA_CFG)) || null; } catch { return null; } };
 
 async function hoi(url, signal) {
   const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store', signal });
@@ -38,10 +45,14 @@ export async function chonNguonNoiDung() {
     // levels.json cũng phải về được: config về mà level lỗi thì thà dùng trọn bản đóng gói
     await hoi(`${NOI_DUNG_MANG}${art}/levels.json`, ac.signal);
     setContentBase(NOI_DUNG_MANG);
+    setConfigOverride(null);   // có mạng: đọc config mới nhất trên GitHub Pages
+    luuCfg(cfg);
     console.info('[nội dung] dùng bản trên GitHub Pages, bộ art', art);
     return 'mang';
   } catch (e) {
-    console.info('[nội dung] dùng bản đóng gói trong app:', e?.message || e);
+    const daLuu = docCfg();
+    if (daLuu) setConfigOverride(daLuu);   // bộ art theo lần có mạng gần nhất
+    console.info('[nội dung] dùng bản đóng gói trong app:', e?.message || e, daLuu ? `· cấu hình đã lưu: ${daLuu.art}` : '');
     return 'goc';
   } finally {
     clearTimeout(han);

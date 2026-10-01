@@ -33,7 +33,12 @@ export function setArtStyle(s) {
  *   art   bộ art người chơi thấy khi mở game (editor đổi bằng nút "Game dùng", bấm Lưu là ghi)
  * Luôn bỏ qua cache như levels.json, để đổi xong người chơi nhận được ngay.
  */
+// Cấu hình đặt sẵn từ ngoài (app Android mất mạng: cấu hình lấy được ở lần có mạng gần nhất,
+// xem content/remote.js). Có thì loadConfig trả luôn nó, không đọc file.
+let CFG_DAT = null;
+export function setConfigOverride(cfg) { CFG_DAT = cfg || null; }
 export async function loadConfig() {
+  if (CFG_DAT) return { ...CFG_DAT };
   try {
     const res = await fetch(`${ROOT}config.json?t=${Date.now()}`, { cache: 'no-store' });
     return res.ok ? await res.json() : {};
