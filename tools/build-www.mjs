@@ -61,11 +61,11 @@ let bytes = 0, files = 0;
 })(WWW);
 console.log(`www/ built — ${files} files, ${(bytes / 1024 / 1024).toFixed(2)} MB (editor left out: ${editorOnly.join(', ') || 'none'})`);
 
-// ---- Bộ art app sẽ chạy ----
-// App Android đọc content/config.json ĐÓNG GÓI SẴN trong APK, không đọc bản trên GitHub như bản
-// web. Nút "Cho game chạy …" của editor web ghi config lên GitHub, nên máy build phải kéo về
-// (git pull) trước, không thì APK vẫn chạy bộ art cũ. In rõ ra đây cho khỏi nhầm.
-//   ART=casual npm run android:sync   → ép APK chạy casual, không sửa file config của repo.
+// ---- Bản nội dung đóng gói (dùng khi KHÔNG có mạng) ----
+// Có mạng thì app đọc config, level, ảnh trên GitHub Pages ngay lúc mở (src/content/remote.js),
+// y như bản web. Bản đóng gói ở đây chỉ dùng khi máy không có mạng, nên vẫn nên kéo bản mới
+// (git pull) trước khi build để người chơi offline cũng có nội dung gần nhất.
+//   ART=casual npm run android:sync   → bản đóng gói chạy casual, không sửa file config của repo.
 const cfgFile = join(WWW, 'content', 'config.json');
 const cfg = JSON.parse(readFileSync(cfgFile, 'utf8'));
 const ep = process.env.ART;
@@ -73,14 +73,14 @@ if (ep) {
   if (!['cozy', 'casual'].includes(ep)) { console.error(`ART=${ep} không hợp lệ (cozy hoặc casual)`); process.exit(1); }
   cfg.art = ep; writeFileSync(cfgFile, JSON.stringify(cfg, null, 2) + '\n');
 }
-console.log(`\n>>> APK sẽ chạy bộ art: ${cfg.art.toUpperCase()}${ep ? ' (ép bằng ART=' + ep + ')' : ' (theo public/content/config.json trên máy)'}`);
+console.log(`\n>>> Có mạng: app đọc nội dung trên GitHub Pages. Không mạng: dùng bản đóng gói, bộ art ${cfg.art.toUpperCase()}${ep ? ' (ép bằng ART=' + ep + ')' : ''}`);
 
 // Máy còn thiếu commit nội dung (đổi bộ art, sửa level) từ GitHub thì cảnh báo
 try {
   execSync('git fetch -q origin', { cwd: ROOT, stdio: 'ignore', timeout: 15000 });
   const thieu = execSync('git log --oneline HEAD..origin/main -- public/content', { cwd: ROOT, encoding: 'utf8' }).trim();
   if (thieu) {
-    console.warn(`\n!!! Máy đang THIẾU ${thieu.split('\n').length} commit nội dung trên GitHub (bộ art / level), APK sẽ dùng bản cũ:`);
+    console.warn(`\n!!! Máy đang THIẾU ${thieu.split('\n').length} commit nội dung trên GitHub (bộ art / level); bản đóng gói dùng khi không có mạng sẽ cũ:`);
     console.warn(thieu.split('\n').slice(0, 8).map(l => '    ' + l).join('\n'));
     console.warn('    Chạy "git pull" rồi đồng bộ lại để APK lấy bản mới nhất.\n');
   }
