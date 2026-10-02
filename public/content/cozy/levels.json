@@ -1,6 +1,6 @@
 {
-  "version": 95,
-  "publishedAt": "2026-10-02T04:30:32.929Z",
+  "version": 96,
+  "publishedAt": "2026-10-02T04:31:48.741Z",
   "chapters": [
     {
       "id": "school-day",
@@ -1078,7 +1078,7 @@
           "reward": {
             "coin": 20
           },
-          "nameEn": "Level 14"
+          "nameEn": "Level 6"
         },
         {
           "id": "sd-05",
