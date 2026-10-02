@@ -71,7 +71,7 @@ export function sfxSeq(name, n, { step = .13, rate = 1, up = .12, gain = 1 } = {
  */
 // TẠM THỜI: tắt hẳn nhạc nền (tiếng hiệu ứng vẫn giữ). Áp cho web, editor, Creative và app.
 // Bật lại nhạc: đổi về false rồi build lại.
-const TAT_NHAC_TAM = true;
+const TAT_NHAC_TAM = false;
 
 export async function startMusic() {
   musicWanted = true;
