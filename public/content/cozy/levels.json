@@ -1,6 +1,6 @@
 {
-  "version": 101,
-  "publishedAt": "2026-10-02T04:40:46.730Z",
+  "version": 105,
+  "publishedAt": "2026-10-02T04:50:45.848Z",
   "chapters": [
     {
       "id": "school-day",
@@ -850,12 +850,6 @@
               "angle": 0.78
             },
             {
-              "id": 18,
-              "x": 108,
-              "y": 602,
-              "angle": 0
-            },
-            {
               "id": 39,
               "x": 176,
               "y": 602,
@@ -1684,7 +1678,7 @@
         {
           "id": "sd-07",
           "name": "",
-          "nameEn": "Level 7",
+          "nameEn": "Level 10",
           "timer": 180,
           "background": 1,
           "container": {
@@ -1692,7 +1686,7 @@
             "scale": 1.1,
             "blocks": [],
             "cx": 210,
-            "bottom": 413.3,
+            "bottom": 421.3,
             "shape": [
               [
                 -2.1,
@@ -1897,7 +1891,7 @@
         {
           "id": "sd-08",
           "name": "",
-          "nameEn": "Level 8",
+          "nameEn": "Level 11",
           "timer": 180,
           "background": 1,
           "container": {
@@ -1905,7 +1899,7 @@
             "scale": 1.25,
             "blocks": [],
             "cx": 210,
-            "bottom": 421.4,
+            "bottom": 429.4,
             "shape": [
               [
                 -22.1,
