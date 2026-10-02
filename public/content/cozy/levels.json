@@ -1,6 +1,6 @@
 {
-  "version": 90,
-  "publishedAt": "2026-10-02T03:32:36.830Z",
+  "version": 91,
+  "publishedAt": "2026-10-02T03:45:28.570Z",
   "chapters": [
     {
       "id": "school-day",
@@ -2480,7 +2480,7 @@
         },
         {
           "id": "sd-14",
-          "name": "Level mới",
+          "name": "",
           "timer": 180,
           "background": 1,
           "container": {
