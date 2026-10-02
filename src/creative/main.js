@@ -11,7 +11,7 @@ const frame = $('game');
 
 // ---------- cài đặt, nhớ trong trình duyệt ----------
 const KEY = 'snug.creative.v1';
-const DEF = { aspect: '9:16', art: 'cozy', lang: 'en', play: 1, time: 1, finger: true, timer: true, autoBoost: false, human: true, sfx: true, music: true, boosts: '', hide: {} };
+const DEF = { aspect: '9:16', art: 'cozy', lang: 'en', play: 1, time: 1, finger: true, timer: true, autoBoost: false, human: true, sfx: true, music: true, gon: true, boosts: '', hide: {} };
 const cfg = { ...DEF, ...(() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })() };
 const saveCfg = () => { try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch {} };
 
@@ -35,15 +35,20 @@ function loadFrame() {
   frame.src = `./index.html?creative=1&art=${cfg.art}&lang=${cfg.lang}&t=${Date.now()}`;
 }
 /** Gửi lại toàn bộ cài đặt sau mỗi lần iframe nạp */
+// "🎬 Ẩn HUD": quay video sạch màn. Bật thì ẩn đồng hồ, số món, nút tạm dừng và thanh booster,
+// đồng hồ ngừng đếm (không thua vì hết giờ). Tắt thì trả về đúng các lựa chọn riêng trong menu HUD
+// và nút Giờ như trước khi bật. Chỉ trong Creative, game thật không đổi.
+const anHud = () => (cfg.gon ? { ...cfg.hide, timer: true, pause: true, dock: true } : cfg.hide);
+const dangDem = () => (cfg.gon ? false : cfg.timer);
 function pushAll() {
   post({ type: 'speed', play: cfg.play, time: cfg.time });
   post({ type: 'finger', on: cfg.finger });
   post({ type: 'autoboost', on: cfg.autoBoost });
   post({ type: 'human', on: cfg.human });
   post({ type: 'audio', sfx: cfg.sfx, music: cfg.music });
-  post({ type: 'timer', on: cfg.timer });
+  post({ type: 'timer', on: dangDem() });
   post({ type: 'boosts', n: cfg.boosts === '' ? null : Number(cfg.boosts) });
-  post({ type: 'hud', hide: cfg.hide });
+  post({ type: 'hud', hide: anHud() });
   post({ type: 'lang', lang: cfg.lang });
 }
 
@@ -227,7 +232,8 @@ function bindToggle(id, key, send) {
 }
 const toggleFinger = bindToggle('fingerBtn', 'finger', on => { post({ type: 'finger', on }); document.body.classList.toggle('tay-gia', on); });
 document.body.classList.toggle('tay-gia', !!cfg.finger);
-const toggleTimer = bindToggle('timerBtn', 'timer', on => post({ type: 'timer', on }));
+const toggleTimer = bindToggle('timerBtn', 'timer', () => post({ type: 'timer', on: dangDem() }));
+bindToggle('cleanBtn', 'gon', () => { post({ type: 'hud', hide: anHud() }); post({ type: 'timer', on: dangDem() }); });
 bindToggle('autoBoostBtn', 'autoBoost', on => post({ type: 'autoboost', on }));
 bindToggle('humanBtn', 'human', on => post({ type: 'human', on }));
 bindToggle('sfxBtn', 'sfx', on => post({ type: 'audio', sfx: on }));
@@ -238,7 +244,7 @@ $('boosts').addEventListener('change', e => { cfg.boosts = e.target.value; saveC
 
 document.querySelectorAll('[data-hud]').forEach(cb => {
   cb.checked = !!cfg.hide[cb.dataset.hud];
-  cb.addEventListener('change', () => { cfg.hide[cb.dataset.hud] = cb.checked; saveCfg(); post({ type: 'hud', hide: cfg.hide }); });
+  cb.addEventListener('change', () => { cfg.hide[cb.dataset.hud] = cb.checked; saveCfg(); post({ type: 'hud', hide: anHud() }); });
 });
 document.addEventListener('click', e => { if (!$('hudDd').contains(e.target)) $('hudDd').open = false; });
 

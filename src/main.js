@@ -31,6 +31,13 @@ const params = new URLSearchParams(location.search);
 // trong mã — muốn trả lại thì đổi cờ này về false.
 const BO_QUA_HOME = true;
 
+// TẠM THỜI: bản gửi bên design. Ẩn cụm đồng hồ + số món + nút tạm dừng và thanh booster,
+// đồng hồ không đếm (không thua vì hết giờ). Áp cho cả web, editor, Creative và app Android.
+// Trả lại HUD như cũ: đổi cờ này về false rồi build lại.
+const AN_HUD_TAM = true;
+S.anHud = AN_HUD_TAM;
+if (AN_HUD_TAM) document.getElementById('phone')?.classList.add('hide-timer', 'hide-pause', 'hide-dock');
+
 // Bộ art: ?art=casual đổi thư mục ảnh và bảng màu HUD. Không ghi trên địa chỉ thì theo
 // config.json (editor đặt bằng nút "Game dùng"), đọc trong boot() trước mọi lượt nạp ảnh.
 setArtStyle(params.get('art') || 'cozy');

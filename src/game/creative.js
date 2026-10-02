@@ -80,7 +80,8 @@ export function initCreative({ startLevel, vaoNgay, choiSplash, goHome, showMap,
           if (m.play != null) setPlaySpeed(kep(m.play, .1, 4));
           if (m.time != null) S.timeScale = kep(m.time, .1, 4);
           break;
-        case 'hud': for (const k of HUD_PARTS) phone.classList.toggle('hide-' + k, !!m.hide?.[k]); break;
+        // bản ẩn HUD (S.anHud) thì đồng hồ, tạm dừng, booster luôn ẩn, công tắc của tool không mở ra được
+        case 'hud': for (const k of HUD_PARTS) phone.classList.toggle('hide-' + k, !!m.hide?.[k] || (S.anHud && k !== 'title')); break;
         case 'timer': S.timerOn = !!m.on; break;
         case 'boosts': setBoostOverride(m.n); if (S.LEVEL) resetBoosts(); break;
         case 'finger': S.showFinger = !!m.on; if (!m.on) S.finger = null; tayChuot.bat(S.showFinger); break;

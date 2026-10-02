@@ -183,7 +183,7 @@ function drawPuffs(dt) {
 function tickTimer(dt) {
   // S.mayNghi: máy tự chơi đang ngồi tính kế hoạch hoặc tháo đồ ra xếp lại. Người thật
   // không mất mấy giây đó, nên đồng hồ đứng chờ, không để máy thua vì nghĩ lâu.
-  if (S.won || S.lost || !S.timerOn || S.mayNghi) return;
+  if (S.won || S.lost || !S.timerOn || S.mayNghi || S.anHud) return;   // S.anHud: bản ẩn HUD, xem main.js
   S.timeLeft -= dt;
   if (S.timeLeft <= 0) { S.timeLeft = 0; S.lost = true; showLose(); }
 }
