@@ -118,7 +118,7 @@ function drawBlocks() {
 const AN_CHU_GOI_Y = new URLSearchParams(location.search).get('creative') === '1';
 
 function drawEmptyLabel() {
-  if (AN_CHU_GOI_Y || !S.LEVEL || S.checked.size > 0) return;
+  if (AN_CHU_GOI_Y || S.anHud || !S.LEVEL || S.checked.size > 0) return;   // S.anHud: bản ẩn HUD gửi design (main.js)
   const anyInside = S.bodies.some(b => b.bounds.min.y > BAG.top && b.bounds.max.y < BAG.bottom + 4
     && b.bounds.min.x > BAG.left - 4 && b.bounds.max.x < BAG.right + 4 && b.label !== 'key');
   if (anyInside) return;
