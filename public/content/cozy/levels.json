@@ -1,6 +1,6 @@
 {
-  "version": 99,
-  "publishedAt": "2026-10-02T04:39:34.211Z",
+  "version": 101,
+  "publishedAt": "2026-10-02T04:40:46.730Z",
   "chapters": [
     {
       "id": "school-day",
@@ -1475,7 +1475,7 @@
         {
           "id": "sd-06",
           "name": "",
-          "nameEn": "Level 6",
+          "nameEn": "Level 9",
           "timer": 180,
           "background": 1,
           "container": {
@@ -1492,7 +1492,7 @@
               }
             ],
             "cx": 210,
-            "bottom": 420.6,
+            "bottom": 428.6,
             "shape": [
               [
                 1.9,
