@@ -69,9 +69,13 @@ export function sfxSeq(name, n, { step = .13, rate = 1, up = .12, gain = 1 } = {
  * musicNode vẫn là null nên mọi lần gọi khác đều lọt qua và cùng dựng thêm một luồng —
  * kết quả là hai ba bản nhạc đè lên nhau mà chỉ tắt được bản cuối.
  */
+// TẠM THỜI: tắt hẳn nhạc nền (tiếng hiệu ứng vẫn giữ). Áp cho web, editor, Creative và app.
+// Bật lại nhạc: đổi về false rồi build lại.
+const TAT_NHAC_TAM = true;
+
 export async function startMusic() {
   musicWanted = true;
-  if (silent || !prefs.music || !ac) return;
+  if (TAT_NHAC_TAM || silent || !prefs.music || !ac) return;
   if (musicNode || musicStarting) return;
   musicStarting = true;
   try {
