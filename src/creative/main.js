@@ -3,7 +3,7 @@
 // Game chạy thật trong iframe (index.html?creative=1), tool chỉ đứng ngoài điều khiển
 // qua postMessage — xem src/game/creative.js cho danh sách lệnh. Nhờ vậy bảng thắng,
 // bảng thua, HUD, nhạc… đúng y như game người chơi cầm trên tay.
-import { loadBook, loadAssetIndex, artUrl, setArtStyle } from '../content/loader.js';
+import { loadBook, loadAssetIndex, artUrl, setArtStyle, soThuTuLevel } from '../content/loader.js';
 import { maxScale, MIN_SCALE, placeFixed } from '../data/bag.js';
 
 const $ = id => document.getElementById(id);
@@ -110,9 +110,9 @@ function paintStatus() {
   else if (s.screen === 'map') tag.innerHTML = '🗺 Bản đồ';
   else if (s.levelId) {
     const ch = book?.chapters.find(c => c.id === (current?.chapter ?? s.chapter)), lv = custom || ch?.levels[s.index];
-    const name = cfg.lang === 'vi' ? lv?.name : (lv?.nameEn || lv?.name);
+    const so = soThuTuLevel(ch?.id, s.index, book);   // không còn tên level, chỉ số thứ tự
     const tier = lv?.difficulty?.tier;
-    tag.innerHTML = `<b>Level ${s.index + 1}</b> · ${esc(name || s.levelId)}${tier ? `<span class="tier ${tier.split(' ')[0]}">${tier} ${lv.difficulty.points ?? ''}</span>` : ''}`
+    tag.innerHTML = `<b>Level ${so}</b>${tier ? `<span class="tier ${tier.split(' ')[0]}">${tier} ${lv.difficulty.points ?? ''}</span>` : ''}`
       + (custom ? ' · <b style="color:var(--gold)">đã sửa</b>' : '')
       + (s.won ? ' · <b style="color:var(--accent2)">WIN</b>' : s.lost ? ' · <b style="color:#FF6B6B">LOSE</b>' : ` · ${s.left}/${s.items}`);
   } else tag.textContent = '—';
@@ -148,10 +148,9 @@ function drawPicker() {
     ch.levels.forEach((lv, i) => {
       const tier = lv.difficulty?.tier, pts = lv.difficulty?.points;
       const b = document.createElement('button'); b.className = 'lv';
-      const vi = lv.name || '', en = lv.nameEn || '';
-      const main = cfg.lang === 'vi' ? vi : (en || vi), sub = cfg.lang === 'vi' ? en : (en ? vi : '');
-      b.innerHTML = `<span class="no">${i + 1}</span>
-        <span class="name">${esc(main || lv.id)}${sub && sub !== main ? `<small>${esc(sub)}</small>` : ''}</span>
+      const so = soThuTuLevel(ch.id, i, book);   // không còn tên level, chỉ số thứ tự liền qua các chương
+      b.innerHTML = `<span class="no">${so}</span>
+        <span class="name">Level ${so}<small>${esc(lv.id)}</small></span>
         <span class="foot"><span class="tier ${tier ? tier.split(' ')[0] : 'none'}">${tier ? `${tier} · ${pts ?? 0}` : 'chưa đo'}</span><span>${lv.items?.length || 0} món · ${lv.timer || 0}s</span></span>`;
       b.addEventListener('click', () => play(ch.id, i));
       grid.appendChild(b);
@@ -459,7 +458,7 @@ function dayLevel(ms = 220) {
   hen = setTimeout(() => {
     if (!custom || !current) return;
     const ch = book?.chapters.find(c => c.id === current.chapter);
-    post({ type: 'level', level: structuredClone(custom), index: current.index, chapter: { no: ch?.no || 1, name: ch?.name || '' } });
+    post({ type: 'level', level: structuredClone(custom), index: current.index, chapter: { id: ch?.id, no: ch?.no || 1, name: ch?.name || '' } });
   }, ms);
 }
 

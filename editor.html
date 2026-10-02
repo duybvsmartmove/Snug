@@ -30,7 +30,7 @@
     <button id="mgBtn" class="ghost">Quản lý chương &amp; level</button>
     <button id="newLevel" class="ghost">+ Level mới</button>
     <button id="publishBtn" class="publish" title="Ghi level đang sửa vào game (Cmd/Ctrl + S)">
-      <span class="dot" id="dirtyDot" hidden></span>Lưu level <b class="arttag" id="artTag">COZY</b> <span class="live" id="liveTag">v?</span>
+      <span class="dot" id="dirtyDot" hidden></span>Lưu level<span id="dirtyCount"></span> <b class="arttag" id="artTag">COZY</b> <span class="live" id="liveTag">v?</span>
     </button>
     <button id="downloadBtn" class="ghost" title="Tải levels.json về máy">Tải JSON</button>
     <button id="ghBtn" class="ghost" title="Nối với GitHub để lưu thẳng" hidden>🔑 <b id="ghTag">chưa nối</b></button>
@@ -60,8 +60,8 @@
       <div class="card">
         <div class="card-head"><b>1. Thông tin level</b></div>
         <div class="row">
-          <label class="field grow2">Tên <input id="lvName" type="text" placeholder="tiếng Việt"></label>
-          <label class="field grow2">Tên EN <input id="lvNameEn" type="text" placeholder="English"></label>
+          <!-- Level không còn tên riêng: tiêu đề ở game, editor, Creative đều là "Level N" theo số thứ tự -->
+          <div class="field grow2 lv-so"><b id="lvSo">Level 1</b> <code id="lvMa"></code></div>
           <label class="field">Thời gian <input id="lvTimer" type="number" min="10" max="600" step="5"> giây</label>
           <label class="field">Thưởng <input id="lvCoin" type="number" min="0" step="5"> coin</label>
         </div>

@@ -93,6 +93,19 @@ export async function loadBook(opts) {
   return BOOK;
 }
 export const book = () => BOOK;
+/**
+ * Số thứ tự của level, tính LIỀN qua mọi chương theo thứ tự trong levels.json: chương 1 có
+ * 12 level thì level đầu của chương 2 là Level 13. Level không còn tên riêng, tiêu đề ở game,
+ * editor và Creative đều là "Level N" theo số này. `sach` để editor/Creative dùng sách của mình.
+ */
+export function soThuTuLevel(chapterId, idx, sach = BOOK) {
+  let n = 0;
+  for (const c of sach?.chapters || []) {
+    if (c.id === chapterId) return n + idx + 1;
+    n += c.levels?.length || 0;
+  }
+  return idx + 1;
+}
 export const chapters = () => BOOK?.chapters || [];
 export const chapterById = id => chapters().find(c => c.id === id) || chapters()[0] || null;
 

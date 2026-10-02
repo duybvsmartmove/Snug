@@ -1,3 +1,4 @@
+import { soThuTuLevel } from '../content/loader.js';
 // Quản lý chương và level. Mọi thứ nằm trong một file sắp xếp (content/levels.json của repo game),
 // nên thêm, xoá, đổi thứ tự đều chỉ là sửa mảng rồi lưu lại file đó.
 const $ = id => document.getElementById(id);
@@ -55,7 +56,7 @@ export function initManage({ E, status, blankLevel, clone, publish, onReload, on
   }
   async function deleteLevel(i) {
     const ch = viewed(), lv = ch.levels[i];
-    if (!confirm(`Xoá level ${i + 1} (${lv.name || lv.id}) của chương "${ch.name}"?`)) return;
+    if (!confirm(`Xoá Level ${soThuTuLevel(ch.id, i, E.book)} (${lv.id}) của chương "${ch.name}"?`)) return;
     ch.levels.splice(i, 1); await save();
     status(`Đã xoá level ${lv.id}`, 'ok'); render();
     if (ch.id === E.mapId) onLevelPicked?.(ch.levels[Math.min(i, ch.levels.length - 1)]?.id);
@@ -63,7 +64,7 @@ export function initManage({ E, status, blankLevel, clone, publish, onReload, on
   async function duplicateLevel(i) {
     const ch = viewed(), src = ch.levels[i];
     const id = nextLevelId(ch.id, ch.levels.map(l => l.id));
-    ch.levels.splice(i + 1, 0, { ...clone(src), id, name: `${src.name} (bản sao)` });
+    ch.levels.splice(i + 1, 0, { ...clone(src), id });
     await save();
     status('Đã nhân bản level', 'ok'); render();
     if (ch.id === E.mapId) onLevelPicked?.(id);
@@ -175,7 +176,7 @@ export function initManage({ E, status, blankLevel, clone, publish, onReload, on
         btn('Xoá', 'Xoá level', () => deleteLevel(i), 'danger'),
       );
       const tr = row(['<span class="grip" title="Kéo để đổi thứ tự">⋮⋮</span>', String(i + 1),
-                      `${lv.name || lv.id} <code>${lv.id}</code>`, String((lv.items || []).length), acts],
+                      `Level ${soThuTuLevel(ch.id, i, E.book)} <code>${lv.id}</code>`, String((lv.items || []).length), acts],
                      lv.id === E.level?.id && ch.id === E.mapId ? 'on' : '');
       tr.draggable = true; tr.dataset.i = i;
       lt.appendChild(tr);

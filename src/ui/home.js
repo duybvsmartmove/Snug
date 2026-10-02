@@ -3,8 +3,8 @@
 //  - Bản đồ: mọi chương và mọi màn, màn đã qua / đang mở / còn khoá.
 import * as P from '../game/progress.js';
 import { sfx, initAudio, setSfxOn, setMusicOn, isSfxOn, isMusicOn } from './sfx.js';
-import { t, onLangChange, chapterName, levelName } from '../i18n.js';
-import { artUrl, loadAssetIndex } from '../content/loader.js';
+import { t, onLangChange, chapterName } from '../i18n.js';
+import { artUrl, loadAssetIndex, soThuTuLevel } from '../content/loader.js';
 
 const $ = id => document.getElementById(id);
 
@@ -143,7 +143,7 @@ function drawMap() {
         b.className = 'lv ' + (isDone ? 'done' : !unlocked ? 'lock' : i === at ? 'now' : 'open');
         b.style.animationDelay = (ci * .07 + i * .022) + 's';
         b.innerHTML = `<span>${i + 1}</span>`;
-        b.title = levelName(lv) || t('level', { n: i + 1 });
+        b.title = `Level ${soThuTuLevel(ch.id, i)}`;
         if (!unlocked) b.disabled = true;
         else b.addEventListener('click', () => { sfx('tapBig'); play(ch, i); });
         grid.appendChild(b);

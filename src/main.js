@@ -34,7 +34,7 @@ const BO_QUA_HOME = true;
 // TẠM THỜI: bản gửi bên design. Ẩn cụm đồng hồ + số món + nút tạm dừng và thanh booster,
 // đồng hồ không đếm (không thua vì hết giờ). Áp cho cả web, editor, Creative và app Android.
 // Trả lại HUD như cũ: đổi cờ này về false rồi build lại.
-const AN_HUD_TAM = true;
+const AN_HUD_TAM = false;
 S.anHud = AN_HUD_TAM;
 if (AN_HUD_TAM) document.getElementById('phone')?.classList.add('hide-timer', 'hide-pause', 'hide-dock');
 
@@ -105,6 +105,7 @@ async function boot() {
     if (m.type === 'level' && m.level) {
       S.levelIdx = m.index ?? S.levelIdx;
       if (m.chapter) S.map = { ...(S.map || {}), no: m.chapter.no, name: m.chapter.name, levels: S.map?.levels || [] };
+      if (m.chapter?.id) S.mapId = m.chapter.id;   // để tiêu đề "Level N" tính đúng số thứ tự liền qua các chương
       // Editor có thể vừa thêm món chưa nằm trong danh sách ảnh của chương.
       // Không nạp ảnh trước thì món có hình vật lý mà không có gì để vẽ: chiếm chỗ mà vô hình.
       buildWithArt(m.level);

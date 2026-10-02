@@ -6,6 +6,7 @@ import { theme } from '../art/helpers.js';
 import { makeItem, createWorld, dungTui, NHOM_TRAN } from './physics.js';
 import { dust, ring } from './fx.js';
 import { resolveContainer } from '../data/bag.js';
+import { soThuTuLevel } from '../content/loader.js';
 import { BAG_SKINS } from '../art/scene-registry.js';
 import { createTethers } from './mechanics.js';
 import { resetBoosts } from './boosters.js';
@@ -13,7 +14,7 @@ import { renderHeader, renderList, hideWin, hideLose, hidePause } from '../ui/hu
 import { clearFx } from './fx.js';
 import { duckMusic, sfx } from '../ui/sfx.js';
 import { setSpot } from './progress.js';
-import { t, chapterName, levelName, onLangChange } from '../i18n.js';
+import { t, chapterName, onLangChange } from '../i18n.js';
 
 const { Body, World } = Matter;
 
@@ -82,7 +83,7 @@ function veThanhTen() {
   const level = S.LEVEL; if (!level) return;
   renderHeader({
     eyebrow: S.map ? t('eyebrow', { no: S.map.no || 1, name: chapterName(S.map), n: S.levelIdx + 1 }) : t('level', { n: S.levelIdx + 1 }),
-    title: levelName(level) || 'Level',
+    title: `Level ${soThuTuLevel(S.mapId, S.levelIdx)}`,   // không còn tên level riêng
     cls: SCENE_CLS[Number(level.background)] || '',
   });
 }

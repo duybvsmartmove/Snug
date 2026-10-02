@@ -1,6 +1,6 @@
 // Level Editor: điều phối tab, level hiện tại, live preview (iframe game), bảng đo, lưu content.
 import { ITEM_DEFS, defById } from '../data/items.js';
-import { loadBook, loadItemManifests, loadBackgrounds, loadBags, saveContent, whenSpriteReady, setAssetChapter, setArtStyle, artStyle, loadConfig, saveConfig } from '../content/loader.js';
+import { loadBook, loadItemManifests, loadBackgrounds, loadBags, saveContent, whenSpriteReady, setAssetChapter, setArtStyle, artStyle, loadConfig, saveConfig, soThuTuLevel } from '../content/loader.js';
 import { sceneOptions, BAG_KINDS, BAG_SKINS } from '../art/scene-registry.js';
 import { isFixedSkin, placeFixed, maxScale, MIN_SCALE } from '../data/bag.js';
 import { itemArea } from '../game/physics.js';
@@ -102,7 +102,7 @@ export function status(text, cls = '') { const s = $('status'); s.textContent = 
 // ---------- level model ----------
 export function blankLevel(id) {
   return {
-    id, name: 'Level mới', timer: 90, background: 'vanity',
+    id, timer: 90, background: 'vanity',
     container: { skin: 'backpack', cx: 210, bottom: 404, shape: [[-127, -220], [127, -220], [127, 0], [-127, 0]], blocks: [] },
     mode: 'fixed', items: [], reward: { coin: 20 }, background: 1,
   };
@@ -125,7 +125,7 @@ export function setLevel(level, { keepId = false } = {}) {
   dongBoTui(level);
   E.level = level;
   draw?.syncBagUi();
-  $('lvName').value = level.name || ''; $('lvNameEn').value = level.nameEn || ''; $('lvTimer').value = level.timer || 90;
+  veSoLevel(); $('lvTimer').value = level.timer || 90;
   refreshPickers();
   $('lvCoin').value = level.reward?.coin ?? 20;
   veCoDo();
@@ -154,11 +154,60 @@ export function onChange() {
  * Khung Xem thử hiện ngay thứ đang sửa, còn game đọc từ file, nên không có dấu này
  * rất dễ tưởng đã lưu rồi.
  */
+// ---------- sửa nhiều level, lưu một lần ----------
+// E.level là bản chép riêng của level đang mở. Chuyển sang level / chương khác thì chép nó trả
+// về đúng chỗ trong E.book trước (luuTam), nên sửa level 3 rồi sang 4, 5, 6 vẫn giữ đủ cả bốn;
+// bấm Lưu một lần là ghi hết. GOC là bản đã lưu (lúc tải hoặc lần lưu gần nhất) để biết level
+// nào đã sửa: so bằng JSON, level chưa có trong GOC là level mới.
+let GOC = new Map();                 // id level → JSON bản đã lưu
+const DA_SUA = new Set();            // level KHÁC level đang mở đã sửa mà chưa lưu
+function chupGoc() {
+  GOC = new Map();
+  for (const c of E.book?.chapters || []) for (const lv of c.levels) GOC.set(lv.id, JSON.stringify(lv));
+  DA_SUA.clear();
+}
+function daSua(id) {
+  if (id === E.level?.id) return GOC.get(id) !== JSON.stringify(E.level);
+  return DA_SUA.has(id);
+}
+/** Chép level đang sửa về chỗ của nó trong chương (chỉ cập nhật, không thêm level đã bị xoá) */
+function luuTam() {
+  if (!E.level || !E.map) return;
+  const i = E.map.levels.findIndex(l => l.id === E.level.id);
+  if (i < 0) return;
+  E.map.levels[i] = clone(E.level);
+  if (GOC.get(E.level.id) !== JSON.stringify(E.level)) DA_SUA.add(E.level.id); else DA_SUA.delete(E.level.id);
+}
+/**
+ * Mở một level từ chương: setLevel tự chuẩn hoá nó (tính lại chỗ đặt túi theo mốc hiện tại…), nên
+ * bản đang mở khác file một chút dù người dùng chưa sửa gì. Level chưa sửa thì lấy luôn bản đã
+ * chuẩn hoá làm gốc, để mở ra thôi không bị đếm là "đã sửa".
+ */
+function moLevel(lv) {
+  const sach = !DA_SUA.has(lv.id) && GOC.get(lv.id) === JSON.stringify(lv);
+  setLevel(clone(lv));
+  if (sach) GOC.set(lv.id, JSON.stringify(E.level));
+}
+const soChuaLuu = () => DA_SUA.size - (DA_SUA.has(E.level?.id) ? 1 : 0) + (daSua(E.level?.id) ? 1 : 0);
+
 export function markDirty() {
-  const saved = E.map?.levels.find(l => l.id === E.level?.id);
-  const dirty = !saved || JSON.stringify(saved) !== JSON.stringify(E.level);
-  $('publishBtn').classList.toggle('dirty', dirty);
-  $('dirtyDot').hidden = !dirty;
+  const n = E.level ? soChuaLuu() : 0;
+  $('publishBtn').classList.toggle('dirty', n > 0);
+  $('dirtyDot').hidden = n === 0;
+  $('dirtyCount').textContent = n > 1 ? ` (${n})` : '';
+  $('publishBtn').title = n ? `${n} level đã sửa chưa lưu. Bấm để lưu tất cả (Cmd/Ctrl + S)` : 'Không có gì cần lưu (Cmd/Ctrl + S)';
+  // dấu • trước level đang mở trong danh sách, không dựng lại cả danh sách mỗi lần kéo món
+  const o = $('levelSelect')?.selectedOptions?.[0];
+  if (o) { const co = o.textContent.startsWith('• '), can = daSua(E.level?.id); if (co !== can) o.textContent = (can ? '• ' : '') + o.textContent.replace(/^• /, ''); }
+}
+// còn level chưa lưu mà đóng / tải lại trang thì trình duyệt hỏi lại
+window.addEventListener('beforeunload', e => { if (E.level && soChuaLuu() > 0) { e.preventDefault(); e.returnValue = ''; } });
+/** Số "Level N" và mã level của level đang mở (thay cho hai ô tên cũ) */
+function veSoLevel() {
+  if (!E.level || !E.map) return;
+  const i = E.map.levels.findIndex(l => l.id === E.level.id);
+  $('lvSo').textContent = `Level ${soThuTuLevel(E.map.id, i < 0 ? E.map.levels.length : i, E.book)}`;
+  $('lvMa').textContent = E.level.id;
 }
 
 // ---------- live preview ----------
@@ -188,7 +237,7 @@ function pushPreview() {
   pushT = setTimeout(() => {
     if (!E.previewReady || !E.level) return;
     const idx = E.map ? Math.max(0, E.map.levels.findIndex(l => l.id === E.level.id)) : 0;
-    frame.contentWindow.postMessage({ type: 'level', level: clone(E.level), index: idx, chapter: { no: E.map.no || 1, name: E.map.name || '' } }, '*');
+    frame.contentWindow.postMessage({ type: 'level', level: clone(E.level), index: idx, chapter: { id: E.map.id, no: E.map.no || 1, name: E.map.name || '' } }, '*');
     frame.contentWindow.postMessage({ type: 'timer', on: $('timerToggle').checked }, '*');
   }, 200);
 }
@@ -218,6 +267,7 @@ export async function publish(note = '') {
   if (!canWrite && !gh.hasToken()) throw new Error('chưa nối GitHub — bấm nút 🔑 để dán token');
   if (canWrite) await saveContent('levels.json', text);          // chạy ở máy: ghi thẳng ra file
   else await gh.putBook(b);                                       // trên web: commit lên GitHub
+  chupGoc();                                                      // mọi level đã sửa giờ đã lưu
   return b.version;
 }
 
@@ -256,6 +306,7 @@ window.addEventListener('keydown', e => {
 
 // Tải file JSON về máy, dùng khi editor chạy trên web và không ghi thẳng được
 $('downloadBtn').addEventListener('click', () => {
+  luuTam();
   const blob = new Blob([JSON.stringify(E.book, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = `levels-${artStyle()}.json`; a.click();
@@ -367,9 +418,7 @@ export function refreshPickers() {
 }
 
 // ---------- form ----------
-$('lvName').addEventListener('input', e => { E.level.name = e.target.value; refreshLevelSelect(); onChange(); });
 // Tên tiếng Anh: game mặc định nói tiếng Anh, bỏ trống thì hiện tên tiếng Việt
-$('lvNameEn').addEventListener('input', e => { E.level.nameEn = e.target.value; onChange(); });
 $('lvTimer').addEventListener('change', e => { E.level.timer = +e.target.value; onChange(); });
 $('lvBg').addEventListener('change', e => { E.level.background = Number(e.target.value); onChange(); });
 $('lvSkin').addEventListener('change', e => { E.level.container.skin = e.target.value; dongBoTui(E.level); draw?.syncBagUi(); onChange(); });
@@ -407,7 +456,7 @@ const levelItemIds = new Map();
 function indexChapter() {
   levelNames.clear(); levelItemIds.clear();
   for (const lv of E.map.levels) {
-    levelNames.set(lv.id, lv.name || lv.id);
+    levelNames.set(lv.id, `Level ${soThuTuLevel(E.map.id, E.map.levels.indexOf(lv), E.book)}`);
     levelItemIds.set(lv.id, (lv.items || []).map(i => Number(i.id)));
   }
   E.levelNames = levelNames;
@@ -421,33 +470,39 @@ function refreshChapterSelect() {
 }
 function refreshLevelSelect() {
   const sel = $('levelSelect');
-  sel.innerHTML = E.map.levels.map((lv, i) => `<option value="${lv.id}">Level ${i + 1} — ${lv.name || lv.id}</option>`).join('');
+  // số thứ tự liền qua các chương, đúng như game hiện; dấu • là level đã sửa mà chưa lưu
+  sel.innerHTML = E.map.levels.map((lv, i) => `<option value="${lv.id}">${daSua(lv.id) ? '• ' : ''}Level ${soThuTuLevel(E.map.id, i, E.book)}</option>`).join('');
   if (E.level) sel.value = E.level.id;
+  veSoLevel();
 }
 
 /** Mở một chương, kèm level chỉ định hoặc level đầu tiên */
 export async function openChapter(mapId, levelId) {
+  luuTam();
   E.mapId = mapId;
   E.map = E.book.chapters.find(c => c.id === mapId) || E.book.chapters[0];
   E.mapId = E.map.id;
   setAssetChapter(`assets/${String(E.map.no || 1).padStart(2, '0')}-${E.mapId}`);
   indexChapter();
-  const pick = E.map.levels.find(l => l.id === levelId) || E.map.levels[0];
-  setLevel(pick ? clone(pick) : blankLevel(nextLevelId(E.mapId, [])));
+  let pick = E.map.levels.find(l => l.id === levelId) || E.map.levels[0];
+  if (!pick) { pick = blankLevel(nextLevelId(E.mapId, [])); E.map.levels.push(pick); }   // chương trống: tạo sẵn level đầu
+  moLevel(pick);
   refreshChapterSelect(); refreshLevelSelect(); draw?.clearSelection();
   draw?.computeChapterItems();
   markDirty(); pool?.computeChapterItems();
 }
 export async function openLevel(id) {
+  luuTam();                                        // trước khi tìm: mở lại đúng level đang sửa cũng không mất gì
   const lv = E.map.levels.find(l => l.id === id);
   if (!lv) return;
-  setLevel(clone(lv));
+  moLevel(lv);
   refreshLevelSelect(); draw?.clearSelection(); markDirty();
 }
 
 $('chapterSelect').addEventListener('change', e => openChapter(e.target.value));
 $('levelSelect').addEventListener('change', e => openLevel(e.target.value));
 $('newLevel').addEventListener('click', () => {
+  luuTam();
   // Thêm thẳng vào chương để xoá được ngay; chưa bấm Lưu thì chỉ nằm trong bộ nhớ
   const id = nextLevelId(E.mapId, E.map.levels.map(l => l.id));
   const lv = blankLevel(id); if (E.level) lv.container = clone(E.level.container);
@@ -465,9 +520,9 @@ $('newLevel').addEventListener('click', () => {
  */
 export function syncLevelIntoChapter() {
   if (!E.level || !E.map) return;
-  const i = E.map.levels.findIndex(l => l.id === E.level.id);
-  if (i >= 0) E.map.levels[i] = clone(E.level);
-  else E.map.levels.push(clone(E.level));
+  // Chỉ cập nhật level còn trong chương. Trước đây không thấy thì đẩy thêm vào cuối, nên xoá
+  // đúng level đang mở trong bảng Quản lý rồi lưu là nó sống lại.
+  luuTam();
 }
 
 
@@ -490,7 +545,7 @@ $('pasteJson').addEventListener('click', async () => {
     const lv = await readLevelJson();
     if (!lv) return;
     setLevel(lv, { keepId: true });
-    status(`Đã dán level "${lv.name || lv.id}" · ${lv.items.length} món`, 'ok');
+    status(`Đã dán level · ${lv.items.length} món`, 'ok');
   } catch (e) { status('Không dán được: ' + e.message, 'bad'); }
 });
 
@@ -499,6 +554,7 @@ async function boot() {
   E.config = await loadConfig();
   E.liveArt = E.config.art === 'casual' ? 'casual' : 'cozy';
   E.book = await loadBook({ fresh: true });
+  chupGoc();
   // loadBook có thể đã lùi về cozy nếu bộ được chọn chưa có level
   E.bookArt = artStyle();       // file sắp xếp này thuộc bộ nào: chỉ được ghi trả về đúng bộ đó
   veBoArt();
