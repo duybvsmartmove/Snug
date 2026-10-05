@@ -148,8 +148,9 @@ const ICON_COIN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="
 function renderScore(d) {
   const el = $('winScore'); if (!el || !d) return;
   const coin = S.LEVEL?.reward?.coin ?? 20;
-  const o = (icon, so, ten) => `<div class="chip"><b>${icon}${so}</b><span>${ten}</span></div>`;
-  el.innerHTML = o(ICON_GIO, giay(d.dungGiay), t('winTime')) + o(ICON_COIN, `+${coin}`, t('winCoins'));
+  // chỉ icon + số, không ghi nhãn "Completed" / "Coins earned" bên dưới
+  const o = (icon, so) => `<div class="chip"><b>${icon}${so}</b></div>`;
+  el.innerHTML = o(ICON_GIO, giay(d.dungGiay)) + o(ICON_COIN, `+${coin}`);
   renderStars(d.sao);
 }
 
