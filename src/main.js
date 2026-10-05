@@ -229,6 +229,18 @@ function anNutDieuHuong({ giuLevelTiep = false } = {}) {
   document.querySelectorAll('.lvnav').forEach(el => { el.hidden = true; });
 }
 
+/**
+ * Nút "+60 sec" ở bảng thua: cộng thẳng 60 giây, tắt bảng thua, chơi tiếp. Không tính coin
+ * (game chưa có ví coin). Hàm này từng bị xoá nhầm, để lại nút gọi vào một tên không có hàm
+ * nào (trình duyệt hiểu nhầm là chính cái nút id="extraTime"), bấm vào chỉ báo lỗi.
+ */
+function extraTime() {
+  if (!S.lost) return;
+  S.timeLeft = 60000; S.lost = false; S.shownSec = -1;
+  hideLose(); duckMusic(false);
+  toast(t('extraTimeDone'));
+}
+
 /** Về trang chủ: dừng ván đang chơi lại, không tính là thua */
 function goHome() {
   return chuyenMan(async () => {
