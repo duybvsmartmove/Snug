@@ -10,6 +10,7 @@ import { toast } from '../ui/hud.js';
 import { sfx } from '../ui/sfx.js';
 import { sparkle, ring, floatText } from './fx.js';
 import { t, itemName } from '../i18n.js';
+import { dungBooster } from './events.js';
 
 const { Body } = Matter;
 
@@ -87,7 +88,7 @@ function useThrow() {
   sfx('trash'); sparkle(b.position.x, b.position.y, { n: 16, color: '#E8434F', speed: 1.3 });
   floatText(b.position.x, b.position.y - 16, t('throwFloat'), { color: '#E8434F' });
   removeBody(b); S.gone.add(b.khoa);
-  S.boosts.throw--; renderBoosts();
+  S.boosts.throw--; renderBoosts(); dungBooster('throw');
   toast(t('threw', { name: itemName(b.realDef) }));
 }
 
@@ -113,7 +114,7 @@ function unfreezeBody(b) {
 
 function useFreeze() {
   if (S.boosts.freeze <= 0 || S.won || S.lost || isFrozenTime()) return;
-  S.boosts.freeze--;
+  S.boosts.freeze--; dungBooster('freeze');
   S.freezeUntil = S.clock + FREEZE_MS;
   for (const b of S.bodies) if (daVao(b) && !isHeld(b) && !b.giuToi && bagZone(b).fullyInside) freezeBody(b);
   sfx('shrink', { rate: .7 });
@@ -148,7 +149,7 @@ function useResize() {
   S.puffs.push({ x: b.position.x, y: b.position.y, t: 0 });
   sfx('shrink'); ring(b.position.x, b.position.y, { color: '#3D8BFF', r1: 40, life: 420 });
   floatText(b.position.x, b.position.y - 18, '−20%', { color: '#2A66C8' });
-  S.boosts.resize--; renderBoosts();
+  S.boosts.resize--; renderBoosts(); dungBooster('resize');
   toast(t('shrunk', { name: itemName(b.realDef) }));
 }
 

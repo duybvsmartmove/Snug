@@ -10,6 +10,7 @@ import { onImpact } from './physics.js';
 import { markDone, setSpot } from './progress.js';
 import { chamDiem } from './score.js';
 import { t } from '../i18n.js';
+import { ketThucLuot } from './events.js';
 
 const { Body, Bounds, Collision } = Matter;
 
@@ -308,6 +309,7 @@ export function updateChecked() {
   if (S.checked.size === S.ITEMS.length && !S.drag && !S.lost) {
     if (++S.winFrames > 45 && !S.won) {
       S.won = true;
+      ketThucLuot('win');   // event level_end win, ngay lúc thắng
       if (S.map) {
         const lanDau = markDone(S.map.id, S.levelIdx);
         setSpot(S.map.id, Math.min(S.levelIdx + 1, S.map.levels.length - 1));

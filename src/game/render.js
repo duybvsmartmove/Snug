@@ -8,6 +8,7 @@ import { moveHeld, tickRotation, rotateButtonPos, rotButtonR } from './input.js'
 import { checkEject, updateChecked } from './rules.js';
 import { tickPhone, checkUnlock, drawStrings } from './mechanics.js';
 import { tickFloat } from './float.js';
+import { ketThucLuot } from './events.js';
 import { tickFreeze } from './boosters.js';
 import { tickShake, lacTui } from './shake.js';
 import { updateClock, showLose } from '../ui/hud.js';
@@ -185,7 +186,7 @@ function tickTimer(dt) {
   // không mất mấy giây đó, nên đồng hồ đứng chờ, không để máy thua vì nghĩ lâu.
   if (S.won || S.lost || !S.timerOn || S.mayNghi || S.anHud) return;   // S.anHud: bản ẩn HUD, xem main.js
   S.timeLeft -= dt;
-  if (S.timeLeft <= 0) { S.timeLeft = 0; S.lost = true; showLose(); }
+  if (S.timeLeft <= 0) { S.timeLeft = 0; S.lost = true; ketThucLuot('lose'); showLose(); }   // event level_end lose ngay lúc hết giờ
 }
 
 // Ngón tay giả: Creative Tool bật khi máy tự chơi, để video trông như có người kéo.

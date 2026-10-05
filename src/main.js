@@ -13,6 +13,7 @@ import { BAG_SKINS } from './art/scene-registry.js';
 import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, loadBags, whenSpriteReady, setArtStyle, artStyle, applyArtIcons, loadConfig } from './content/loader.js';
 import { useArtProgress, getSpot } from './game/progress.js';
 import { chonNguonNoiDung } from './content/remote.js';
+import { lyDoVao, tiepTucLuot } from './game/events.js';
 import { autoplay, stopAutoplay, autoState, autoLog, chanDoan } from './game/autoplay.js';
 import * as FX from './game/fx.js';
 import * as RULES from './game/rules.js';
@@ -65,9 +66,9 @@ async function moManLanDau() {
 
 async function boot() {
   bindOverlayButtons({
-    onAgain: restart,                              // chơi lại cùng màn: dựng tức thì, che màn chỉ tổ chậm tay
-    onNext: () => chuyenMan(nextLevel),
-    onPrev: () => chuyenMan(prevLevel),
+    onAgain: () => { lyDoVao('restart'); restart(); },   // chơi lại cùng màn: dựng tức thì, che màn chỉ tổ chậm tay
+    onNext: () => { lyDoVao('next'); return chuyenMan(nextLevel); },
+    onPrev: () => { lyDoVao('next'); return chuyenMan(prevLevel); },
     onExtraTime: extraTime,
     onHome: goHome,
   });
@@ -169,6 +170,7 @@ async function boot() {
  * hở là người chơi thấy sân trống rồi đồ đạc lần lượt mọc lên.
  */
 async function startLevel(ch, idx) {
+  lyDoVao('home');   // lượt đầu của lần mở app tự thành first_open / app_open / reopen (events.js)
   await chuyenMan(async () => {
     if (!S.map || S.mapId !== ch.id) {
       S.mapId = ch.id; S.map = ch;
@@ -239,6 +241,7 @@ function extraTime() {
   S.timeLeft = 60000; S.lost = false; S.shownSec = -1;
   hideLose(); duckMusic(false);
   toast(t('extraTimeDone'));
+  tiepTucLuot();   // không gửi event, lượt chơi tiếp tục
 }
 
 /** Về trang chủ: dừng ván đang chơi lại, không tính là thua */

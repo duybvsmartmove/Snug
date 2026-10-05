@@ -6,6 +6,7 @@ import { theme } from '../art/helpers.js';
 import { makeItem, createWorld, dungTui, NHOM_TRAN } from './physics.js';
 import { dust, ring } from './fx.js';
 import { resolveContainer } from '../data/bag.js';
+import { batDauLuot } from './events.js';
 import { soThuTuLevel } from '../content/loader.js';
 import { BAG_SKINS } from '../art/scene-registry.js';
 import { createTethers } from './mechanics.js';
@@ -76,6 +77,7 @@ export function build(level) {
   sfx('whoosh', { gain: .34, rate: .88 });   // một nhịp mở màn trước khi đồ đổ xuống
   createTethers();
   renderList(true);
+  batDauLuot();   // event level_start (chỉ app Android, xem game/events.js)
 }
 
 /** Thanh tên level trên HUD; gọi lại khi đổi ngôn ngữ giữa ván */

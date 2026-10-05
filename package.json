@@ -16,10 +16,12 @@
     "android:install": "npm run android:apk && adb install -r android/app/build/outputs/apk/debug/*-debug.apk"
   },
   "dependencies": {
+    "@capacitor-firebase/analytics": "^8.5.2",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.2",
     "@capacitor/haptics": "^8.0.2",
+    "firebase": "^12.19.0",
     "matter-js": "^0.20.0",
     "poly-decomp": "^0.3.0"
   },
