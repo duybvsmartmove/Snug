@@ -692,7 +692,7 @@ html.tay-gia, html.tay-gia *{cursor:none !important}
 .win-card .win-lv{font:800 .82em "Nunito";letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 .3em}
 .win-card h2{font-size:1.85em;margin:0 0 .25em}
 .win-card .stars{gap:.35em;margin:.15em 0 .8em}
-.win-card .star,.win-card .star svg{width:2.5em;height:2.5em}
+.win-card .star,.win-card .star svg{width:2.75em;height:2.75em}   /* to hơn 10% */
 .win-stats{display:flex;justify-content:center;gap:2.2em;margin:0 0 1.25em}
 .win-stats .chip{display:flex;flex-direction:column;align-items:center;gap:.2em;background:none!important;border:0!important;padding:0;box-shadow:none}
 .win-stats .chip b{display:flex;align-items:center;gap:.28em;font:700 1.4em "Baloo 2";line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -701,5 +701,5 @@ html.tay-gia, html.tay-gia *{cursor:none !important}
 html[data-art="cozy"] .win-stats .chip b{color:var(--wood)}
 .win-card .win-next{width:100%;justify-content:center}
 .win-card #again{margin-top:.75em;font-weight:800}
-#winText.win-khen{margin:0 auto .5em;max-width:94%;font:700 .9em/1.4 "Nunito";text-wrap:balance}
+#winText.win-khen{margin:0 auto .5em;max-width:94%;font:700 .855em/1.4 "Nunito";text-wrap:balance}   /* nhỏ hơn 5% */
 #winText.win-khen b{font-size:1.25em}
