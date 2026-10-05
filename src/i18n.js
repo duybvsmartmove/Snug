@@ -126,7 +126,9 @@ export function itemName(def) {
 /** Tên level / tên chương / chữ gợi ý túi trống theo ngôn ngữ */
 export const levelName = lv => (lang === 'vi' ? lv?.name : (lv?.nameEn || lv?.name)) || '';
 export const chapterName = ch => (lang === 'vi' ? (ch?.nameVi || ch?.name) : ch?.name) || '';
-export const emptyText = lv => (lang === 'vi' ? lv?.emptyText : (lv?.emptyTextEn || lv?.emptyText)) || t('emptyBag');
+// Tiếng Anh không mượn câu tiếng Việt của level (level 1 chỉ có emptyText tiếng Việt): thiếu
+// bản tiếng Anh thì dùng câu tiếng Anh mặc định.
+export const emptyText = lv => (lang === 'vi' ? lv?.emptyText : lv?.emptyTextEn) || t('emptyBag');
 export const tierName = tier => (tier ? t(tier) : '');
 
 /** Đổ chữ tĩnh trong HTML: [data-i18n] → innerHTML, [data-i18n-aria] → aria-label */
