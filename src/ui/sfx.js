@@ -24,8 +24,18 @@ export function setSilent(v) { silent = v; }
 export const isSfxOn = () => prefs.sfx;
 export const isMusicOn = () => prefs.music;
 
+// Tiếng do bên âm thanh làm (m4a), thay cho tiếng tự sinh cùng tên. Tiếng không có trong bảng
+// này vẫn là file .wav sinh bằng build_audio.mjs.
+const FILE = {
+  bgm: 'bgm.m4a',                  // nhạc nền, phát lặp
+  tap: 'button.m4a',               // bấm nút, chọn món
+  tapBig: 'button.m4a',            // nút to ở bảng thắng / thua / tạm dừng
+  win: 'level_complete.m4a',       // thắng màn
+  lose: 'lose.m4a',                // thua màn
+};
+
 async function decode(name) {
-  const res = await fetch(BASE + name + '.wav');
+  const res = await fetch(BASE + (FILE[name] || name + '.wav'));
   if (!res.ok) throw new Error(res.status);
   return ac.decodeAudioData(await res.arrayBuffer());
 }
@@ -65,7 +75,7 @@ export function sfxSeq(name, n, { step = .13, rate = 1, up = .12, gain = 1 } = {
 // ---------- nhạc nền ----------
 /**
  * Bật nhạc nền. Gọi bao nhiêu lần cũng chỉ có một luồng chạy.
- * Cờ musicStarting là bắt buộc: lần gọi đầu phải chờ tải xong bgm.wav, trong lúc chờ đó
+ * Cờ musicStarting là bắt buộc: lần gọi đầu phải chờ tải xong bgm.m4a, trong lúc chờ đó
  * musicNode vẫn là null nên mọi lần gọi khác đều lọt qua và cùng dựng thêm một luồng —
  * kết quả là hai ba bản nhạc đè lên nhau mà chỉ tắt được bản cuối.
  */
@@ -83,12 +93,30 @@ export async function startMusic() {
     if (!musicWanted || !prefs.music || musicNode) return;   // đổi ý trong lúc đang tải
     musicNode = ac.createBufferSource();
     musicNode.buffer = musicBuffer; musicNode.loop = true;
+    // File AAC (m4a) có đoạn im lặng ngắn ở đầu và cuối do bộ nén thêm vào: lặp nguyên file là
+    // nghe hụt một nhịp ở chỗ nối. Bỏ đúng phần thừa đó (xem vungCoTieng).
+    const [dau, cuoi] = vungCoTieng(musicBuffer);
+    if (cuoi > dau) { musicNode.loopStart = dau; musicNode.loopEnd = cuoi; }
     musicNode.connect(musicBus);
-    musicNode.start();
+    musicNode.start(0, musicNode.loopStart || 0);   // vào thẳng phần có tiếng
     ramp(musicBus.gain, .32, 1.2);
   } catch {
     /* không tải được thì chơi tiếp trong im lặng */
   } finally { musicStarting = false; }
+}
+
+/**
+ * Đoạn lặp của nhạc nền: bỏ phần im lặng THỪA do bộ nén AAC chèn vào hai đầu file (đầu ~0,05 s,
+ * cuối < 0,03 s), nhưng giữ nguyên khoảng nghỉ có chủ ý của bản nhạc. Bản BGM nghỉ 0,77 s ở cuối
+ * để vòng lặp khớp phách; cắt hết khoảng đó là nhịp vào lại sớm, nghe lệch.
+ */
+const THUA_DAU = .06, THUA_CUOI = .03;
+function vungCoTieng(buf) {
+  const d = buf.getChannelData(0), n = d.length, nguong = 1e-3, sr = buf.sampleRate;
+  let a = 0, b = n - 1;
+  while (a < n && Math.abs(d[a]) < nguong) a++;
+  while (b > a && Math.abs(d[b]) < nguong) b--;
+  return [Math.min(a / sr, THUA_DAU), buf.duration - Math.min((n - 1 - b) / sr, THUA_CUOI)];
 }
 
 export function stopMusic() {

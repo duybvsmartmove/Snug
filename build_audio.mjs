@@ -1,6 +1,8 @@
 // Sinh toàn bộ hiệu ứng âm thanh ra file WAV thật trong public/audio/.
 // Dùng file thật (không synth lúc chạy) để sau bê nguyên sang Unity được.
 // Chạy: node build_audio.mjs
+// Lưu ý: bgm, tap, tapBig, win, lose đã thay bằng file m4a của bên âm thanh (xem FILE trong
+// src/ui/sfx.js); các file .wav cùng tên mà lệnh này sinh ra không còn được game dùng.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
