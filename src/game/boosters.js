@@ -22,7 +22,30 @@ const els = {
 /** Số lượt mặc định mỗi level (GDD "Free ban đầu"); level JSON ghi đè qua level.boosters */
 export const DEFAULT_BOOSTS = { freeze: 2, resize: 2, throw: 1 };
 
+// ---------- kho booster của người chơi ----------
+// Game thật (web, app): số lượt là KHO CHUNG, lưu trong máy, không hồi lại mỗi màn. Ban đầu có
+// DEFAULT_BOOSTS; dùng lượt nào mất lượt đó, sang màn mới hay chơi lại cũng không hồi. Hết thì
+// nút xám đi, không bấm được (sau này xem quảng cáo để nhận thêm: gọi themBooster).
+// Editor (xem thử) và Creative vẫn đặt lại mỗi màn như cũ, để thử level và quay video không bị hết.
+const KHO = 'snug.boosts.v1';
+const dungKho = () => !S.preview && new URLSearchParams(location.search).get('creative') !== '1';
+function docKho() {
+  try { const k = JSON.parse(localStorage.getItem(KHO)); if (k && typeof k === 'object') return { ...DEFAULT_BOOSTS, ...k }; } catch {}
+  return { ...DEFAULT_BOOSTS };
+}
+function luuKho() {
+  if (!dungKho() || !S.boosts) return;
+  try { localStorage.setItem(KHO, JSON.stringify(S.boosts)); } catch {}
+}
+/** Cộng thêm lượt vào kho (dùng sau này khi xem quảng cáo nhận booster) */
+export function themBooster(loai, n = 1) {
+  if (!S.boosts || !(loai in DEFAULT_BOOSTS)) return;
+  S.boosts[loai] = (S.boosts[loai] || 0) + n;
+  renderBoosts();
+}
+
 export function renderBoosts() {
+  luuKho();   // mọi lần đổi số lượt đều đi qua đây: ghi kho luôn
   for (const k of Object.keys(els)) {
     const el = els[k];
     const dangBang = k === 'freeze' && freezeLeft() > 0;
@@ -39,7 +62,7 @@ export function setBoostOverride(n) { boostOverride = n == null ? null : Math.ma
 
 export function resetBoosts() {
   S.freezeUntil = 0; giayCu = -1;
-  S.boosts = { ...DEFAULT_BOOSTS, ...(S.LEVEL?.boosters || {}) };
+  S.boosts = dungKho() ? docKho() : { ...DEFAULT_BOOSTS, ...(S.LEVEL?.boosters || {}) };
   if (boostOverride != null) S.boosts = { freeze: boostOverride, resize: boostOverride, throw: boostOverride };
   renderBoosts();
 }
