@@ -76,7 +76,10 @@ let BOOK = null;
  * sau người chơi mới thấy. File chỉ khoảng 40 KB nên tải lại không đáng kể.
  */
 export async function loadBook(opts) {
-  try { BOOK = await getJSON('levels.json', { ...opts, noStore: true }); }
+  // App Android: level đã nhét sẵn vào index.html lúc build (tools/build-www.mjs), lấy luôn
+  const macDinh = window.Capacitor?.isNativePlatform?.() && window.__LEVELS_MAC_DINH;
+  if (macDinh && ART === 'cozy') BOOK = structuredClone(macDinh);
+  else try { BOOK = await getJSON('levels.json', { ...opts, noStore: true }); }
   catch (e) {
     if (ART === 'cozy') throw e;
     console.warn(`Bộ art ${ART} chưa có levels.json, dùng bộ cozy`);

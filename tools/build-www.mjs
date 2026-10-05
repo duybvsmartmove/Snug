@@ -67,7 +67,15 @@ console.log(`www/ built — ${files} files, ${(bytes / 1024 / 1024).toFixed(2)} 
 // rồi đồng bộ lại để APK lấy bản mới nhất.
 const cfgFile = join(WWW, 'content', 'config.json');
 writeFileSync(cfgFile, JSON.stringify({ ...JSON.parse(readFileSync(cfgFile, 'utf8')), art: 'cozy' }, null, 2) + '\n');
-console.log('\n>>> App Android: bộ art COZY, level đóng gói sẵn, không tải gì từ GitHub');
+// Level nhét thẳng vào index.html (window.__LEVELS_MAC_DINH): app mở là có level ngay từ code,
+// không đọc file levels.json lúc chạy. Bản lấy là public/content/cozy/levels.json của máy.
+const levels = readFileSync(join(ROOT, 'public', 'content', 'cozy', 'levels.json'), 'utf8');
+const book = JSON.parse(levels);
+const htmlFile = join(WWW, 'index.html');
+const nhet = `<script>window.__LEVELS_MAC_DINH=${JSON.stringify(book).replace(/</g, '\\u003c')};</script>`;
+writeFileSync(htmlFile, readFileSync(htmlFile, 'utf8').replace('<head>', '<head>' + nhet));
+const soLevel = (book.chapters || []).reduce((n, c) => n + (c.levels?.length || 0), 0);
+console.log(`\n>>> App Android: bộ art COZY, ${soLevel} level nhét sẵn trong code, không tải gì từ GitHub`);
 
 // Máy còn thiếu commit nội dung (đổi bộ art, sửa level) từ GitHub thì cảnh báo
 try {
