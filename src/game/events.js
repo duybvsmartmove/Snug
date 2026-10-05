@@ -46,8 +46,10 @@ function guiLen(name, params) {
   (window.__suKien = window.__suKien || []).push({ name, params, t: Date.now() });
   if (window.__suKien.length > 200) window.__suKien.shift();
   if (!duocGui()) return;
-  plugin = plugin || import('@capacitor-firebase/analytics').then(m => m.FirebaseAnalytics).catch(() => null);
-  plugin.then(fa => fa?.logEvent({ name, params })).catch(e => console.warn('[event]', name, e?.message || e));
+  // Bọc plugin trong một object: plugin Capacitor là Proxy trả lời mọi thuộc tính, kể cả "then",
+  // nên trả thẳng nó ra từ Promise thì Promise tưởng là thenable, treo mãi, không event nào đi.
+  plugin = plugin || import('@capacitor-firebase/analytics').then(m => ({ fa: m.FirebaseAnalytics })).catch(() => ({}));
+  plugin.then(({ fa }) => fa?.logEvent({ name, params })).catch(e => console.warn('[event]', name, e?.message || e));
 }
 
 // ---------- lượt chơi hiện tại ----------
