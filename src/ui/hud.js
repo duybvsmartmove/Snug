@@ -2,7 +2,8 @@
 import { S } from '../game/state.js';
 import { sfx, duckMusic } from './sfx.js';
 import { shake } from '../game/fx.js';
-import { t } from '../i18n.js';
+import { t, cauKhenNgauNhien } from '../i18n.js';
+import { soThuTuLevel } from '../content/loader.js';
 
 const $ = id => document.getElementById(id);
 const hint = $('hint'), countEl = $('count'), clockEl = $('clock');
@@ -72,11 +73,13 @@ const HINH_SAO = '<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5
  * ngang — cắt 50% thì ra nửa sao. Làm bằng cách này nên nửa sao trông đúng là một ngôi
  * sao bị lấp một nửa, chứ không phải một hình sao méo.
  */
+const SO_SAO = 3;   // bảng thắng mới: ba ngôi sao; điểm tính theo thang 5 sao nên quy đổi
 function renderStars(sao) {
   const el = $('winStars'); if (!el) return;
   el.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
-    const day = Math.max(0, Math.min(1, sao - i));
+  const tren3 = sao * SO_SAO / 5;
+  for (let i = 0; i < SO_SAO; i++) {
+    const day = Math.max(0, Math.min(1, tren3 - i));
     const o = document.createElement('span');
     o.className = 'star';
     o.style.animationDelay = (.1 + i * .11) + 's';
@@ -125,6 +128,7 @@ function thuHang(d) {
  * đo sẵn). Mỗi màn có một trần khít riêng — bộ đồ càng tròn thì trần càng thấp — nên
  * danh hiệu phản ánh đúng cái khó của màn vừa chơi.
  */
+// eslint-disable-next-line no-unused-vars -- danh hiệu cũ, bảng thắng mới chỉ ghi "Packed!"
 function danhGia(d) {
   const p = Math.round((d.tiLeGon || 0) * 100);
   const hang = t(p >= 99 ? 'rank99' : p >= 93 ? 'rank93' : p >= 84 ? 'rank84' : p >= 72 ? 'rank72' : 'rank0');
@@ -137,17 +141,22 @@ function danhGia(d) {
  * mừng xong thì không ngồi đọc bảng thống kê. Giữ một câu nói rõ vừa làm được gì, ba
  * con số phụ thu thành ba ô nhỏ bên dưới.
  */
+// Hai ô ở bảng thắng: thời gian hoàn thành và coin nhận được (thưởng của level). Bỏ điểm và
+// số booster đã dùng theo bố cục mới.
+const ICON_GIO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="#F2C14E"/><circle cx="12" cy="13" r="5.6" fill="#FFF8E7"/><path d="M12 13V9.6M12 13l2.6 1.4" stroke="#5A3A22" stroke-width="1.8" stroke-linecap="round"/><rect x="9.5" y="2.6" width="5" height="2.6" rx="1.3" fill="#F2C14E"/></svg>';
+const ICON_COIN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#F2B530"/><circle cx="12" cy="12" r="6.6" fill="#FFD25E"/><path d="M12 8.4v7.2M9.8 10.2h3.6a1.4 1.4 0 0 1 0 2.8h-2.8a1.4 1.4 0 0 0 0 2.8h3.6" stroke="#C47F10" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>';
 function renderScore(d) {
   const el = $('winScore'); if (!el || !d) return;
-  const o = (so, ten) => `<div class="chip"><b>${so}</b><span>${ten}</span></div>`;
-  el.innerHTML = o(d.diem, t('scorePts')) + o(giay(d.dungGiay), t('scoreTime')) + o(`${d.dungBooster}/${d.tongBooster}`, t('scoreBoost'));
+  const coin = S.LEVEL?.reward?.coin ?? 20;
+  const o = (icon, so, ten) => `<div class="chip"><b>${icon}${so}</b><span>${ten}</span></div>`;
+  el.innerHTML = o(ICON_GIO, giay(d.dungGiay), t('winTime')) + o(ICON_COIN, `+${coin}`, t('winCoins'));
   renderStars(d.sao);
 }
 
 export function showWin(diem) {
-  const { hang, khoe } = danhGia(diem || {});
-  $('winRank').textContent = hang;
-  $('winText').innerHTML = khoe;
+  $('winLevel').textContent = t('winLevel', { n: soThuTuLevel(S.mapId, S.levelIdx) });
+  $('winRank').textContent = `✨ ${t('winPacked')} ✨`;
+  $('winText').innerHTML = cauKhenNgauNhien();   // câu cố định trong i18n.js, không có dữ liệu người dùng
   renderScore(diem);
   show('win');
 }

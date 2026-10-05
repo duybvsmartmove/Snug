@@ -199,13 +199,17 @@
 
     <!-- Win -->
     <div class="overlay" id="win">
-      <div class="card">
+      <!-- Bố cục: LEVEL N COMPLETE! · ✨ Packed! ✨ · 3 sao · thời gian + coin · Next level · Replay -->
+      <div class="card win-card">
+        <div class="win-lv" id="winLevel">LEVEL 1 COMPLETE!</div>
+        <h2 id="winRank">✨ Packed! ✨</h2>
+        <p class="win-khen" id="winText"></p>
         <div class="stars" id="winStars"></div>
-        <h2 id="winRank">It fits!</h2>
-        <p id="winText"></p>
-        <div class="score" id="winScore"></div>
-        <div class="actions"><button class="cta ghost" id="again" data-i18n="winReplay">Replay</button><button class="cta" id="next" data-i18n="winNext">Next level →</button></div>
-        <button class="linkbtn" id="winHome" data-i18n="home">Home</button>
+        <div class="win-stats" id="winScore"></div>
+        <button class="cta win-next" id="next" data-i18n="winNext">Next level →</button>
+        <!-- bố cục mới không có Replay / Home ở bảng thắng; giữ nút ẩn để code gắn sự kiện không lỗi -->
+        <button class="linkbtn" id="again" data-i18n="winReplay" hidden>Replay</button>
+        <button class="linkbtn" id="winHome" data-i18n="home" hidden>Home</button>
       </div>
     </div>
 

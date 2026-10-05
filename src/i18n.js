@@ -24,6 +24,7 @@ const D = {
     paused: 'Paused', resumeBtn: 'Resume', restart: 'Restart', home: 'Home', prevLevel: '‹ Previous', nextLevel: 'Next ›',
     // Win
     winReplay: 'Replay', winNext: 'Next level →',
+    winLevel: 'LEVEL {n} COMPLETE!', winPacked: 'Packed!', winTime: 'Completed', winCoins: 'Coins earned',
     rank99: 'Perfect!', rank93: 'Snug as a bug!', rank84: 'Super tidy!', rank72: 'Neatly packed!', rank0: 'It fits!',
     brag: 'You beat <b>{pct}%</b> of players on this level',
     scorePts: 'points', scoreTime: 'time', scoreBoost: 'boosters',
@@ -55,6 +56,7 @@ const D = {
     finishToUnlock: 'Xong Chương {no} để mở',
     paused: 'Tạm dừng', resumeBtn: 'Chơi tiếp', restart: 'Chơi lại', home: 'Về trang chủ', prevLevel: '‹ Level trước', nextLevel: 'Level sau ›',
     winReplay: 'Chơi lại', winNext: 'Level tiếp →',
+    winLevel: 'HOÀN THÀNH LEVEL {n}!', winPacked: 'Xếp xong!', winTime: 'Hoàn thành', winCoins: 'Coin nhận được',
     rank99: 'Hoàn hảo!', rank93: 'Khít như in!', rank84: 'Cực gọn!', rank72: 'Gọn gàng!', rank0: 'Vừa khít!',
     brag: 'Bạn vừa vượt <b>{pct}%</b> người chơi ở màn này',
     scorePts: 'điểm', scoreTime: 'thời gian', scoreBoost: 'booster',
@@ -137,3 +139,28 @@ export function applyStatic(root = document) {
   root.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
 }
 document.documentElement.lang = lang;
+
+/**
+ * Câu khen ở bảng thắng, dưới dòng "Packed!". Mỗi lần thắng chọn NGẪU NHIÊN một câu, {pct} là một
+ * số phần trăm ngẫu nhiên trong khoảng PCT_KHEN. Thêm câu: thêm một dòng vào đúng ngôn ngữ.
+ * Con số chỉ để tạo cảm giác, game không có máy chủ đo người chơi thật.
+ */
+const CAU_KHEN = {
+  en: [
+    "Only {pct}% of players beat this level. You're one of them!",
+    "Just {pct}% of players packed this one. You did it!",
+    "Only {pct}% made it this far. Nice packing!",
+  ],
+  vi: [
+    'Chỉ {pct}% người chơi qua được màn này. Bạn là một trong số đó!',
+    'Chỉ {pct}% người chơi xếp gọn được màn này. Bạn làm được rồi!',
+    'Chỉ {pct}% đi được tới đây. Xếp khéo lắm!',
+  ],
+};
+const PCT_KHEN = [12, 38];
+export function cauKhenNgauNhien() {
+  const ds = CAU_KHEN[lang] || CAU_KHEN.en;
+  const pct = PCT_KHEN[0] + Math.floor(Math.random() * (PCT_KHEN[1] - PCT_KHEN[0] + 1));
+  // con số tô đậm (CSS #winText b): mắt bắt được ngay
+  return ds[Math.floor(Math.random() * ds.length)].replace('{pct}%', `<b>${pct}%</b>`).replace('{pct}', `<b>${pct}</b>`);
+}
