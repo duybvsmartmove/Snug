@@ -15,11 +15,13 @@
 //   lose_index   level_start: số lần đã thua level này TRƯỚC lượt này (từ 0)
 //                level_end:   số lần đã thua, TÍNH CẢ lượt vừa xong nếu thua
 //                mỗi level (và mỗi bộ art) một bộ đếm, lưu trong máy, bỏ dở không tính là thua
-//   booster_use  "Booster_freeze_2,Booster_resize_1"; không dùng booster nào → 0
+//   booster_use  "Booster_freeze_2,Booster_resize_1,Booster_PlayOn_Ads_1"; không dùng booster nào → 0
+//                PlayOn_Ads = số lần bấm "+60 sec" chơi tiếp khi hết giờ (sau này là xem rewarded ads)
 //   result       win  ngay khi thắng · lose  ngay khi hết giờ
 //                quit tắt hẳn app khi level đang dở: gửi bù lúc mở app lần sau, trước level_start reopen
 //
-// Bấm "+60 sec" không gửi gì; chơi tiếp tới khi thắng / hết giờ lần nữa thì gửi thêm level_end.
+// Bấm "+60 sec" không gửi gì ngay, tính là một lần dùng booster PlayOn_Ads; chơi tiếp tới khi
+// thắng / hết giờ lần nữa thì gửi thêm level_end.
 // Bấm Restart trong bảng tạm dừng không gửi quit, chỉ gửi level_start restart.
 // Bản web, editor, Creative, khung xem thử: KHÔNG gửi (vẫn ghi vào window.__suKien để kiểm tra).
 import { S } from './state.js';
@@ -55,7 +57,7 @@ let booster = {};          // số lần dùng từng booster trong lượt
 const khoaThua = () => `${artStyle()}:${S.LEVEL?.id || ''}`;
 const soLevel = () => soThuTuLevel(S.mapId, S.levelIdx);
 const chuoiBooster = b => {
-  const ds = ['freeze', 'resize', 'throw'].filter(k => b[k] > 0).map(k => `Booster_${k}_${b[k]}`);
+  const ds = ['freeze', 'resize', 'throw', 'PlayOn_Ads'].filter(k => b[k] > 0).map(k => `Booster_${k}_${b[k]}`);
   return ds.length ? ds.join(',') : '0';
 };
 
@@ -101,9 +103,10 @@ export function ketThucLuot(result) {
   luu();
 }
 
-/** Bấm "+60 sec": không gửi event, lượt chơi tiếp tục (tắt app lúc này là bỏ dở) */
+/** Bấm "+60 sec": không gửi event, tính một lần booster PlayOn_Ads, lượt chơi tiếp tục (tắt app lúc này là bỏ dở) */
 export function tiepTucLuot() {
   if (!S.LEVEL || laCongCu()) return;
+  booster.PlayOn_Ads = (booster.PlayOn_Ads || 0) + 1;
   D.dangChoi = { level: soLevel(), lose_index: D.thua[khoaThua()] || 0, booster: { ...booster } };
   luu();
 }
