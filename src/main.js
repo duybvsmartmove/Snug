@@ -12,7 +12,6 @@ import { bindImpacts } from './game/rules.js';
 import { BAG_SKINS } from './art/scene-registry.js';
 import { loadBook, chapters, chapterById, loadChapterAssets, loadItemManifests, loadBags, whenSpriteReady, setArtStyle, artStyle, applyArtIcons, loadConfig } from './content/loader.js';
 import { useArtProgress, getSpot } from './game/progress.js';
-import { chonNguonNoiDung } from './content/remote.js';
 import { lyDoVao, tiepTucLuot } from './game/events.js';
 import { autoplay, stopAutoplay, autoState, autoLog, chanDoan } from './game/autoplay.js';
 import * as FX from './game/fx.js';
@@ -88,9 +87,10 @@ async function boot() {
   setSilent(S.preview && params.get('audio') !== '1');
   unlockOnFirstGesture();
 
-  // App Android: hỏi GitHub Pages trước, có bản mới thì đọc nội dung từ đó như bản web
-  await chonNguonNoiDung();
-  if (!params.get('art')) setArtStyle((await loadConfig()).art);
+  // App Android: không gọi mạng, chạy cứng bộ art cozy với level đóng gói sẵn trong APK
+  // (đổi level thì sync lại rồi build bản mới). Bản web vẫn theo config.json như cũ.
+  if (window.Capacitor?.isNativePlatform?.()) setArtStyle('cozy');
+  else if (!params.get('art')) setArtStyle((await loadConfig()).art);
   // Toàn bộ nội dung nằm trong bản build: một file sắp xếp và thư mục ảnh. Không gọi mạng.
   await loadBook({ fresh: S.preview });
   useArtProgress(artStyle());
