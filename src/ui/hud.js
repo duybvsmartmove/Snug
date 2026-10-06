@@ -160,6 +160,7 @@ export function showWin(diem) {
   $('winText').innerHTML = cauKhenNgauNhien();   // câu cố định trong i18n.js, không có dữ liệu người dùng
   renderScore(diem);
   show('win');
+  sfx('star', { delay: .1 });   // Star_get: đúng lúc bảng hiện và ngôi sao đầu bật ra
 }
 export function hideWin() { hide('win'); }
 export function showLose() {

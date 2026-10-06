@@ -4,7 +4,7 @@ import { KEY_ID } from '../data/items.js';
 import { S, BAG, PAD, W, TABLE_Y, FLOOR_Y, partsOf, isHeld, daVao } from './state.js';
 import { pointInPolygon, pointInPolygonTolerant } from '../util/geom.js';
 import { toast, renderList, showWin } from '../ui/hud.js';
-import { sfx, sfxSeq, duckMusic } from '../ui/sfx.js';
+import { sfx, duckMusic } from '../ui/sfx.js';
 import { sparkle, ring, confetti, shake, floatText, dust } from './fx.js';
 import { onImpact } from './physics.js';
 import { markDone, setSpot } from './progress.js';
@@ -321,7 +321,6 @@ export function updateChecked() {
       // Bảng thắng có lớp mờ phủ kín màn: hiện ngay thì che mất pháo giấy vừa bắn.
       // Chờ một nhịp cho người chơi nhìn thấy ăn mừng rồi bảng mới trượt vào.
       const diem = chamDiem();
-      sfxSeq('star', Math.max(1, Math.round(diem.sao)), { step: .14, rate: .95, up: .1 });
       setTimeout(() => { if (S.won) showWin(diem); }, 700);
     }
   } else S.winFrames = 0;

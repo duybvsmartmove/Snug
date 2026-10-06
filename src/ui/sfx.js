@@ -29,8 +29,9 @@ export const isMusicOn = () => prefs.music;
 // này vẫn là file .wav sinh bằng build_audio.mjs.
 const FILE = {
   bgm: 'bgm.m4a',                  // nhạc nền, phát lặp
-  tap: 'button.m4a',               // bấm nút, chọn món
-  tapBig: 'button.m4a',            // nút to ở bảng thắng / thua / tạm dừng
+  tap: 'button_pressed.wav',       // bấm nút, chọn món (wav: không có khoảng lặng đầu như m4a)
+  tapBig: 'button_pressed.wav',    // nút to ở bảng thắng / thua / tạm dừng
+  star: 'star_get.m4a',            // bảng thắng hiện lên, các ngôi sao chấm điểm
   win: 'level_complete.m4a',       // thắng màn
   lose: 'lose.m4a',                // thua màn
 };
