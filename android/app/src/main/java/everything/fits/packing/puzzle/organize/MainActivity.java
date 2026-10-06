@@ -65,5 +65,10 @@ public class MainActivity extends BridgeActivity {
     });
 
     ViewCompat.requestApplyInsets(web);
+
+    // Cho WebView phát tiếng ngay, không chờ người chơi chạm (như game cater). Mặc định WebView bắt
+    // chờ chạm: AudioContext dựng lúc Splash bị treo ở trạng thái chờ, và trên vài máy (Tecno chip
+    // Unisoc) mở lại sau lần chạm vẫn câm hẳn. Bản web vẫn chờ chạm như trình duyệt bắt buộc.
+    web.getSettings().setMediaPlaybackRequiresUserGesture(false);
   }
 }

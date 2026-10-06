@@ -18,7 +18,8 @@ function savePrefs() { try { localStorage.setItem(KEY, JSON.stringify(prefs)); }
 let ac = null, sfxBus = null, musicBus = null;
 const buffers = new Map();
 let musicNode = null, musicBuffer = null, musicWanted = false, musicStarting = false;
-let silent = false;                 // khung xem thử trong editor: tắt hẳn cho đỡ ồn
+let silent = false;
+const laApp = () => !!window.Capacitor?.isNativePlatform?.();                 // khung xem thử trong editor: tắt hẳn cho đỡ ồn
 
 export function setSilent(v) { silent = v; }
 export const isSfxOn = () => prefs.sfx;
@@ -44,6 +45,12 @@ async function decode(name) {
 let booted = null;
 export function initAudio() {
   if (silent) return Promise.resolve();
+  // Chưa có lần chạm nào thì CHƯA dựng AudioContext (trừ app Android: MainActivity đã cho WebView
+  // phát không cần chạm). Dựng trước lần chạm thì trình duyệt để nó ở trạng thái chờ; có máy
+  // (Tecno chip Unisoc, cả Chrome lẫn WebView) mở lại sau đó vẫn câm hẳn, kể cả tiếng mới tạo.
+  // Lần chạm đầu (unlockOnFirstGesture) sẽ gọi lại hàm này, nhạc nền chờ sẵn thì phát luôn.
+  if (!booted && !laApp() && navigator.userActivation && !navigator.userActivation.hasBeenActive) return Promise.resolve();
+  if (THE()) return initThe();
   if (booted) { if (ac.state === 'suspended') ac.resume(); return booted; }
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return (booted = Promise.resolve());
@@ -58,6 +65,7 @@ export function initAudio() {
 
 /** Phát một tiếng. rate đổi cao độ, gain đổi to nhỏ, delay tính bằng giây. */
 export function sfx(name, { rate = 1, gain = 1, delay = 0 } = {}) {
+  if (THE()) { if (!silent && prefs.sfx && booted) sfxThe(name, rate, gain, delay); return; }
   if (silent || !prefs.sfx || !ac) return;
   const b = buffers.get(name); if (!b) return;
   if (ac.state === 'suspended') ac.resume();
@@ -85,6 +93,7 @@ const TAT_NHAC_TAM = false;
 
 export async function startMusic() {
   musicWanted = true;
+  if (THE()) { if (!TAT_NHAC_TAM && !silent && prefs.music && booted) nhacThe(.32, 1.2); return; }
   if (TAT_NHAC_TAM || silent || !prefs.music || !ac) return;
   if (musicNode || musicStarting) return;
   musicStarting = true;
@@ -121,6 +130,7 @@ function vungCoTieng(buf) {
 
 export function stopMusic() {
   musicWanted = false;
+  if (THE()) { nhacThe(0, .5); return; }
   if (!musicNode) return;
   const node = musicNode; musicNode = null;
   ramp(musicBus.gain, 0, .5);
@@ -129,6 +139,7 @@ export function stopMusic() {
 
 /** Hạ nhạc nền xuống khi có overlay thắng / thua, rồi trả lại như cũ */
 export function duckMusic(on) {
+  if (THE()) { if (nhacEl && !nhacEl.paused && musicWanted) nhacThe(on ? .1 : .32, .3); return; }
   if (!ac || !musicNode) return;
   ramp(musicBus.gain, on ? .1 : .32, .3);
 }
@@ -138,6 +149,75 @@ function ramp(param, to, sec) {
   param.cancelScheduledValues(t);
   param.setValueAtTime(param.value, t);
   param.linearRampToValueAtTime(to, t + sec);
+}
+
+// ---------- app Android: phát bằng thẻ <audio> ----------
+// Có máy Android (Tecno chip Unisoc…) mà Web Audio câm hẳn: AudioContext báo đang chạy, file giải
+// mã được, nhưng loa không ra gì, kể cả trong Chrome. Thẻ <audio> thì vẫn kêu (đi đường phát media
+// của máy), nên app Android dùng thẻ <audio> cho mọi tiếng. Bản web giữ Web Audio như cũ.
+// MainActivity đã cho WebView phát không cần chờ chạm, nên tiếng có ngay từ Splash.
+let laThe = null;
+const THE = () => (laThe ??= laApp());   // hỏi lúc cần, không hỏi lúc nạp file
+const TOI_DA_MOI_TIENG = 4;      // một tiếng phát chồng lên nhau tối đa chừng này lần
+const kho = new Map();           // tên tiếng → các thẻ <audio> dùng lại
+let nhacEl = null, nhacHen = 0;
+
+const taoThe = name => {
+  const el = new Audio(BASE + (FILE[name] || name + '.wav'));
+  el.preload = 'auto';
+  el.preservesPitch = false;     // đổi tốc độ là đổi cao độ, như playbackRate của Web Audio
+  return el;
+};
+
+function initThe() {
+  if (!booted) {
+    for (const n of NAMES) kho.set(n, [taoThe(n)]);   // tải sẵn mỗi tiếng một thẻ
+    booted = Promise.resolve();
+  }
+  if (musicWanted) startMusic();
+  return booted;
+}
+
+function sfxThe(name, rate, gain, delay) {
+  const ds = kho.get(name); if (!ds) return;
+  let el = ds.find(e => e.paused || e.ended);
+  if (!el) {
+    if (ds.length >= TOI_DA_MOI_TIENG) return;      // đang kêu đủ chồng rồi, bỏ bớt cho đỡ rối
+    ds.push(el = taoThe(name));
+  }
+  const phat = () => {
+    try {
+      el.volume = Math.max(0, Math.min(1, gain * .85));
+      el.playbackRate = Math.max(.25, Math.min(4, rate));
+      el.currentTime = 0;
+      el.play().catch(() => {});
+    } catch {}
+  };
+  delay > 0 ? setTimeout(phat, delay * 1000) : phat();
+}
+
+// Thẻ <audio> vẫn kêu khi app chạy nền (Web Audio thì tự ngưng theo WebView): tự dừng và bật lại
+document.addEventListener('visibilitychange', () => {
+  if (!THE() || !nhacEl) return;
+  if (document.hidden) nhacEl.pause();
+  else if (musicWanted && prefs.music && !TAT_NHAC_TAM) nhacEl.play().catch(() => {});
+});
+
+/** Đưa âm lượng nhạc nền về `toi` trong `giay` giây; về 0 thì dừng hẳn */
+function nhacThe(toi, giay) {
+  if (!nhacEl) {
+    if (toi <= 0) return;
+    nhacEl = taoThe('bgm'); nhacEl.loop = true; nhacEl.volume = 0;
+  }
+  if (toi > 0 && nhacEl.paused) nhacEl.play().catch(() => {});
+  clearInterval(nhacHen);
+  const tu = nhacEl.volume, buoc = Math.max(1, Math.round(giay * 1000 / 40));
+  let i = 0;
+  nhacHen = setInterval(() => {
+    i++;
+    nhacEl.volume = Math.max(0, Math.min(1, tu + (toi - tu) * i / buoc));
+    if (i >= buoc) { clearInterval(nhacHen); if (toi <= 0) nhacEl.pause(); }
+  }, 40);
 }
 
 // ---------- bật tắt ----------
